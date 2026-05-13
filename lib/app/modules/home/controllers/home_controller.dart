@@ -12,7 +12,7 @@ class HomeController extends GetxController {
   // Ini yang menentukan apa yang muncul saat tombol BottomNav ditekan
   final List<Widget> pages = [
     const HomeView(), // Isi konten Dashboard/Beranda kamu
-    const BerandaEdukasiView(),       // Halaman Edukasi yang barusan dibuat
+    const BerandaEdukasiView(), // Halaman Edukasi yang barusan dibuat
     const Center(child: Text("Halaman Game")),
     const Center(child: Text("Halaman Alat")),
     const Center(child: Text("Halaman Profil")),

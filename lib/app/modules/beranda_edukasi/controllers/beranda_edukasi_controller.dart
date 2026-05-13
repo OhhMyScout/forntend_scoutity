@@ -26,11 +26,11 @@ class BerandaEdukasiController extends GetxController {
   ];
 
   void goToDetail(String? routePath) {
-      if (routePath != null && routePath.isNotEmpty) {
-        print("Navigasi ke: $routePath");
-        Get.toNamed(routePath);
-      } else {
-        Get.snackbar("Info", "Halaman materi belum tersedia bray!");
-      }
+    if (routePath != null && routePath.isNotEmpty) {
+      print("Navigasi ke: $routePath");
+      Get.toNamed(routePath);
+    } else {
+      Get.snackbar("Info", "Halaman materi belum tersedia bray!");
     }
+  }
 }

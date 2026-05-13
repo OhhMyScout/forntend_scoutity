@@ -7,6 +7,8 @@ import '../../theme/tabbar.dart';
 class BerandaEdukasiView extends GetView<BerandaEdukasiController> {
   const BerandaEdukasiView({super.key});
 
+
+
   @override
   Widget build(BuildContext context) {
     const primaryColor = Color(0xFF361F1A);
@@ -157,10 +159,7 @@ class BerandaEdukasiView extends GetView<BerandaEdukasiController> {
                       color: primary,
                     ),
                   ),
-                  Text(
-                    materi['desc'],
-                    style: const TextStyle(fontSize: 12),
-                  ),
+                  Text(materi['desc'], style: const TextStyle(fontSize: 12)),
                 ],
               ),
             ),

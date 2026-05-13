@@ -1,8 +1,8 @@
-// lib/modules/forgot_password/forgot_password_view.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/forgot_password_controller.dart';
 
+//update forgot password view with new design and layout
 class ForgotPasswordView extends GetView<ForgotPasswordController> {
   const ForgotPasswordView({super.key});
 

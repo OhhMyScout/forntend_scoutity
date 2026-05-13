@@ -1,4 +1,5 @@
-// lib/modules/forgot_password/forgot_password_controller.dart
+//update forgot password view with new design and layout
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:scoutify/app/routes/app_pages.dart';

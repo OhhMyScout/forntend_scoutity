@@ -21,8 +21,14 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
           icon: const Icon(Icons.arrow_back, color: primaryColor),
           onPressed: () => Get.back(),
         ),
-        title: const Text("Scoutify", 
-          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+        title: const Text(
+          "Scoutify",
+          style: TextStyle(
+            color: primaryColor,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Poppins',
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -39,22 +45,43 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
                 ),
               ),
               const SizedBox(height: 32),
-              const Text("Atur Ulang Kata Sandi", textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: primaryColor, fontFamily: 'Poppins')),
+              const Text(
+                "Atur Ulang Kata Sandi",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                  fontFamily: 'Poppins',
+                ),
+              ),
               const SizedBox(height: 8),
-              const Text("Buat kata sandi baru yang kuat untuk akun Anda.", textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Color(0xFF504442))),
+              const Text(
+                "Buat kata sandi baru yang kuat untuk akun Anda.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Color(0xFF504442)),
+              ),
               const SizedBox(height: 32),
-              
+
               // Input Fields
               _buildLabel("Kata Sandi Baru", primaryColor),
-              _buildPasswordField(controller.passwordController, controller.isPasswordVisible, controller.togglePasswordVisibility, surfaceLow),
-              
+              _buildPasswordField(
+                controller.passwordController,
+                controller.isPasswordVisible,
+                controller.togglePasswordVisibility,
+                surfaceLow,
+              ),
+
               const SizedBox(height: 16),
-              
+
               _buildLabel("Konfirmasi Kata Sandi Baru", primaryColor),
-              _buildPasswordField(controller.confirmPasswordController, controller.isConfirmVisible, controller.toggleConfirmVisibility, surfaceLow),
-              
+              _buildPasswordField(
+                controller.confirmPasswordController,
+                controller.isConfirmVisible,
+                controller.toggleConfirmVisibility,
+                surfaceLow,
+              ),
+
               const SizedBox(height: 16),
               // Hint
               Row(
@@ -62,27 +89,47 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
                 children: [
                   const Icon(Icons.info, size: 18, color: secondaryColor),
                   const SizedBox(width: 8),
-                  const Expanded(child: Text("Gunakan minimal 8 karakter dengan kombinasi angka dan simbol.",
-                    style: TextStyle(fontSize: 12, color: Color(0xFF7A532A)))),
+                  const Expanded(
+                    child: Text(
+                      "Gunakan minimal 8 karakter dengan kombinasi angka dan simbol.",
+                      style: TextStyle(fontSize: 12, color: Color(0xFF7A532A)),
+                    ),
+                  ),
                 ],
               ),
-              
+
               const SizedBox(height: 32),
               // Action Button
               SizedBox(
-                width: double.infinity, height: 52,
+                width: double.infinity,
+                height: 52,
                 child: ElevatedButton(
                   onPressed: controller.savePassword,
-                  style: ElevatedButton.styleFrom(backgroundColor: primaryColor, shape: const StadiumBorder()),
-                  child: const Text("Simpan Kata Sandi", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    shape: const StadiumBorder(),
+                  ),
+                  child: const Text(
+                    "Simpan Kata Sandi",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-              
+
               TextButton(
                 onPressed: () => Get.back(),
-                child: const Text("Batalkan dan Kembali ke Masuk", style: TextStyle(color: secondaryColor, fontWeight: FontWeight.w600)),
+                child: const Text(
+                  "Batalkan dan Kembali ke Masuk",
+                  style: TextStyle(
+                    color: secondaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-              
+
               const SizedBox(height: 40),
               // Secure Badge
               const Opacity(
@@ -92,7 +139,10 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
                   children: [
                     Icon(Icons.verified_user, size: 16),
                     SizedBox(width: 4),
-                    Text("ENKRIPSI AMAN", style: TextStyle(fontSize: 10, letterSpacing: 1.5)),
+                    Text(
+                      "ENKRIPSI AMAN",
+                      style: TextStyle(fontSize: 10, letterSpacing: 1.5),
+                    ),
                   ],
                 ),
               ),
@@ -106,21 +156,43 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
   Widget _buildLabel(String text, Color color) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Align(alignment: Alignment.centerLeft, child: Text(text, style: TextStyle(fontWeight: FontWeight.bold, color: color))),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          text,
+          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+        ),
+      ),
     );
   }
 
-  Widget _buildPasswordField(TextEditingController ctr, RxBool visible, VoidCallback onToggle, Color bg) {
-    return Obx(() => TextField(
-      controller: ctr,
-      obscureText: !visible.value,
-      decoration: InputDecoration(
-        hintText: "••••••••",
-        filled: true,
-        fillColor: bg,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        suffixIcon: IconButton(icon: Icon(visible.value ? Icons.visibility : Icons.visibility_off, color: Colors.grey), onPressed: onToggle),
+  Widget _buildPasswordField(
+    TextEditingController ctr,
+    RxBool visible,
+    VoidCallback onToggle,
+    Color bg,
+  ) {
+    return Obx(
+      () => TextField(
+        controller: ctr,
+        obscureText: !visible.value,
+        decoration: InputDecoration(
+          hintText: "••••••••",
+          filled: true,
+          fillColor: bg,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(
+              visible.value ? Icons.visibility : Icons.visibility_off,
+              color: Colors.grey,
+            ),
+            onPressed: onToggle,
+          ),
+        ),
       ),
-    ));
+    );
   }
 }

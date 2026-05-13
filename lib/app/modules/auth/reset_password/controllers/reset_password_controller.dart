@@ -40,13 +40,26 @@ class ResetPasswordController extends GetxController {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: Color(0xFF7D562D), size: 64),
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF7D562D),
+                size: 64,
+              ),
               const SizedBox(height: 16),
-              const Text("Berhasil Diperbarui", 
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF361F1A))),
+              const Text(
+                "Berhasil Diperbarui",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF361F1A),
+                ),
+              ),
               const SizedBox(height: 8),
-              const Text("Kata sandi Anda telah berhasil diperbarui. Silakan masuk kembali.",
-                textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+              const Text(
+                "Kata sandi Anda telah berhasil diperbarui. Silakan masuk kembali.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -54,10 +67,14 @@ class ResetPasswordController extends GetxController {
                   onPressed: () => Get.offAllNamed(Routes.LOGIN),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF361F1A),
-                    shape: const StadiumBorder()),
-                  child: const Text("Masuk Sekarang", style: TextStyle(color: Colors.white)),
+                    shape: const StadiumBorder(),
+                  ),
+                  child: const Text(
+                    "Masuk Sekarang",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ),

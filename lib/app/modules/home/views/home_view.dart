@@ -81,10 +81,7 @@ class HomeView extends GetView<HomeController> {
           const SizedBox(width: 12),
           Text(
             "Scoutify",
-            style: TextStyle(
-              color: primary,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: primary, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -128,7 +125,7 @@ class HomeView extends GetView<HomeController> {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      
+
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         crossAxisSpacing: 12,
@@ -169,10 +166,7 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                item['title'],
-                textAlign: TextAlign.center,
-              ),
+              Text(item['title'], textAlign: TextAlign.center),
             ],
           ),
         );

@@ -23,7 +23,11 @@ class OtpView extends GetView<OtpController> {
         ),
         title: const Text(
           "Scoutify",
-          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
+          style: TextStyle(
+            color: primaryColor,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Poppins',
+          ),
         ),
       ),
       body: SafeArea(
@@ -38,7 +42,9 @@ class OtpView extends GetView<OtpController> {
                 height: 200,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: NetworkImage("https://lh3.googleusercontent.com/aida-public/AB6AXuDdIoWvNDK9W70Yg7pqurnD0MYHcyePgYf0gz01MVvBVGymK98T-EgR90j4pp075GTw2oJbLcxYyr_gkI9n_BXa7V4e4s4-vYDE4WFjmQYAgqmpOq6VFdlQVFqpR0V7ldVlQixsC44O1m8u77GE9I5sJe1DD5T6LnC1z-ihG1z-EprrgEDVfrD4pcJ0Oe_Re0unEerNNdUITTW1iq5q1HvjI6O7XsDZADqEvW-msjyb8X3SiYSMxGkHlVH_ZqhUiAs828VPuspVyRs"),
+                    image: NetworkImage(
+                      "https://lh3.googleusercontent.com/aida-public/AB6AXuDdIoWvNDK9W70Yg7pqurnD0MYHcyePgYf0gz01MVvBVGymK98T-EgR90j4pp075GTw2oJbLcxYyr_gkI9n_BXa7V4e4s4-vYDE4WFjmQYAgqmpOq6VFdlQVFqpR0V7ldVlQixsC44O1m8u77GE9I5sJe1DD5T6LnC1z-ihG1z-EprrgEDVfrD4pcJ0Oe_Re0unEerNNdUITTW1iq5q1HvjI6O7XsDZADqEvW-msjyb8X3SiYSMxGkHlVH_ZqhUiAs828VPuspVyRs",
+                    ),
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -46,7 +52,12 @@ class OtpView extends GetView<OtpController> {
               const SizedBox(height: 32),
               const Text(
                 "Verifikasi Kode",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor, fontFamily: 'Poppins'),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                  fontFamily: 'Poppins',
+                ),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -55,15 +66,18 @@ class OtpView extends GetView<OtpController> {
                 style: TextStyle(color: Color(0xFF504442)),
               ),
               const SizedBox(height: 40),
-              
+
               // OTP Input Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(4, (index) => _buildOtpBox(index, surfaceLow, secondaryColor)),
+                children: List.generate(
+                  4,
+                  (index) => _buildOtpBox(index, surfaceLow, secondaryColor),
+                ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Button
               SizedBox(
                 width: double.infinity,
@@ -76,12 +90,18 @@ class OtpView extends GetView<OtpController> {
                     elevation: 6,
                     shadowColor: primaryColor.withOpacity(0.3),
                   ),
-                  child: const Text("Verifikasi", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "Verifikasi",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Resend Link
               TextButton(
                 onPressed: controller.resendCode,
@@ -92,18 +112,26 @@ class OtpView extends GetView<OtpController> {
                     children: [
                       TextSpan(
                         text: "Kirim Ulang Kode",
-                        style: TextStyle(color: secondaryColor, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                        style: TextStyle(
+                          color: secondaryColor,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 40),
               const Text(
                 "Pastikan Anda memeriksa folder spam jika kode tidak segera muncul.",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ],
           ),
@@ -130,8 +158,14 @@ class OtpView extends GetView<OtpController> {
           fillColor: bg,
           hintText: "•",
           hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: active, width: 2)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: active, width: 2),
+          ),
         ),
       ),
     );

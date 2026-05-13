@@ -5,7 +5,7 @@ import '../../../../routes/app_pages.dart';
 class LoginController extends GetxController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  
+
   var isPasswordVisible = false.obs;
 
   void togglePasswordVisibility() {

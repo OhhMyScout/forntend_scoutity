@@ -23,11 +23,23 @@ class LoginView extends GetView<LoginController> {
               // Top Branding
               Column(
                 children: [
-                  const Text("Scoutify", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: primaryColor, fontFamily: 'Poppins')),
+                  const Text(
+                    "Scoutify",
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Container(
-                    width: 180, height: 180,
-                    decoration: BoxDecoration(color: Colors.brown[50], shape: BoxShape.circle),
+                    width: 180,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: Colors.brown[50],
+                      shape: BoxShape.circle,
+                    ),
                     child: ClipOval(
                       child: Image.network(
                         "https://lh3.googleusercontent.com/aida-public/AB6AXuB-PTDhdxCv0dt68JQNzOFytrTEednrjbaFCCLJQKQDnEx4NRFhfNNGTtolLUKlIYHasBNaXz0Iozref3_49B-HCP6P93JmPjf2zjCYlwwBtKe3ZtvnswsVJS4PNkq9ZvtzM9qsol0IJJ44xytesBJC0jQZd4NwHZmO3GfheLSDJe65POQ02_dssmkzWe6lXbtrJhGIZbMhxaUknLi5xgnd_QcYwESnjZzxBjaGwU0ixlb6EHQ1tv-5uRoaN5UohgSTRZBzsPk9zuU",
@@ -38,8 +50,18 @@ class LoginView extends GetView<LoginController> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text("Welcome Back, Scout", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor)),
-                  const Text("Continue your journey into the wild.", style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    "Welcome Back, Scout",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
+                  const Text(
+                    "Continue your journey into the wild.",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ],
               ),
 
@@ -51,12 +73,24 @@ class LoginView extends GetView<LoginController> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: primaryColor.withOpacity(0.06), blurRadius: 30, offset: const Offset(0, 10))],
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withOpacity(0.06),
+                      blurRadius: 30,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Email Address", style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor)),
+                    const Text(
+                      "Email Address",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: controller.emailController,
@@ -64,7 +98,10 @@ class LoginView extends GetView<LoginController> {
                         hintText: "scout@wilderness.org",
                         filled: true,
                         fillColor: const Color(0xFFF6F3EE),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -72,42 +109,75 @@ class LoginView extends GetView<LoginController> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Password", style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor)),
+                        const Text(
+                          "Password",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: primaryColor,
+                          ),
+                        ),
                         TextButton(
-                          onPressed: () => Get.toNamed(Routes.FORGOT_PASSWORD), // Tambahkan ini
-                          child: const Text("Forgot?", style: TextStyle(color: Color(0xFF7D562D))),
+                          onPressed: () => Get.toNamed(
+                            Routes.FORGOT_PASSWORD,
+                          ), // Tambahkan ini
+                          child: const Text(
+                            "Forgot?",
+                            style: TextStyle(color: Color(0xFF7D562D)),
+                          ),
                         ),
                       ],
                     ),
-                    Obx(() => TextField(
-                      controller: controller.passwordController,
-                      obscureText: !controller.isPasswordVisible.value,
-                      decoration: InputDecoration(
-                        hintText: "••••••••",
-                        filled: true,
-                        fillColor: const Color(0xFFF6F3EE),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                        suffixIcon: IconButton(
-                          icon: Icon(controller.isPasswordVisible.value ? Icons.visibility : Icons.visibility_off),
-                          onPressed: controller.togglePasswordVisibility,
+                    Obx(
+                      () => TextField(
+                        controller: controller.passwordController,
+                        obscureText: !controller.isPasswordVisible.value,
+                        decoration: InputDecoration(
+                          hintText: "••••••••",
+                          filled: true,
+                          fillColor: const Color(0xFFF6F3EE),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              controller.isPasswordVisible.value
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: controller.togglePasswordVisibility,
+                          ),
                         ),
                       ),
-                    )),
+                    ),
                     const SizedBox(height: 32),
                     SizedBox(
-                      width: double.infinity, height: 56,
+                      width: double.infinity,
+                      height: 56,
                       child: ElevatedButton(
                         onPressed: controller.login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Sign In", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text(
+                              "Sign In",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             SizedBox(width: 8),
-                            Icon(Icons.arrow_forward, size: 18, color: Colors.white),
+                            Icon(
+                              Icons.arrow_forward,
+                              size: 18,
+                              color: Colors.white,
+                            ),
                           ],
                         ),
                       ),
@@ -116,7 +186,13 @@ class LoginView extends GetView<LoginController> {
                     const Row(
                       children: [
                         Expanded(child: Divider()),
-                        Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("or explore via", style: TextStyle(color: Colors.grey, fontSize: 12))),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            "or explore via",
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                        ),
                         Expanded(child: Divider()),
                       ],
                     ),
@@ -126,30 +202,44 @@ class LoginView extends GetView<LoginController> {
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 56),
                         side: const BorderSide(color: Color(0xFFD4C3BF)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: const Text("Google", style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        "Google",
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
 
               const SizedBox(height: 32),
-              
-              Text.rich( 
+
+              Text.rich(
                 TextSpan(
                   text: "New to the troop? ",
-                  style: const TextStyle(color: Colors.grey), // const boleh tetap ada di sini (TextStyle)
+                  style: const TextStyle(
+                    color: Colors.grey,
+                  ), // const boleh tetap ada di sini (TextStyle)
                   children: [
                     TextSpan(
                       text: "Create an account",
-                      style: const TextStyle(color: Color(0xFF7D562D), fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Color(0xFF7D562D),
+                        fontWeight: FontWeight.bold,
+                      ),
                       // Lepaskan const, biarkan recognizer dibuat secara dinamis
-                      recognizer: TapGestureRecognizer()..onTap = () => Get.toNamed(Routes.REGISTER),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => Get.toNamed(Routes.REGISTER),
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),

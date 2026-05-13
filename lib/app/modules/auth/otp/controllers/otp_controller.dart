@@ -4,9 +4,11 @@ import 'package:scoutify/app/routes/app_pages.dart';
 
 class OtpController extends GetxController {
   // List controller untuk 4 digit OTP
-  final List<TextEditingController> otpControllers = 
-      List.generate(4, (index) => TextEditingController());
-  
+  final List<TextEditingController> otpControllers = List.generate(
+    4,
+    (index) => TextEditingController(),
+  );
+
   // List focus nodes untuk otomatis pindah field
   final List<FocusNode> focusNodes = List.generate(4, (index) => FocusNode());
 
@@ -24,12 +26,12 @@ class OtpController extends GetxController {
       Get.snackbar("Error", "Masukkan 4 digit kode verifikasi");
       return;
     }
-    
+
     // Jika kode benar (simulasi)
     print("Kode diverifikasi: $otp");
-    
+
     // PINDAH KE HALAMAN ATUR ULANG KATA SANDI
-    Get.toNamed(Routes.RESET_PASSWORD); 
+    Get.toNamed(Routes.RESET_PASSWORD);
   }
 
   void resendCode() {

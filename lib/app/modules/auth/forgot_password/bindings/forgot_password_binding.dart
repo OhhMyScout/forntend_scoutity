@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+//update forgot password view with new design and layout
 
 import '../controllers/forgot_password_controller.dart';
 

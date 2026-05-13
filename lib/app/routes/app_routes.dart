@@ -18,7 +18,6 @@ abstract class Routes {
   static const DETAIL_MORSE = _Paths.DETAIL_MORSE;
   static const ALFABET_MORSE = _Paths.ALFABET_MORSE;
   static const EDIT_PROFILE = _Paths.EDIT_PROFILE;
-<<<<<<< HEAD
   static const SETTINGS = _Paths.SETTINGS;
   static const FEEDBACK = _Paths.FEEDBACK;
   static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
@@ -28,10 +27,6 @@ abstract class Routes {
   static const KOTAK1_CHALLENGE = _Paths.KOTAK1_CHALLENGE;
   static const SEMAPHORE_DETECT = _Paths.SEMAPHORE_DETECT;
   static const ALFABET_SEMAPHORE = _Paths.ALFABET_SEMAPHORE;
-=======
-  static const PRIVACY_POLICE = _Paths.PRIVACY_POLICE;
-  static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
 }
 
 abstract class _Paths {
@@ -51,7 +46,6 @@ abstract class _Paths {
   static const DETAIL_MORSE = '/detail-morse';
   static const ALFABET_MORSE = '/alfabet-morse';
   static const EDIT_PROFILE = '/edit-profile';
-<<<<<<< HEAD
   static const SETTINGS = '/settings';
   static const FEEDBACK = '/feedback';
   static const PRIVACY_POLICY = '/privacy-policy';
@@ -61,8 +55,4 @@ abstract class _Paths {
   static const KOTAK1_CHALLENGE = '/kotak1-challenge';
   static const SEMAPHORE_DETECT = '/semaphore-detect';
   static const ALFABET_SEMAPHORE = '/alfabet-semaphore';
-=======
-  static const PRIVACY_POLICE = '/privacy-police';
-  static const PRIVACY_POLICY = '/privacy-policy';
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
 }

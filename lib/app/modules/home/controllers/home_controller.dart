@@ -22,53 +22,13 @@ class HomeController extends GetxController {
 
   // 2. DATA MENU GRID (Tetap ada untuk konten di halaman Beranda)
   final List<Map<String, dynamic>> menuItems = [
-    {
-      "title": "Morse",
-      "icon": Icons.graphic_eq,
-      "color": 0xFFFFCA98,
-      "route": 'morse',
-    },
-    {
-      "title": "Tali Temali",
-      "icon": Icons.link,
-      "color": 0xFFFFDBCF,
-      "route": 'detail-morse',
-    },
-    {
-      "title": "Survival",
-      "icon": Icons.terrain,
-      "color": 0xFFFFDAD2,
-      "route": 'survival',
-    },
-    {
-      "title": "Semaphore",
-      "icon": Icons.flag,
-      "color": 0xFFFFDCBD,
-      "route": 'semaphore',
-    },
-    {
-      "title": "Sandi",
-      "icon": Icons.vpn_key,
-      "color": 0xFFE5E2DD,
-      "route": 'alfabet-morse',
-    },
-    {
-      "title": "Sejarah",
-      "icon": Icons.history_edu,
-      "color": 0xFFE5E2DD,
-      "route": 'alfabet-semaphore',
-    },
-    {
-      "title": "Dasar",
-      "icon": Icons.school,
-      "color": 0xFFFFCA98,
-      "route": 'kompas',
-    },
-    {
-      "title": "Gudep",
-      "icon": Icons.tag,
-      "color": 0xFFFFDBCF,
-      "route": 'settings',
-    },
+    {"title": "Morse", "icon": Icons.graphic_eq, "color": 0xFFFFCA98},
+    {"title": "Tali Temali", "icon": Icons.link, "color": 0xFFFFDBCF},
+    {"title": "Survival", "icon": Icons.terrain, "color": 0xFFFFDAD2},
+    {"title": "Semaphore", "icon": Icons.flag, "color": 0xFFFFDCBD},
+    {"title": "Sandi", "icon": Icons.vpn_key, "color": 0xFFE5E2DD},
+    {"title": "Sejarah", "icon": Icons.history_edu, "color": 0xFFE5E2DD},
+    {"title": "Dasar", "icon": Icons.school, "color": 0xFFFFCA98},
+    {"title": "Gudep", "icon": Icons.tag, "color": 0xFFFFDBCF},
   ];
 }

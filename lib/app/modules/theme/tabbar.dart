@@ -1,28 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-<<<<<<< HEAD
-import '../../routes/app_pages.dart';
-
-=======
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
 class TabBarController extends GetxController {
   var index = 0.obs;
 
   final pages = [
-<<<<<<< HEAD
-    Routes.HOME,
-    Routes.BERANDA_EDUKASI,
-    Routes.BERANDA_GAME,
-    Routes.BERANDA_SURVIVAL,
-    Routes.BERANDA_PROFILE,
-=======
     '/home',
     '/beranda-edukasi',
     '/beranda-game',
     '/beranda-survival',
     '/beranda-profile',
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
   ];
 
   void changeTab(int i) {

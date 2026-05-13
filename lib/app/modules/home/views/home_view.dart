@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../routes/app_pages.dart';
-
 import '../controllers/home_controller.dart';
 import '../../theme/tabbar.dart';
-
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -189,19 +186,17 @@ class HomeView extends GetView<HomeController> {
   void _navigateByIndex(String route) {
     switch (route) {
       case "edukasi":
-        Get.toNamed(Routes.BERANDA_EDUKASI);
+        Get.toNamed('/beranda-edukasi');
         break;
       case "game":
-        Get.toNamed(Routes.BERANDA_GAME);
+        Get.toNamed('/beranda-game');
         break;
       case "survival":
-        Get.toNamed(Routes.BERANDA_SURVIVAL);
+        Get.toNamed('/beranda-survival');
         break;
       case "profile":
-        Get.toNamed(Routes.BERANDA_PROFILE);
+        Get.toNamed('/beranda-profile');
         break;
-      default:
-        return;
     }
   }
 

@@ -1,28 +1,19 @@
 import 'package:get/get.dart';
 
-<<<<<<< HEAD
 import '../modules/deteksi/alfabet_semaphore/bindings/alfabet_semaphore_binding.dart';
 import '../modules/deteksi/alfabet_semaphore/views/alfabet_semaphore_view.dart';
-=======
-import '../modules/alfabet_morse/bindings/alfabet_morse_binding.dart';
-import '../modules/alfabet_morse/views/alfabet_morse_view.dart';
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
 import '../modules/auth/forgot_password/bindings/forgot_password_binding.dart';
 import '../modules/auth/forgot_password/views/forgot_password_view.dart';
 import '../modules/auth/login/bindings/login_binding.dart';
 import '../modules/auth/login/views/login_view.dart';
 import '../modules/auth/otp/bindings/otp_binding.dart';
 import '../modules/auth/otp/views/otp_view.dart';
-<<<<<<< HEAD
 import '../modules/auth/privacy_policy/bindings/privacy_policy_binding.dart';
 import '../modules/auth/privacy_policy/views/privacy_policy_view.dart';
-=======
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
 import '../modules/auth/register/bindings/register_binding.dart';
 import '../modules/auth/register/views/register_view.dart';
 import '../modules/auth/reset_password/bindings/reset_password_binding.dart';
 import '../modules/auth/reset_password/views/reset_password_view.dart';
-<<<<<<< HEAD
 import '../modules/deteksi/semaphore_detect/bindings/semaphore_detect_binding.dart';
 import '../modules/deteksi/semaphore_detect/views/semaphore_detect_view.dart';
 import '../modules/edukasi/alfabet_morse/bindings/alfabet_morse_binding.dart';
@@ -57,14 +48,6 @@ import '../modules/survival/beranda_survival/bindings/beranda_survival_binding.d
 import '../modules/survival/beranda_survival/views/beranda_survival_view.dart';
 import '../modules/survival/kompas/bindings/kompas_binding.dart';
 import '../modules/survival/kompas/views/kompas_view.dart';
-=======
-import '../modules/beranda_edukasi/bindings/beranda_edukasi_binding.dart';
-import '../modules/beranda_edukasi/views/beranda_edukasi_view.dart';
-import '../modules/detail_morse/bindings/detail_morse_binding.dart';
-import '../modules/detail_morse/views/detail_morse_view.dart';
-import '../modules/privacy_policy/bindings/privacy_policy_binding.dart';
-import '../modules/privacy_policy/views/privacy_policy_view.dart';
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
 
 part 'app_routes.dart';
 
@@ -75,7 +58,6 @@ class AppPages {
 
   static final routes = [
     GetPage(
-<<<<<<< HEAD
       name: _Paths.HOME,
       page: () => const HomeView(),
       binding: HomeBinding(),
@@ -86,8 +68,6 @@ class AppPages {
       binding: OnboardingBinding(),
     ),
     GetPage(
-=======
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
       name: _Paths.LOGIN,
       page: () => const LoginView(),
       binding: LoginBinding(),
@@ -125,7 +105,6 @@ class AppPages {
       binding: BerandaEdukasiBinding(),
     ),
     GetPage(
-<<<<<<< HEAD
       name: _Paths.BERANDA_GAME,
       page: () => const BerandaGameView(),
       binding: BerandaGameBinding(),
@@ -146,8 +125,6 @@ class AppPages {
       binding: MorseChallengeBinding(),
     ),
     GetPage(
-=======
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
       name: _Paths.DETAIL_MORSE,
       page: () => const DetailMorseView(),
       binding: DetailMorseBinding(),
@@ -158,7 +135,6 @@ class AppPages {
       binding: AlfabetMorseBinding(),
     ),
     GetPage(
-<<<<<<< HEAD
       name: _Paths.EDIT_PROFILE,
       page: () => const EditProfileView(),
       binding: EditProfileBinding(),
@@ -181,13 +157,10 @@ class AppPages {
       binding: FeedbackBinding(),
     ),
     GetPage(
-=======
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
       name: _Paths.PRIVACY_POLICY,
       page: () => const PrivacyPolicyView(),
       binding: PrivacyPolicyBinding(),
     ),
-<<<<<<< HEAD
     GetPage(
       name: _Paths.KOMPAS,
       page: () => const KompasView(),
@@ -218,7 +191,5 @@ class AppPages {
       page: () => const AlfabetSemaphoreView(),
       binding: AlfabetSemaphoreBinding(),
     ),
-=======
->>>>>>> 71dd7caa84086dfcb2feeeed48b5b278fa81020f
   ];
 }

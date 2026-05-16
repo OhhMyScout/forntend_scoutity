@@ -94,6 +94,7 @@ class LoginView extends GetView<LoginController> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: controller.emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         hintText: "scout@wilderness.org",
                         filled: true,
@@ -105,7 +106,8 @@ class LoginView extends GetView<LoginController> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Di dalam Login View, bagian kolom Password
+                    
+                    // Password Header Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -117,9 +119,7 @@ class LoginView extends GetView<LoginController> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () => Get.toNamed(
-                            Routes.FORGOT_PASSWORD,
-                          ), // Tambahkan ini
+                          onPressed: () => Get.toNamed(Routes.FORGOT_PASSWORD),
                           child: const Text(
                             "Forgot?",
                             style: TextStyle(color: Color(0xFF7D562D)),
@@ -127,6 +127,8 @@ class LoginView extends GetView<LoginController> {
                         ),
                       ],
                     ),
+                    
+                    // Password Input Field (Reaktif Obx untuk Visibility)
                     Obx(
                       () => TextField(
                         controller: controller.passwordController,
@@ -151,36 +153,48 @@ class LoginView extends GetView<LoginController> {
                       ),
                     ),
                     const SizedBox(height: 32),
+                    
+                    // Sign In Button dengan Status Loading Terintegrasi Obx
                     SizedBox(
                       width: double.infinity,
                       height: 56,
-                      child: ElevatedButton(
-                        onPressed: controller.login,
+                      child: Obx(() => ElevatedButton(
+                        onPressed: controller.isLoading.value ? null : controller.login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
+                          disabledBackgroundColor: primaryColor.withOpacity(0.6), // Warna redup saat loading
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Sign In",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                        child: controller.isLoading.value
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3,
+                                ),
+                              )
+                            : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Sign In",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                ],
                               ),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(
-                              Icons.arrow_forward,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                      ),
+                      )),
                     ),
                     const SizedBox(height: 24),
                     const Row(
@@ -198,7 +212,9 @@ class LoginView extends GetView<LoginController> {
                     ),
                     const SizedBox(height: 24),
                     OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        // Fitur login Google ditempel di sini jika nanti diimplementasikan
+                      },
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 56),
                         side: const BorderSide(color: Color(0xFFD4C3BF)),
@@ -220,12 +236,11 @@ class LoginView extends GetView<LoginController> {
 
               const SizedBox(height: 32),
 
+              // Footer: Navigasi ke Halaman Register
               Text.rich(
                 TextSpan(
                   text: "New to the troop? ",
-                  style: const TextStyle(
-                    color: Colors.grey,
-                  ), // const boleh tetap ada di sini (TextStyle)
+                  style: const TextStyle(color: Colors.grey),
                   children: [
                     TextSpan(
                       text: "Create an account",
@@ -233,7 +248,6 @@ class LoginView extends GetView<LoginController> {
                         color: Color(0xFF7D562D),
                         fontWeight: FontWeight.bold,
                       ),
-                      // Lepaskan const, biarkan recognizer dibuat secara dinamis
                       recognizer: TapGestureRecognizer()
                         ..onTap = () => Get.toNamed(Routes.REGISTER),
                     ),

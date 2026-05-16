@@ -1,491 +1,749 @@
+// lib/app/modules/games/morse_challenge/views/morse_challenge_view.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../theme/theme.dart';
 import '../controllers/morse_challenge_controller.dart';
 
-class MorseChallengeView extends GetView<MorseChallengeController> {
+class MorseChallengeView
+    extends GetView<MorseChallengeController> {
   const MorseChallengeView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF361F1A);
-    const secondaryColor = Color(0xFF7D562D);
-    const surfaceColor = Color(0xFFFAF7F2);
-
     return Scaffold(
-      backgroundColor: surfaceColor,
-      appBar: _buildAppBar(primaryColor),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Responsivitas: Gunakan Row jika layar lebar (Tablet/Desktop), Column jika sempit (Mobile)
-                if (constraints.maxWidth > 800) {
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 7,
-                        child: _buildLeftSection(primaryColor, secondaryColor),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        flex: 5,
-                        child: _buildRightSection(primaryColor, secondaryColor),
-                      ),
-                    ],
-                  );
-                } else {
-                  return Column(
-                    children: [
-                      _buildLeftSection(primaryColor, secondaryColor),
-                      const SizedBox(height: 24),
-                      _buildRightSection(primaryColor, secondaryColor),
-                    ],
-                  );
-                }
-              },
-            ),
-          ),
+      backgroundColor: const Color(0xFFFCF9F4),
+
+      body: SafeArea(
+        child: Obx(
+          () {
+            return Column(
+              children: [
+                _buildAppBar(),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      24,
+                      12,
+                      24,
+                      40,
+                    ),
+                    child: Column(
+                      children: [
+                        _buildProgress(),
+
+                        const SizedBox(height: 28),
+
+                        _buildChallengeCard(),
+
+                        const SizedBox(height: 40),
+
+                        _buildControlButtons(),
+
+                        const SizedBox(height: 24),
+
+                        _buildInputButtons(),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(Color primary) {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: primary),
-        onPressed: controller.back,
+  // =========================================================
+  // APP BAR
+  // =========================================================
+
+  Widget _buildAppBar() {
+    return Container(
+      height: 70,
+      padding:
+          const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: controller.onBack,
+            child: const Icon(
+              Icons.arrow_back,
+              color: AppTheme.primary,
+              size: 28,
+            ),
+          ),
+
+          const SizedBox(width: 14),
+
+          const Expanded(
+            child: Text(
+              "Sandi Morse",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primary,
+              ),
+            ),
+          ),
+
+          // =====================================================
+          // MINI MODE
+          // =====================================================
+
+          _buildMiniModeBadge(),
+
+          // =====================================================
+          // MINI TIMER
+          // =====================================================
+
+          if (controller.gameMode.value == "hard")
+            ...[
+              const SizedBox(width: 8),
+              _buildMiniTimer(),
+            ],
+        ],
       ),
-      title: Text(
-        "Tebak Sandi Morse",
-        style: TextStyle(
-          color: primary,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
+    );
+  }
+
+  // =========================================================
+  // MINI MODE BADGE
+  // =========================================================
+
+  Widget _buildMiniModeBadge() {
+    String mode = "Easy";
+    Color color = Colors.green;
+
+    if (controller.gameMode.value == "normal") {
+      mode = "Normal";
+      color = Colors.orange;
+    }
+
+    if (controller.gameMode.value == "hard") {
+      mode = "Hard";
+      color = Colors.red;
+    }
+
+    return GestureDetector(
+      onTap: controller.showModeDialog,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 7,
+        ),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius:
+              BorderRadius.circular(14),
+          border: Border.all(
+            color: color.withValues(alpha: 0.25),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.flash_on_rounded,
+              size: 15,
+              color: color,
+            ),
+
+            const SizedBox(width: 4),
+
+            Text(
+              mode,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
         ),
       ),
-      actions: [
-        Obx(
-          () => Container(
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFCA98),
-              borderRadius: BorderRadius.circular(20),
+    );
+  }
+
+  // =========================================================
+  // MINI TIMER
+  // =========================================================
+
+  Widget _buildMiniTimer() {
+    final value = controller.timer.value;
+
+    Color timerColor = Colors.green;
+
+    if (value <= 20) {
+      timerColor = Colors.orange;
+    }
+
+    if (value <= 10) {
+      timerColor = Colors.red;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 7,
+      ),
+      decoration: BoxDecoration(
+        color: timerColor.withValues(
+          alpha: 0.12,
+        ),
+        borderRadius:
+            BorderRadius.circular(14),
+        border: Border.all(
+          color: timerColor.withValues(
+            alpha: 0.25,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.timer_outlined,
+            size: 15,
+            color: timerColor,
+          ),
+
+          const SizedBox(width: 4),
+
+          Text(
+            "${controller.timer.value}s",
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: timerColor,
             ),
-            child: Row(
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================
+  // PROGRESS
+  // =========================================================
+
+  Widget _buildProgress() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment:
+              MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Soal ${controller.currentQuestion.value} / ${controller.totalQuestion.value}",
+              style: const TextStyle(
+                color: Color(0xFF827471),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
+            Row(
               children: [
-                const Icon(Icons.bolt, color: Color(0xFF7A532A), size: 16),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondary
+                        .withValues(alpha: 0.1),
+                    borderRadius:
+                        BorderRadius.circular(
+                      10,
+                    ),
+                  ),
+                  child: Text(
+                    "+${controller.pointPerQuestion}",
+                    style: const TextStyle(
+                      color: AppTheme.secondary,
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
                 Text(
-                  "${controller.streak.value}x Streak",
+                  "Score ${controller.score.value}",
                   style: const TextStyle(
-                    color: Color(0xFF7A532A),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    color: AppTheme.secondary,
+                    fontWeight:
+                        FontWeight.bold,
                   ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
-        IconButton(
-          onPressed: () {},
-          icon: Icon(Icons.leaderboard_rounded, color: primary),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildLeftSection(Color primary, Color secondary) {
-    return Column(
-      children: [
-        // Signal Light Area
-        Container(
-          height: 350,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 30,
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.timer_outlined,
-                      color: Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 4),
-                    Obx(
-                      () => Text(
-                        controller.timer.value,
-                        style: TextStyle(
-                          color: primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFCA98).withValues(alpha: 0.3),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFFF0EDE9),
-                          width: 8,
-                        ),
-                      ),
-                      child: Center(
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: secondary,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: secondary.withValues(alpha: 0.4),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: controller.repeatSignal,
-                          icon: const Icon(Icons.play_arrow),
-                          label: const Text("ULANGI SINYAL"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: const StadiumBorder(),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // --- BAGIAN YANG DIPERBAIKI ---
-                        IconButton.outlined(
-                          onPressed: () {},
-                          icon: const Icon(Icons.volume_up),
-                          style: IconButton.styleFrom(
-                            side: const BorderSide(
-                              color: Color(0xFFD4C3BF),
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                        // ------------------------------
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Sequence Display
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF6F3EE),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "URUTAN MORSE",
-                style: TextStyle(
-                  letterSpacing: 1.5,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                children: [
-                  ...controller.currentMorseSequence.map(
-                    (e) => _buildMorseKey(e, primary),
-                  ),
-                  _buildMorseKey("?", Colors.grey, isHint: true),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+        const SizedBox(height: 10),
 
-  Widget _buildRightSection(Color primary, Color secondary) {
-    return Column(
-      children: [
-        // Progress Card
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 30,
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Progress Misi",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: primary,
-                    ),
-                  ),
-                  Obx(
-                    () => Text(
-                      "Soal ${controller.currentQuestion} / ${controller.totalQuestions}",
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: 0.8,
-                  minHeight: 10,
-                  backgroundColor: const Color(0xFFF0EDE9),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    secondary.withValues(alpha: 0.6),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatItem(
-                    "Poin",
-                    controller.points.value.toString(),
-                    primary,
-                  ),
-                  _buildStatItem(
-                    "Akurasi",
-                    "${controller.accuracy.value}%",
-                    primary,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Input Card
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 30,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Masukkan Jawaban",
-                style: TextStyle(fontWeight: FontWeight.bold, color: primary),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller.answerController,
-                decoration: InputDecoration(
-                  hintText: "Ketik kata yang terdeteksi...",
-                  filled: true,
-                  fillColor: const Color(0xFFF6F3EE),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: controller.clearAnswer,
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                          color: Color(0xFFD4C3BF),
-                          width: 2,
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        "HAPUS",
-                        style: TextStyle(
-                          color: primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: controller.submitAnswer,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        "KIRIM",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Context Image
         ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Stack(
-            children: [
-              Image.network(
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuDcUeZqfeQw7BisSbGJqLHri3ThMoGGvuXTYCiZwtqb44DuTknwV0iELZmHeDl2i23YpHyhJdaSDoakXaDr_ShRXbuuw6jXuzyCnw116gZlrcP3gnl9qHzQ4jFonGPkyGGu_YwIfG2G2I1aMO-EHZK8IkHZbwfu9101PesmWWJsJ0pDHcf4UNR4Eo7acU5nJRsXXziuoaBSywlTw1q-68yq54gDWSFfRsbQDwnmmVI9GmLwdF6FoiRGNXSRmhQjLGLl3WWlG1PqGCA",
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.7),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const Positioned(
-                bottom: 16,
-                left: 16,
-                child: Text(
-                  "Pesan: Sinyal dari Menara Barat",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+          borderRadius:
+              BorderRadius.circular(20),
+          child: LinearProgressIndicator(
+            value: controller.progress,
+            minHeight: 8,
+            backgroundColor:
+                const Color(0xFFEBE8E3),
+            valueColor:
+                const AlwaysStoppedAnimation(
+              AppTheme.secondary,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildMorseKey(String char, Color color, {bool isHint = false}) {
+  // =========================================================
+  // CHALLENGE CARD
+  // =========================================================
+
+  Widget _buildChallengeCard() {
+    final word = controller.currentWord.value;
+
     return Container(
-      width: 50,
-      height: 50,
+      width: double.infinity,
+      padding: const EdgeInsets.all(30),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: isHint
-            ? Border.all(color: const Color(0xFFE5BEB5), width: 2)
-            : null,
+        borderRadius:
+            BorderRadius.circular(28),
+        border: Border.all(
+          color: const Color(
+            0xFFD4C3BF,
+          ).withValues(alpha: 0.3),
+        ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5),
+          BoxShadow(
+            color: const Color(
+              0xFF4E342E,
+            ).withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
-      child: Center(
-        child: Text(
-          char,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: isHint ? FontWeight.normal : FontWeight.bold,
-            color: color,
-            fontStyle: isHint ? FontStyle.italic : FontStyle.normal,
+      child: Column(
+        children: [
+          const Text(
+            'TERJEMAHKAN KATA',
+            style: TextStyle(
+              fontSize: 11,
+              letterSpacing: 4,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF827471),
+            ),
           ),
-        ),
+
+          const SizedBox(height: 10),
+
+          Text(
+            word,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 8,
+              color: AppTheme.primary,
+            ),
+          ),
+
+          const SizedBox(height: 40),
+
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 20,
+            runSpacing: 20,
+            children: List.generate(
+              word.length,
+              (index) {
+                final letter = word[index];
+
+                final morse =
+                    controller.morseMap[letter] ??
+                        '';
+
+                final isActive =
+                    index ==
+                    controller
+                        .currentLetterIndex
+                        .value;
+
+                final isDone =
+                    index <
+                    controller
+                        .currentLetterIndex
+                        .value;
+
+                return _buildLetter(
+                  letter: letter,
+                  morse: morse,
+                  active: isActive,
+                  done: isDone,
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 30),
+
+          Container(
+            width: double.infinity,
+            padding:
+                const EdgeInsets.symmetric(
+              vertical: 18,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.primary,
+              borderRadius:
+                  BorderRadius.circular(18),
+            ),
+            child: Text(
+              controller.currentInput.value.isEmpty
+                  ? ""
+                  : controller.currentInput.value,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 8,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStatItem(String label, String value, Color primary) {
+  // =========================================================
+  // LETTER
+  // =========================================================
+
+  Widget _buildLetter({
+    required String letter,
+    required String morse,
+    required bool active,
+    required bool done,
+  }) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        Text(
-          value,
-          style: TextStyle(
-            color: primary,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
+        controller.showHint.value
+            ? Row(
+                mainAxisSize:
+                    MainAxisSize.min,
+                children: List.generate(
+                  morse.length,
+                  (index) {
+                    final symbol = morse[index];
+
+                    Color color;
+
+                    if (done) {
+                      color = Colors.green;
+                    } else if (active) {
+                      final typed =
+                          controller
+                              .currentInput
+                              .value;
+
+                      if (index <
+                          typed.length) {
+                        if (typed[index] ==
+                            symbol) {
+                          color = Colors.green;
+                        } else {
+                          color = Colors.red;
+                        }
+                      } else {
+                        color =
+                            AppTheme.secondary;
+                      }
+                    } else {
+                      color = const Color(
+                        0xFFE5E2DD,
+                      );
+                    }
+
+                    if (symbol == '.') {
+                      return Container(
+                        width: 10,
+                        height: 10,
+                        margin:
+                            const EdgeInsets.only(
+                          right: 4,
+                        ),
+                        decoration:
+                            BoxDecoration(
+                          color: color,
+                          shape:
+                              BoxShape.circle,
+                        ),
+                      );
+                    }
+
+                    return Container(
+                      width: 22,
+                      height: 8,
+                      margin:
+                          const EdgeInsets.only(
+                        right: 4,
+                      ),
+                      decoration:
+                          BoxDecoration(
+                        color: color,
+                        borderRadius:
+                            BorderRadius.circular(
+                          20,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            : Container(
+                width: 70,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: done
+                      ? Colors.green
+                      : active
+                          ? AppTheme.secondary
+                          : const Color(
+                              0xFFE5E2DD,
+                            ),
+                  borderRadius:
+                      BorderRadius.circular(
+                    20,
+                  ),
+                ),
+              ),
+
+        const SizedBox(height: 14),
+
+        Container(
+          padding: active
+              ? const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3,
+                )
+              : EdgeInsets.zero,
+          decoration: active
+              ? BoxDecoration(
+                  color: AppTheme.secondary
+                      .withValues(alpha: 0.1),
+                  borderRadius:
+                      BorderRadius.circular(8),
+                )
+              : null,
+          child: Text(
+            letter,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: done
+                  ? Colors.green
+                  : active
+                      ? AppTheme.secondary
+                      : const Color(
+                          0xFF827471,
+                        ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // =========================================================
+  // CONTROL BUTTONS
+  // =========================================================
+
+  Widget _buildControlButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: controller.openMorseTable,
+            child: Container(
+              height: 54,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF6F3EE),
+                borderRadius:
+                    BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(
+                    0xFFD4C3BF,
+                  ).withValues(alpha: 0.5),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.menu_book_outlined),
+
+                  SizedBox(width: 8),
+
+                  Text(
+                    'Tabel Morse',
+                    style: TextStyle(
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 16),
+
+        Expanded(
+          child: GestureDetector(
+            onTap: controller.deleteInput,
+            child: Container(
+              height: 54,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF6F3EE),
+                borderRadius:
+                    BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(
+                    0xFFD4C3BF,
+                  ).withValues(alpha: 0.5),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.backspace_outlined,
+                    color: Colors.red,
+                  ),
+
+                  SizedBox(width: 8),
+
+                  Text(
+                    'Hapus',
+                    style: TextStyle(
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // =========================================================
+  // INPUT BUTTONS
+  // =========================================================
+
+  Widget _buildInputButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: controller.inputDot,
+            child: Container(
+              height: 130,
+              decoration: BoxDecoration(
+                color: AppTheme.primary,
+                borderRadius:
+                    BorderRadius.circular(30),
+              ),
+              child: const Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 10,
+                    backgroundColor:
+                        Colors.white,
+                  ),
+
+                  SizedBox(height: 14),
+
+                  Text(
+                    'DOT',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight:
+                          FontWeight.bold,
+                      letterSpacing: 4,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 24),
+
+        Expanded(
+          child: GestureDetector(
+            onTap: controller.inputDash,
+            child: Container(
+              height: 130,
+              decoration: BoxDecoration(
+                color: AppTheme.primary,
+                borderRadius:
+                    BorderRadius.circular(30),
+              ),
+              child: const Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 56,
+                    height: 14,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                            BorderRadius.all(
+                          Radius.circular(30),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 14),
+
+                  Text(
+                    'DASH',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight:
+                          FontWeight.bold,
+                      letterSpacing: 4,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],

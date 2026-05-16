@@ -1,0 +1,13 @@
+// bindings/tali_temali_binding.dart
+
+import 'package:get/get.dart';
+import '../controllers/tali_temali_controller.dart';
+
+class TaliTemaliBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<TaliTemaliController>(
+      () => TaliTemaliController(),
+    );
+  }
+}

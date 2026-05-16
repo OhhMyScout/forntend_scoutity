@@ -1,34 +1,87 @@
-import 'package:flutter/foundation.dart';
+
+
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class BerandaSurvivalController extends GetxController {
-  // // Fungsi navigasi kembali
-  void goBack() {
+  final survivalMenus = [
+    {
+      "title": "Bertahan Hidup",
+      "icon": "terrain",
+    },
+    {
+      "title": "Panduan Tenda",
+      "icon": "cabin",
+    },
+    {
+      "title": "Tali Temali",
+      "icon": "join_inner",
+    },
+    {
+      "title": "SOS & Isyarat",
+      "icon": "settings_input_antenna",
+    },
+  ];
+
+  final p3kMenus = [
+    {
+      "title": "Luka",
+      "icon": "healing",
+    },
+    {
+      "title": "Patah",
+      "icon": "personal_injury",
+    },
+    {
+      "title": "Gigitan",
+      "icon": "pest_control_rodent",
+    },
+    {
+      "title": "PATUT",
+      "icon": "medical_information",
+    },
+  ];
+
+  void onBack() {
     Get.back();
   }
 
-  // // Fungsi navigasi ke detail materi
-  void openDetail(String title) {
-    debugPrint("Membuka detail materi: $title");
-    // Get.toNamed('/detail-materi', arguments: title);
-  }
-
-  // // Fungsi membuka fitur Kompas
   void openCompass() {
-    debugPrint("Membuka fitur Kompas Digital");
+    Get.snackbar(
+      "Kompas Digital",
+      "Membuka kompas digital",
+    );
   }
 
-  // // Fungsi panggilan darurat menggunakan url_launcher
-  Future<void> makeCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
+  void openMenu(String title) {
+    Get.snackbar(
+      title,
+      "Membuka menu $title",
     );
-    if (await canLaunchUrl(launchUri)) {
-      await launchUrl(launchUri);
-    } else {
-      debugPrint('Tidak dapat melakukan panggilan ke $phoneNumber');
+  }
+
+  void callEmergency(String number) {
+    Get.snackbar(
+      "Panggilan Darurat",
+      "Menghubungi $number",
+    );
+  }
+
+  void onBottomNav(int index) {
+    switch (index) {
+      case 0:
+        Get.offAllNamed('/home');
+        break;
+      case 1:
+        Get.offAllNamed('/education');
+        break;
+      case 2:
+        Get.offAllNamed('/games');
+        break;
+      case 3:
+        break;
+      case 4:
+        Get.offAllNamed('/profile');
+        break;
     }
   }
 }

@@ -1,258 +1,437 @@
+// lib/app/modules/beranda_game/views/beranda_game_view.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/beranda_game_controller.dart';
+
+import '../../../theme/theme.dart';
 import '../../../theme/tabbar.dart';
+import '../controllers/beranda_game_controller.dart';
 
 class BerandaGameView extends GetView<BerandaGameController> {
   const BerandaGameView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF361F1A);
-    const secondaryColor = Color(0xFF7D562D);
-
-    // set tab aktif ke "Game"
-    final tabController = Get.find<TabBarController>();
-    tabController.index.value = 2;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F2),
-
-      // 🔥 TAMBAHKAN TAB BAR DI SINI
-      bottomNavigationBar: const AppTabBar(),
-
-      appBar: _buildAppBar(primaryColor),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: AppTheme.background,
+      body: SafeArea(
+        child: Stack(
           children: [
-            _buildFeaturedCard(primaryColor),
-            const SizedBox(height: 24),
-            _buildLeaderboardBanner(primaryColor),
-            const SizedBox(height: 32),
-            const Text(
-              "Mini Games",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: primaryColor,
-                fontFamily: 'Poppins',
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 140,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+
+                  const SizedBox(height: 24),
+
+                  _buildHero(),
+
+                  const SizedBox(height: 24),
+
+                  _buildRankCard(),
+
+                  const SizedBox(height: 32),
+
+                  _buildGamesSection(),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            _buildQuizList(primaryColor, secondaryColor),
-            const SizedBox(height: 100),
+
+            const Align(
+              alignment: Alignment.bottomCenter,
+              child: AppTabBar(currentIndex: 2),
+            ),
           ],
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(Color primary) {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      title: const Text(
-        "Scout Games",
-        style: TextStyle(
-          color: Color(0xFF361F1A),
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Poppins',
-        ),
+  Widget _buildHeader() {
+    return SizedBox(
+      height: 60,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            "Scout Games",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primary,
+              fontFamily: "Poppins",
+            ),
+          ),
+
+          IconButton(
+            onPressed: controller.openNotification,
+            icon: const Icon(
+              Icons.notifications_none,
+              color: AppTheme.primary,
+            ),
+          ),
+        ],
       ),
-      actions: [
-        IconButton(
-          onPressed: () => controller.openLeaderboard(),
-          icon: Icon(Icons.leaderboard_rounded, color: primary),
-        ),
-      ],
     );
   }
 
-  Widget _buildFeaturedCard(Color primary) {
+  Widget _buildHero() {
     return Container(
+      height: 340,
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(32),
+        color: const Color(0xFF4E342E),
         boxShadow: [
           BoxShadow(
-            color: primary.withValues(alpha: 0.06),
-            blurRadius: 30,
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 24,
             offset: const Offset(0, 10),
-          )
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "UNGGULAN",
-                  style: TextStyle(
-                    color: Color(0xFF7D562D),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Deteksi Semaphore",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF361F1A),
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  "Latih kemampuan visualmu dengan AI pendeteksi gerakan bendera semaphore secara real-time.",
-                  style: TextStyle(color: Colors.black54, height: 1.5),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () => controller.startSemaphore(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      "Mulai Deteksi",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.network(
+                "https://lh3.googleusercontent.com/aida-public/AB6AXuCwCYVn956xruc3S1wM9pX6VW5lGdWzMSM0X7Wsqs_j5oI73KCJUu_-ps013OM-1Ut_eHREBfBr2AJugvUqNy411Pau-5XQ0a-Qt2vYUi4cHhPHi0A-IvLVJmmCoARzbag7QGmYePUkbd4FnOC1sC8ASB4IZpLqKDru_6uxiWvY_Ted493WqhZsHqFHNddDKzz98AV69hA-7pfcsIoVpDitCzl1xh58BIjirNveeY17KihRp7BRYPzgQH_TVR8vPP5oHGMxxskJgak",
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      const Color(0xFF4E342E),
+                      const Color(
+                        0xFF4E342E,
+                      ).withValues(alpha: 0.20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondary,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.auto_awesome,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+
+                        SizedBox(width: 6),
+
+                        Text(
+                          "AI FEATURE",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    "Deteksi Semaphore",
+                    style: TextStyle(
+                      fontSize: 42,
+                      height: 1.1,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontFamily: "Poppins",
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  const Text(
+                    "Belajar Semaphore jadi lebih seru dengan AI",
+                    style: TextStyle(
+                      color: Color(0xFFE5BEB5),
+                      fontSize: 18,
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  SizedBox(
+                    height: 44,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppTheme.primary,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      onPressed: controller.openSemaphoreDetection,
+                      icon: const Icon(Icons.videocam),
+                      label: const Text(
+                        "Mulai Sekarang",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildLeaderboardBanner(Color primary) {
+  Widget _buildRankCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFCA98),
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFFF6F3EE),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFFD4C3BF),
+        ),
       ),
-      child: const Row(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(Icons.emoji_events_rounded,
-              color: Color(0xFF361F1A), size: 32),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Papan Peringkat",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF361F1A),
-                  ),
-                ),
-                Text(
-                  "Lihat siapa pandu terbaik minggu ini.",
-                  style: TextStyle(fontSize: 12, color: Colors.black54),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right_rounded,
-              color: Color(0xFF361F1A)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuizList(Color primary, Color secondary) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: controller.quizItems.length,
-      itemBuilder: (context, index) {
-        final item = controller.quizItems[index];
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-          ),
-          child: Row(
+          Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF6F3EE),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFFFDCBD),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(item['icon'] as IconData, color: primary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item['title'] as String,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF361F1A),
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item['desc'] as String,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                child: const Icon(
+                  Icons.emoji_events,
+                  color: AppTheme.primary,
                 ),
               ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () =>
-                    controller.playQuiz(item['title'] as String),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: secondary,
-                  elevation: 0,
-                  side: BorderSide(color: secondary),
-                  shape: const StadiumBorder(),
-                ),
-                child: const Text(
-                  "Main",
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-              )
+
+              const SizedBox(width: 14),
+
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Peringkat Kamu: #42",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-        );
-      },
+
+          TextButton(
+            onPressed: controller.openLeaderboard,
+            child: const Row(
+              children: [
+                Text(
+                  "Detail",
+                  style: TextStyle(
+                    color: AppTheme.secondary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                SizedBox(width: 2),
+
+                Icon(
+                  Icons.chevron_right,
+                  color: AppTheme.secondary,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGamesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Mini Games",
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primary,
+            fontFamily: "Poppins",
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        const Text(
+          "Mainkan Mini games dan raih point tertinggi dan jadikan kamu menjadi top #1",
+          style: TextStyle(
+            color: AppTheme.onSurfaceVariant,
+            height: 1.5,
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        GridView.builder(
+          itemCount: controller.games.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate:
+              const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 1,
+            childAspectRatio: 0.88,
+            mainAxisSpacing: 20,
+          ),
+          itemBuilder: (context, index) {
+            final item = controller.games[index];
+
+            final bool isPrimary =
+                item["primary"] as bool;
+
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: const Color(0xFFE5E2DD),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(22),
+                    child: Image.network(
+                      item["image"].toString(),
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  Text(
+                    item["title"].toString(),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    item["description"].toString(),
+                    style: const TextStyle(
+                      color:
+                          AppTheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style:
+                          ElevatedButton.styleFrom(
+                        elevation: 0,
+                        backgroundColor: isPrimary
+                            ? AppTheme.primary
+                            : const Color(
+                                0xFFF6F3EE,
+                              ),
+                        foregroundColor: isPrimary
+                            ? Colors.white
+                            : AppTheme.secondary,
+                        side: isPrimary
+                            ? BorderSide.none
+                            : const BorderSide(
+                                color:
+                                    AppTheme.secondary,
+                              ),
+                        shape:
+                            RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(
+                            16,
+                          ),
+                        ),
+                      ),
+
+                      onPressed: () {
+                        controller.openGame(item);
+                      },
+
+                      icon: const Icon(
+                        Icons.play_arrow,
+                      ),
+
+                      label: Text(
+                        item["button"].toString(),
+                        style: const TextStyle(
+                          fontWeight:
+                              FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

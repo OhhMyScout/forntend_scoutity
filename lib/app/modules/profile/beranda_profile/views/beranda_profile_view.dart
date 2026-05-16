@@ -1,191 +1,481 @@
+// lib/app/modules/profile/beranda_profile/views/beranda_profile_view.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/beranda_profile_controller.dart';
-import '../../../theme/tabbar.dart';
 
-class BerandaProfileView extends GetView<BerandaProfileController> {
+import '../../../theme/theme.dart';
+import '../../../theme/tabbar.dart';
+import '../controllers/beranda_profile_controller.dart';
+
+class BerandaProfileView
+    extends GetView<BerandaProfileController> {
   const BerandaProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF361F1A);
-    const bgColor = Color(0xFFFAF7F2);
-
     return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        centerTitle: false,
-        title: const Text(
-          'Scoutify',
-          style: TextStyle(
-            color: primaryColor,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins',
-          ),
-        ),
-      ),
-      bottomNavigationBar: const AppTabBar(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Hero Section (Foto & Nama)
-            _buildHeroSection(),
-            const SizedBox(height: 24),
+      backgroundColor: AppTheme.background,
 
-            // Info Detail & Sidebar Actions
-            LayoutBuilder(builder: (context, constraints) {
-              if (constraints.maxWidth > 600) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 2, child: _buildInfoCard(primaryColor)),
-                    const SizedBox(width: 20),
-                    Expanded(child: _buildActionMenu(primaryColor)),
-                  ],
-                );
-              } else {
-                return Column(
-                  children: [
-                    _buildInfoCard(primaryColor),
-                    const SizedBox(height: 20),
-                    _buildActionMenu(primaryColor),
-                  ],
-                );
-              }
-            }),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 120,
+              ),
+              child: Column(
+                children: [
+                  _buildHeader(),
+
+                  const SizedBox(height: 24),
+
+                  _buildProfileSection(),
+
+                  const SizedBox(height: 32),
+
+                  _buildInfoSection(),
+
+                  const SizedBox(height: 32),
+
+                  _buildActionButtons(),
+                ],
+              ),
+            ),
+
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: AppTabBar(
+                currentIndex: 4,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeroSection() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)],
+  Widget _buildHeader() {
+    return SizedBox(
+      height: 60,
+      child: Center(
+        child: Text(
+          "Profil",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primary,
+            fontFamily: "Poppins",
+          ),
+        ),
       ),
-      child: Column(
+    );
+  }
+
+  Widget _buildProfileSection() {
+    return Obx(
+      () => Column(
         children: [
           Stack(
             children: [
-              const CircleAvatar(
-                radius: 60,
-                backgroundImage: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuBhEh1v1fcpsCJDgbK6XEUEyMWC9-bIl35rhVFrHoXWNs4ciWW0ifwG2DkaPz481o2gd1Z-eqBmFGK4oK42O0I7gnndm9MOEkPj3j1uGy0bn4wUFlB_vvB8Y-4u5MOdn2rrOuoyjCsB4Wv-9YVuqSpxIWK8GXN5OpvtG6z_aqhKuiqvIxtNZgS0-6ZCFV9Fn6Ga-VIBwGf3ExgzrtrV7ukW0Jbz_-6YnoZjxwdubyap7nnvuNaiTZdZP8pjGoUGiT0vnJ4l4QlG0aI'),
+              Container(
+                width: 130,
+                height: 130,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 4,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: 0.1,
+                      ),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.network(
+                    controller.user["image"]
+                        .toString(),
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
+
               Positioned(
-                bottom: 0,
                 right: 0,
-                child: InkWell(
-                  onTap: () => controller.changeProfilePhoto(), // // Ganti Foto
+                bottom: 0,
+                child: GestureDetector(
+                  onTap: () {},
                   child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(color: Color(0xFF361F1A), shape: BoxShape.circle),
-                    child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                    padding: const EdgeInsets.all(
+                      10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.edit,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Obx(() => Text(controller.name.value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
-          Obx(() => Text(controller.email.value, style: const TextStyle(color: Colors.grey))),
+
+          const SizedBox(height: 24),
+
+          Text(
+            controller.user["name"].toString(),
+            style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primary,
+              fontFamily: "Poppins",
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            controller.user["email"].toString(),
+            style: const TextStyle(
+              fontSize: 16,
+              color: AppTheme.onSurfaceVariant,
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 22,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(
+                0xFFFFCA98,
+              ).withValues(alpha: 0.3),
+              borderRadius:
+                  BorderRadius.circular(
+                100,
+              ),
+              border: Border.all(
+                color: const Color(
+                  0xFFFFCA98,
+                ).withValues(alpha: 0.5),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.stars,
+                  color: AppTheme.secondary,
+                  size: 20,
+                ),
+
+                const SizedBox(width: 8),
+
+                Text(
+                  controller.user["points"]
+                      .toString(),
+                  style: const TextStyle(
+                    fontWeight:
+                        FontWeight.bold,
+                    color: Color(
+                      0xFF7A532A,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoCard(Color primary) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Informasi Akun", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primary)),
-          const SizedBox(height: 20),
-          _itemTile("Provinsi", controller.province),
-          _itemTile("Gugus Depan", controller.gugusDepan),
-          _itemTile("Tanggal Bergabung", controller.joinDate),
-        ],
-      ),
-    );
-  }
-
-  Widget _itemTile(String label, RxString value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF7D562D), fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          Obx(() => Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: const Color(0xFFF6F3EE), borderRadius: BorderRadius.circular(10)),
-            child: Text(value.value, style: const TextStyle(fontSize: 15)),
-          )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionMenu(Color primary) {
+  Widget _buildInfoSection() {
     return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
-        _btn(Icons.person_outline, "Edit Profile", primary, Colors.white, () => controller.editProfile()), // // Edit Profile
-        const SizedBox(height: 12),
-        _btn(Icons.settings_outlined, "Settings", Colors.white, Colors.black87, () => controller.openSettings(), border: true), // // Settings
+        const Padding(
+          padding: EdgeInsets.only(left: 4),
+          child: Text(
+            "Informasi Akun",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primary,
+              fontFamily: "Poppins",
+            ),
+          ),
+        ),
+
         const SizedBox(height: 16),
-        // _buildPremiumBanner(),
-        const SizedBox(height: 12),
-        _btn(Icons.logout, "Keluar", const Color(0xFFFFDAD6), const Color(0xFF93000A), () => controller.logout()), // // Keluar
+
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius:
+                BorderRadius.circular(24),
+            border: Border.all(
+              color: const Color(
+                0xFFF0EDE9,
+              ),
+            ),
+          ),
+
+          child: Column(
+            children: [
+              _buildInfoTile(
+                icon: Icons.map,
+                title: "Provinsi",
+                value: controller
+                    .user["province"]
+                    .toString(),
+                showBorder: true,
+              ),
+
+              _buildInfoTile(
+                icon: Icons.groups,
+                title: "Gugus Depan",
+                value: controller
+                    .user["gudep"]
+                    .toString(),
+                showBorder: true,
+              ),
+
+              _buildInfoTile(
+                icon:
+                    Icons.calendar_today,
+                title:
+                    "Tanggal Bergabung",
+                value: controller
+                    .user["joined"]
+                    .toString(),
+                showBorder: false,
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  // Widget _buildPremiumBanner() {
-  //   return Container(
-  //     padding: const EdgeInsets.all(20),
-  //     decoration: BoxDecoration(color: const Color(0xFF513329), borderRadius: BorderRadius.circular(16)),
-  //     child: Column(
-  //       children: [
-  //         const Text("Scoutify Pro", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-  //         const SizedBox(height: 12),
-  //         ElevatedButton(
-  //           onPressed: () => controller.upgradeToPro(), // // Upgrade
-  //           style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFCA98), foregroundColor: Colors.brown),
-  //           child: const Text("Upgrade Sekarang"),
-  //         )
-  //       ],
-  //     ),
-  //   );
-  // }
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String title,
+    required String value,
+    required bool showBorder,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
 
-  Widget _btn(IconData icon, String txt, Color bg, Color text, VoidCallback press, {bool border = false}) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: press,
-        icon: Icon(icon, size: 20),
-        label: Text(txt),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: bg,
-          foregroundColor: text,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: border ? const BorderSide(color: Color(0xFFD4C3BF)) : BorderSide.none,
+      decoration: BoxDecoration(
+        border: showBorder
+            ? const Border(
+                bottom: BorderSide(
+                  color: Color(
+                    0xFFF6F3EE,
+                  ),
+                ),
+              )
+            : null,
+      ),
+
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(
+                0xFFF0EDE9,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: AppTheme.secondary,
+            ),
+          ),
+
+          const SizedBox(width: 16),
+
+          Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color:
+                      AppTheme
+                          .onSurfaceVariant,
+                  fontWeight:
+                      FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight:
+                      FontWeight.bold,
+                  color:
+                      AppTheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 58,
+          child: ElevatedButton.icon(
+            style:
+                ElevatedButton.styleFrom(
+              backgroundColor:
+                  AppTheme.primary,
+              foregroundColor:
+                  Colors.white,
+              elevation: 2,
+              shape:
+                  RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(
+                  20,
+                ),
+              ),
+            ),
+            onPressed: () {},
+            icon: const Icon(
+              Icons.person,
+            ),
+            label: const Text(
+              "Edit Profile",
+              style: TextStyle(
+                fontWeight:
+                    FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
           ),
         ),
-      ),
+
+        const SizedBox(height: 16),
+
+        SizedBox(
+          width: double.infinity,
+          height: 58,
+          child: OutlinedButton.icon(
+            style:
+                OutlinedButton.styleFrom(
+              backgroundColor:
+                  Colors.white,
+              foregroundColor:
+                  AppTheme
+                      .onSurfaceVariant,
+              side: const BorderSide(
+                color: Color(
+                  0xFFD4C3BF,
+                ),
+              ),
+              shape:
+                  RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(
+                  20,
+                ),
+              ),
+            ),
+            onPressed: () {},
+            icon: const Icon(
+              Icons.settings,
+            ),
+            label: const Text(
+              "Settings",
+              style: TextStyle(
+                fontWeight:
+                    FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        SizedBox(
+          width: double.infinity,
+          height: 58,
+          child: ElevatedButton.icon(
+            style:
+                ElevatedButton.styleFrom(
+              backgroundColor:
+                  const Color(
+                0xFFFFDAD6,
+              ).withValues(alpha: 0.3),
+              foregroundColor:
+                  const Color(
+                0xFF93000A,
+              ),
+              elevation: 0,
+              side: BorderSide(
+                color: const Color(
+                  0xFFFFDAD6,
+                ).withValues(alpha: 0.5),
+              ),
+              shape:
+                  RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(
+                  20,
+                ),
+              ),
+            ),
+            onPressed: () {},
+            icon: const Icon(
+              Icons.logout,
+            ),
+            label: const Text(
+              "Keluar",
+              style: TextStyle(
+                fontWeight:
+                    FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

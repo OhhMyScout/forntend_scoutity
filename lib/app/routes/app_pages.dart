@@ -1,7 +1,5 @@
 import 'package:get/get.dart';
 
-import '../modules/deteksi/alfabet_semaphore/bindings/alfabet_semaphore_binding.dart';
-import '../modules/deteksi/alfabet_semaphore/views/alfabet_semaphore_view.dart';
 import '../modules/auth/forgot_password/bindings/forgot_password_binding.dart';
 import '../modules/auth/forgot_password/views/forgot_password_view.dart';
 import '../modules/auth/login/bindings/login_binding.dart';
@@ -14,6 +12,8 @@ import '../modules/auth/register/bindings/register_binding.dart';
 import '../modules/auth/register/views/register_view.dart';
 import '../modules/auth/reset_password/bindings/reset_password_binding.dart';
 import '../modules/auth/reset_password/views/reset_password_view.dart';
+import '../modules/deteksi/alfabet_semaphore/bindings/alfabet_semaphore_binding.dart';
+import '../modules/deteksi/alfabet_semaphore/views/alfabet_semaphore_view.dart';
 import '../modules/deteksi/semaphore_detect/bindings/semaphore_detect_binding.dart';
 import '../modules/deteksi/semaphore_detect/views/semaphore_detect_view.dart';
 import '../modules/edukasi/alfabet_morse/bindings/alfabet_morse_binding.dart';
@@ -46,8 +46,8 @@ import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/settings_view.dart';
 import '../modules/survival/beranda_survival/bindings/beranda_survival_binding.dart';
 import '../modules/survival/beranda_survival/views/beranda_survival_view.dart';
-import '../modules/survival/kompas/bindings/kompas_binding.dart';
-import '../modules/survival/kompas/views/kompas_view.dart';
+import '../modules/survival/tali_temali/bindings/tali_temali_binding.dart';
+import '../modules/survival/tali_temali/views/tali_temali_view.dart';
 
 part 'app_routes.dart';
 
@@ -162,11 +162,6 @@ class AppPages {
       binding: PrivacyPolicyBinding(),
     ),
     GetPage(
-      name: _Paths.KOMPAS,
-      page: () => const KompasView(),
-      binding: KompasBinding(),
-    ),
-    GetPage(
       name: _Paths.LEADERBOARD,
       page: () => const LeaderboardView(),
       binding: LeaderboardBinding(),
@@ -190,6 +185,11 @@ class AppPages {
       name: _Paths.ALFABET_SEMAPHORE,
       page: () => const AlfabetSemaphoreView(),
       binding: AlfabetSemaphoreBinding(),
+    ),
+    GetPage(
+      name: _Paths.TALI_TEMALI,
+      page: () => const TaliTemaliView(),
+      binding: TaliTemaliBinding(),
     ),
   ];
 }

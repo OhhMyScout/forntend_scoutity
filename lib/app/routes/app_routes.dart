@@ -21,12 +21,12 @@ abstract class Routes {
   static const SETTINGS = _Paths.SETTINGS;
   static const FEEDBACK = _Paths.FEEDBACK;
   static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
-  static const KOMPAS = _Paths.KOMPAS;
   static const LEADERBOARD = _Paths.LEADERBOARD;
   static const KOTAK2_CHALLENGE = _Paths.KOTAK2_CHALLENGE;
   static const KOTAK1_CHALLENGE = _Paths.KOTAK1_CHALLENGE;
   static const SEMAPHORE_DETECT = _Paths.SEMAPHORE_DETECT;
   static const ALFABET_SEMAPHORE = _Paths.ALFABET_SEMAPHORE;
+  static const TALI_TEMALI = _Paths.TALI_TEMALI;
 }
 
 abstract class _Paths {
@@ -49,10 +49,10 @@ abstract class _Paths {
   static const SETTINGS = '/settings';
   static const FEEDBACK = '/feedback';
   static const PRIVACY_POLICY = '/privacy-policy';
-  static const KOMPAS = '/kompas';
   static const LEADERBOARD = '/leaderboard';
   static const KOTAK2_CHALLENGE = '/kotak2-challenge';
   static const KOTAK1_CHALLENGE = '/kotak1-challenge';
   static const SEMAPHORE_DETECT = '/semaphore-detect';
   static const ALFABET_SEMAPHORE = '/alfabet-semaphore';
+  static const TALI_TEMALI = '/tali-temali';
 }

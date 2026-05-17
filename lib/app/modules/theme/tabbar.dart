@@ -11,7 +11,7 @@ class AppTabBar extends StatelessWidget {
     required this.currentIndex,
   });
 
-  static const Color primary = Color(0xff361F1A);
+  static const Color primary = Color.fromARGB(255, 54, 31, 26);
 
   final List<String> pages = const [
     '/home',
@@ -26,54 +26,50 @@ class AppTabBar extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        height: 88,
+        height: 76,
         margin: const EdgeInsets.all(16),
         padding: const EdgeInsets.symmetric(
-          horizontal: 10,
+          horizontal: 12,
           vertical: 8,
         ),
         decoration: BoxDecoration(
-          color: const Color(0xffF0EDE9),
+          color: const Color.fromARGB(219, 87, 44, 1),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
+              // Perbaikan warning deprecated: Menggunakan .withValues
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
-          mainAxisAlignment:
-              MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _navItem(
               index: 0,
-              icon: Icons.home,
+              icon: Icons.home_rounded,
               label: "Home",
             ),
-
             _navItem(
               index: 1,
-              icon: Icons.school,
+              icon: Icons.school_rounded,
               label: "Education",
             ),
-
             _navItem(
               index: 2,
-              icon: Icons.sports_esports,
+              icon: Icons.sports_esports_rounded,
               label: "Games",
             ),
-
             _navItem(
               index: 3,
-              icon: Icons.forest,
+              icon: Icons.forest_rounded,
               label: "Survival",
             ),
-
             _navItem(
               index: 4,
-              icon: Icons.person,
+              icon: Icons.person_rounded,
               label: "Profile",
             ),
           ],
@@ -87,58 +83,54 @@ class AppTabBar extends StatelessWidget {
     required IconData icon,
     required String label,
   }) {
-    final bool selected =
-        currentIndex == index;
+    final bool selected = currentIndex == index;
 
     return GestureDetector(
       onTap: () {
-        if (Get.currentRoute !=
-            pages[index]) {
+        if (Get.currentRoute != pages[index]) {
+          // Perbaikan error parameter: Panggilan rute named yang valid dan aman
           Get.offNamed(pages[index]);
         }
       },
-
       child: AnimatedContainer(
-        duration:
-            const Duration(milliseconds: 250),
-
-        padding:
-            const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 8,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.fastOutSlowIn,
+        padding: EdgeInsets.symmetric(
+          horizontal: selected ? 16 : 12,
+          vertical: 10,
         ),
-
         decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xff4E342E)
-              : Colors.transparent,
-
-          borderRadius:
-              BorderRadius.circular(100),
+          color: selected ? const Color.fromARGB(255, 255, 255, 255) : Colors.transparent,
+          borderRadius: BorderRadius.circular(100),
         ),
-
-        child: Column(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               size: 24,
-              color: selected
-                  ? const Color(0xffC19C94)
-                  : const Color(0xff504442),
+              color: selected ? const Color.fromARGB(219, 87, 44, 1) : const Color.fromARGB(255, 255, 255, 255),
             ),
-
-            const SizedBox(height: 2),
-
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight:
-                    FontWeight.w600,
-                color: selected
-                    ? const Color(0xffC19C94)
-                    : const Color(0xff504442),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: Container(
+                child: selected
+                    ? Row(
+                        children: [
+                          const SizedBox(width: 8),
+                          Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(219, 87, 44, 1),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
               ),
             ),
           ],

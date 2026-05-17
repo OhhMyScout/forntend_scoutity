@@ -35,6 +35,10 @@ abstract class Routes {
   static const SINYAL_DARURAT = _Paths.SINYAL_DARURAT;
   static const DETAIL_TALI = _Paths.DETAIL_TALI;
   static const P3K_CHECKLIST = _Paths.P3K_CHECKLIST;
+  static const BERANDA_BERITA = _Paths.BERANDA_BERITA;
+  static const TABEL_BERITA_PROVINSI = _Paths.TABEL_BERITA_PROVINSI;
+  static const TABEL_BERITA_PALING_POPULER = _Paths.TABEL_BERITA_PALING_POPULER;
+  static const SEJARAH_PRAMUKA = _Paths.SEJARAH_PRAMUKA;
 }
 
 abstract class _Paths {
@@ -71,4 +75,8 @@ abstract class _Paths {
   static const SINYAL_DARURAT = '/sinyal-darurat';
   static const DETAIL_TALI = '/detail-tali';
   static const P3K_CHECKLIST = '/p3k-checklist';
+  static const BERANDA_BERITA = '/beranda-berita';
+  static const TABEL_BERITA_PROVINSI = '/tabel-berita-provinsi';
+  static const TABEL_BERITA_PALING_POPULER = '/tabel-berita-paling-populer';
+  static const SEJARAH_PRAMUKA = '/sejarah-pramuka';
 }

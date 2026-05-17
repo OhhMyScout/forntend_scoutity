@@ -29,25 +29,25 @@ class BerandaSurvivalController extends GetxController {
     },
   ];
 
-  // Data sub-menu P3K untuk ditampilkan di dalam Card P3K
-  final List<Map<String, String>> p3kMenus = [
-    {
-      "title": "Luka", 
-      "icon": "healing"
-    },
-    {
-      "title": "Cedera", 
-      "icon": "personal_injury"
-    },
-    {
-      "title": "Gigitan", 
-      "icon": "pest_control_rodent"
-    },
-    {
-      "title": "Obat", 
-      "icon": "medical_information"
-    },
-  ];
+  // // Data sub-menu P3K untuk ditampilkan di dalam Card P3K
+  // final List<Map<String, String>> p3kMenus = [
+  //   {
+  //     "title": "Luka", 
+  //     "icon": "healing"
+  //   },
+  //   {
+  //     "title": "Cedera", 
+  //     "icon": "personal_injury"
+  //   },
+  //   {
+  //     "title": "Gigitan", 
+  //     "icon": "pest_control_rodent"
+  //   },
+  //   {
+  //     "title": "Obat", 
+  //     "icon": "medical_information"
+  //   },
+  // ];
 
   // Fungsi untuk kembali ke halaman sebelumnya
   void onBack() {

@@ -1,18 +1,18 @@
-// lib/app/modules/beranda_survival/controllers/beranda_survival_controller.dart
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../routes/app_pages.dart';
 
 class HomeController extends GetxController {
-  final shortcuts = [
-    {"title": "Papan\nPeringkat", "icon": Icons.leaderboard_rounded},
-    {"title": "Sejarah", "icon": Icons.history_edu_rounded},
-    {"title": "Berita", "icon": Icons.newspaper_rounded},
-    {"title": "Permainan", "icon": Icons.sports_esports_rounded},
+  
+  // Menambahkan parameter 'id' yang unik untuk mempermudah routing data
+  final List<Map<String, dynamic>> shortcuts = [
+    {"id": "leaderboard", "title": "Papan\nPeringkat", "icon": Icons.leaderboard_rounded},
+    {"id": "sejarah", "title": "Sejarah", "icon": Icons.history_edu_rounded},
+    {"id": "berita", "title": "Berita", "icon": Icons.newspaper_rounded},
+    {"id": "permainan", "title": "Permainan", "icon": Icons.sports_esports_rounded},
   ];
 
-  final activities = [
+  final List<Map<String, String>> activities = [
     {
       "category": "TIPS & TRIK",
       "title": "5 Cara Mengikat Tali yang Benar untuk Tenda",
@@ -33,30 +33,28 @@ class HomeController extends GetxController {
     Get.toNamed(Routes.SETTINGS);
   }
 
-  void onShortcutTap(String title) {
-    switch (title) {
-      case 'Leaderboard':
+  // Fungsi routing berdasarkan ID unik yang dikirim oleh View
+  void onShortcutTap(String id) {
+    switch (id) {
+      case 'leaderboard':
         Get.toNamed(Routes.LEADERBOARD);
         break;
-
-      case 'Edukasi':
-        Get.toNamed(Routes.BERANDA_EDUKASI);
+      case 'sejarah':
+        Get.toNamed(Routes.SEJARAH_PRAMUKA);
         break;
-
-      case 'Game':
+      case 'berita':
+        Get.toNamed(Routes.BERANDA_BERITA);
+        break;
+      case 'permainan':
         Get.toNamed(Routes.BERANDA_GAME);
         break;
-
-      case 'Survival':
-        Get.toNamed(Routes.BERANDA_SURVIVAL);
-        break;
-
-      case 'Profile':
-        Get.toNamed(Routes.BERANDA_PROFILE);
-        break;
-
       default:
-        Get.snackbar("Error", "Halaman belum tersedia");
+        Get.snackbar(
+          "Informasi", 
+          "Modul menu belum dikonfigurasi.",
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(16),
+        );
     }
   }
 
@@ -65,6 +63,16 @@ class HomeController extends GetxController {
   }
 
   void onSeeAll() {
-    Get.toNamed(Routes.BERANDA_EDUKASI);
+    Get.toNamed(Routes.BERANDA_BERITA);
+  }
+
+  void onActivityTap(Map<String, String> activity) {
+    // Logika tambahan jika kartu aktivitas terkini ditekan di kemudian hari
+    Get.snackbar(
+      activity["category"] ?? "Aktivitas",
+      activity["title"] ?? "Detail artikel belum tersedia",
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(16),
+    );
   }
 }

@@ -12,6 +12,12 @@ import '../modules/auth/register/bindings/register_binding.dart';
 import '../modules/auth/register/views/register_view.dart';
 import '../modules/auth/reset_password/bindings/reset_password_binding.dart';
 import '../modules/auth/reset_password/views/reset_password_view.dart';
+import '../modules/berita/beranda_berita/bindings/beranda_berita_binding.dart';
+import '../modules/berita/beranda_berita/views/beranda_berita_view.dart';
+import '../modules/berita/tabel_berita_paling_populer/bindings/tabel_berita_paling_populer_binding.dart';
+import '../modules/berita/tabel_berita_paling_populer/views/tabel_berita_paling_populer_view.dart';
+import '../modules/berita/tabel_berita_provinsi/bindings/tabel_berita_provinsi_binding.dart';
+import '../modules/berita/tabel_berita_provinsi/views/tabel_berita_provinsi_view.dart';
 import '../modules/deteksi/alfabet_semaphore/bindings/alfabet_semaphore_binding.dart';
 import '../modules/deteksi/alfabet_semaphore/views/alfabet_semaphore_view.dart';
 import '../modules/deteksi/semaphore_detect/bindings/semaphore_detect_binding.dart';
@@ -36,14 +42,14 @@ import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
-import '../modules/survival/menu_p3k/p3k_checklist/bindings/p3k_checklist_binding.dart';
-import '../modules/survival/menu_p3k/p3k_checklist/views/p3k_checklist_view.dart';
 import '../modules/profile/beranda_profile/bindings/beranda_profile_binding.dart';
 import '../modules/profile/beranda_profile/views/beranda_profile_view.dart';
 import '../modules/profile/edit_profile/bindings/edit_profile_binding.dart';
 import '../modules/profile/edit_profile/views/edit_profile_view.dart';
 import '../modules/profile/feedback/bindings/feedback_binding.dart';
 import '../modules/profile/feedback/views/feedback_view.dart';
+import '../modules/edukasi/sejarah_pramuka/bindings/sejarah_pramuka_binding.dart';
+import '../modules/edukasi/sejarah_pramuka/views/sejarah_pramuka_view.dart';
 import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/settings_view.dart';
 import '../modules/survival/beranda_survival/bindings/beranda_survival_binding.dart';
@@ -58,6 +64,8 @@ import '../modules/survival/menu_p3k/beranda_p3k/bindings/beranda_p3k_binding.da
 import '../modules/survival/menu_p3k/beranda_p3k/views/beranda_p3k_view.dart';
 import '../modules/survival/menu_p3k/detail_p3k/bindings/detail_p3k_binding.dart';
 import '../modules/survival/menu_p3k/detail_p3k/views/detail_p3k_view.dart';
+import '../modules/survival/menu_p3k/p3k_checklist/bindings/p3k_checklist_binding.dart';
+import '../modules/survival/menu_p3k/p3k_checklist/views/p3k_checklist_view.dart';
 import '../modules/survival/panduan_tenda/bindings/panduan_tenda_binding.dart';
 import '../modules/survival/panduan_tenda/views/panduan_tenda_view.dart';
 import '../modules/survival/sinyal_darurat/bindings/sinyal_darurat_binding.dart';
@@ -232,7 +240,6 @@ class AppPages {
       page: () => const DetailP3KView(),
       binding: DetailP3KBinding(),
     ),
-
     GetPage(
       name: _Paths.SINYAL_DARURAT,
       page: () => const SinyalDaruratView(),
@@ -247,6 +254,26 @@ class AppPages {
       name: _Paths.P3K_CHECKLIST,
       page: () => const P3KChecklistView(),
       binding: P3KChecklistBinding(),
+    ),
+    GetPage(
+      name: _Paths.BERANDA_BERITA,
+      page: () => const BerandaBeritaView(),
+      binding: BerandaBeritaBinding(),
+    ),
+    GetPage(
+      name: _Paths.TABEL_BERITA_PROVINSI,
+      page: () => const TabelBeritaProvinsiView(),
+      binding: TabelBeritaProvinsiBinding(),
+    ),
+    GetPage(
+      name: _Paths.TABEL_BERITA_PALING_POPULER,
+      page: () => const TabelBeritaPalingPopulerView(),
+      binding: TabelBeritaPalingPopulerBinding(),
+    ),
+    GetPage(
+      name: _Paths.SEJARAH_PRAMUKA,
+      page: () => const SejarahPramukaView(),
+      binding: SejarahPramukaBinding(),
     ),
   ];
 }

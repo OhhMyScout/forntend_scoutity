@@ -461,7 +461,7 @@ class BerandaProfileView
                 ),
               ),
             ),
-            onPressed: () {},
+            onPressed: () => controller.logout(),
             icon: const Icon(
               Icons.logout,
             ),

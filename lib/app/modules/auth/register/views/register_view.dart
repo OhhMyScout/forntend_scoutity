@@ -79,7 +79,7 @@ class RegisterView extends GetView<RegisterController> {
         _customField("Nama Lengkap", "Masukkan nama lengkap", controller.fullNameController, inputBg),
         _customField("Alamat Email", "nama@email.com", controller.emailController, inputBg),
         
-        // Province Dropdown
+        // Province Dropdown dengan konsistensi spasi eksternal (SizedBox)
         const Text("Provinsi", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF361F1A))),
         const SizedBox(height: 8),
         Obx(() => Container(
@@ -95,8 +95,8 @@ class RegisterView extends GetView<RegisterController> {
             ),
           ),
         )),
+        const SizedBox(height: 16), // Memberikan jarak setelah dropdown agar konsisten dengan _customField
         
-        const SizedBox(height: 16),
         _customField("Kata Sandi", "Masukkan kata sandi", controller.passwordController, inputBg, isPassword: true),
         _customField("Konfirmasi Kata Sandi", "Ulangi kata sandi", controller.confirmPasswordController, inputBg, isPassword: true),
         
@@ -124,20 +124,35 @@ class RegisterView extends GetView<RegisterController> {
         ),
         
         const SizedBox(height: 24),
+        
+        // Submit Button dengan status loading yang reaktif
         SizedBox(
           width: double.infinity, height: 52,
-          child: ElevatedButton(
-            onPressed: controller.register,
-            style: ElevatedButton.styleFrom(backgroundColor: primary, shape: const StadiumBorder()),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Daftar Sekarang", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward, size: 20, color: Colors.white),
-              ],
+          child: Obx(() => ElevatedButton(
+            onPressed: controller.isLoading.value ? null : controller.register,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primary, 
+              shape: const StadiumBorder(),
+              disabledBackgroundColor: primary.withOpacity(0.6), // Warna saat loading aktif
             ),
-          ),
+            child: controller.isLoading.value
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 3,
+                    ),
+                  )
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Daftar Sekarang", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward, size: 20, color: Colors.white),
+                    ],
+                  ),
+          )),
         ),
       ],
     );

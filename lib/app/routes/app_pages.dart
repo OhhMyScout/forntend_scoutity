@@ -36,6 +36,8 @@ import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
+import '../modules/survival/menu_p3k/p3k_checklist/bindings/p3k_checklist_binding.dart';
+import '../modules/survival/menu_p3k/p3k_checklist/views/p3k_checklist_view.dart';
 import '../modules/profile/beranda_profile/bindings/beranda_profile_binding.dart';
 import '../modules/profile/beranda_profile/views/beranda_profile_view.dart';
 import '../modules/profile/edit_profile/bindings/edit_profile_binding.dart';
@@ -46,6 +48,20 @@ import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/settings_view.dart';
 import '../modules/survival/beranda_survival/bindings/beranda_survival_binding.dart';
 import '../modules/survival/beranda_survival/views/beranda_survival_view.dart';
+import '../modules/survival/bertahan_hidup/bindings/bertahan_hidup_binding.dart';
+import '../modules/survival/bertahan_hidup/views/bertahan_hidup_view.dart';
+import '../modules/survival/detail_tali/bindings/detail_tali_binding.dart';
+import '../modules/survival/detail_tali/views/detail_tali_view.dart';
+import '../modules/survival/kompas/bindings/kompas_binding.dart';
+import '../modules/survival/kompas/views/kompas_view.dart';
+import '../modules/survival/menu_p3k/beranda_p3k/bindings/beranda_p3k_binding.dart';
+import '../modules/survival/menu_p3k/beranda_p3k/views/beranda_p3k_view.dart';
+import '../modules/survival/menu_p3k/detail_p3k/bindings/detail_p3k_binding.dart';
+import '../modules/survival/menu_p3k/detail_p3k/views/detail_p3k_view.dart';
+import '../modules/survival/panduan_tenda/bindings/panduan_tenda_binding.dart';
+import '../modules/survival/panduan_tenda/views/panduan_tenda_view.dart';
+import '../modules/survival/sinyal_darurat/bindings/sinyal_darurat_binding.dart';
+import '../modules/survival/sinyal_darurat/views/sinyal_darurat_view.dart';
 import '../modules/survival/tali_temali/bindings/tali_temali_binding.dart';
 import '../modules/survival/tali_temali/views/tali_temali_view.dart';
 
@@ -190,6 +206,47 @@ class AppPages {
       name: _Paths.TALI_TEMALI,
       page: () => const TaliTemaliView(),
       binding: TaliTemaliBinding(),
+    ),
+    GetPage(
+      name: _Paths.PANDUAN_TENDA,
+      page: () => const PanduanTendaView(),
+      binding: PanduanTendaBinding(),
+    ),
+    GetPage(
+      name: _Paths.BERTAHAN_HIDUP,
+      page: () => const BertahanHidupView(),
+      binding: BertahanHidupBinding(),
+    ),
+    GetPage(
+      name: _Paths.KOMPAS,
+      page: () => const KompasView(),
+      binding: KompasBinding(),
+    ),
+    GetPage(
+      name: _Paths.BERANDA_P3K,
+      page: () => const BerandaP3KView(),
+      binding: BerandaP3KBinding(),
+    ),
+    GetPage(
+      name: _Paths.DETAIL_P3K,
+      page: () => const DetailP3KView(),
+      binding: DetailP3KBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.SINYAL_DARURAT,
+      page: () => const SinyalDaruratView(),
+      binding: SinyalDaruratBinding(),
+    ),
+    GetPage(
+      name: _Paths.DETAIL_TALI,
+      page: () => const DetailTaliView(),
+      binding: DetailTaliBinding(),
+    ),
+    GetPage(
+      name: _Paths.P3K_CHECKLIST,
+      page: () => const P3KChecklistView(),
+      binding: P3KChecklistBinding(),
     ),
   ];
 }

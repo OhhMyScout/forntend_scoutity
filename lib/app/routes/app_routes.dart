@@ -27,6 +27,14 @@ abstract class Routes {
   static const SEMAPHORE_DETECT = _Paths.SEMAPHORE_DETECT;
   static const ALFABET_SEMAPHORE = _Paths.ALFABET_SEMAPHORE;
   static const TALI_TEMALI = _Paths.TALI_TEMALI;
+  static const PANDUAN_TENDA = _Paths.PANDUAN_TENDA;
+  static const BERTAHAN_HIDUP = _Paths.BERTAHAN_HIDUP;
+  static const KOMPAS = _Paths.KOMPAS;
+  static const BERANDA_P3K = _Paths.BERANDA_P3K;
+  static const DETAIL_P3K = _Paths.DETAIL_P3K;
+  static const SINYAL_DARURAT = _Paths.SINYAL_DARURAT;
+  static const DETAIL_TALI = _Paths.DETAIL_TALI;
+  static const P3K_CHECKLIST = _Paths.P3K_CHECKLIST;
 }
 
 abstract class _Paths {
@@ -55,4 +63,12 @@ abstract class _Paths {
   static const SEMAPHORE_DETECT = '/semaphore-detect';
   static const ALFABET_SEMAPHORE = '/alfabet-semaphore';
   static const TALI_TEMALI = '/tali-temali';
+  static const PANDUAN_TENDA = '/panduan-tenda';
+  static const BERTAHAN_HIDUP = '/bertahan-hidup';
+  static const KOMPAS = '/kompas';
+  static const BERANDA_P3K = '/beranda-p3k';
+  static const DETAIL_P3K = '/detail-p3k';
+  static const SINYAL_DARURAT = '/sinyal-darurat';
+  static const DETAIL_TALI = '/detail-tali';
+  static const P3K_CHECKLIST = '/p3k-checklist';
 }

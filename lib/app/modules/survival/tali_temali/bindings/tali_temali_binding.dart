@@ -1,5 +1,3 @@
-// bindings/tali_temali_binding.dart
-
 import 'package:get/get.dart';
 import '../controllers/tali_temali_controller.dart';
 

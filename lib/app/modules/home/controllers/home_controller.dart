@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../theme/theme.dart';
 import '../../../routes/app_pages.dart';
 
 class HomeController extends GetxController {

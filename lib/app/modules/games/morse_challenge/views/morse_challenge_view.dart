@@ -1,57 +1,125 @@
-// lib/app/modules/games/morse_challenge/views/morse_challenge_view.dart
-
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../theme/theme.dart';
 import '../controllers/morse_challenge_controller.dart';
 
-class MorseChallengeView
-    extends GetView<MorseChallengeController> {
+class MorseChallengeView extends GetView<MorseChallengeController> {
   const MorseChallengeView({super.key});
+
+  void _showMorseTable(BuildContext context) {
+    if (Get.isBottomSheetOpen == true) return;
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const Text(
+              "Panduan Tabel Sandi Morse",
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: AppTheme.primary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              // Pastikan asset ini tersedia, ganti sesuai struktur foldermu jika berbeda
+              child: Image.asset(
+                'assets/images/image_sandi/full-morse.png', 
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Text("Gagal memuat gambar tabel morse."),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F4),
 
-      body: SafeArea(
-        child: Obx(
-          () {
-            return Column(
-              children: [
-                _buildAppBar(),
+      body: SwipeUpDetector(
+        onSwipeUp: () => _showMorseTable(context),
+        child: SafeArea(
+          child: Obx(
+            () {
+              return Column(
+                children: [
+                  _buildAppBar(),
 
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(
-                      24,
-                      12,
-                      24,
-                      40,
-                    ),
-                    child: Column(
-                      children: [
-                        _buildProgress(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(
+                        24,
+                        12,
+                        24,
+                        40,
+                      ),
+                      child: Column(
+                        children: [
+                          _buildProgress(),
 
-                        const SizedBox(height: 28),
+                          const SizedBox(height: 28),
 
-                        _buildChallengeCard(),
+                          _buildChallengeCard(),
 
-                        const SizedBox(height: 40),
+                          const SizedBox(height: 40),
 
-                        _buildControlButtons(),
+                          _buildControlButtons(context),
 
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                        _buildInputButtons(),
-                      ],
+                          _buildInputButtons(),
+                          
+                          // Tambahkan sedikit panduan text di bawah
+                          const SizedBox(height: 24),
+                          const Text(
+                            "Swipe/usap ke atas untuk melihat Tabel Bantuan",
+                            style: TextStyle(
+                              color: Color(0xFF827471),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -571,12 +639,13 @@ class MorseChallengeView
   // CONTROL BUTTONS
   // =========================================================
 
-  Widget _buildControlButtons() {
+  Widget _buildControlButtons(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: GestureDetector(
-            onTap: controller.openMorseTable,
+            // Memanggil bottom sheet alih-alih method controller
+            onTap: () => _showMorseTable(context),
             child: Container(
               height: 54,
               decoration: BoxDecoration(
@@ -747,6 +816,44 @@ class MorseChallengeView
           ),
         ),
       ],
+    );
+  }
+}
+
+// =========================================================
+// WIDGET DETEKSI SWIPE UP GLOBAL
+// =========================================================
+class SwipeUpDetector extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onSwipeUp;
+
+  const SwipeUpDetector({
+    super.key,
+    required this.child,
+    required this.onSwipeUp,
+  });
+
+  @override
+  State<SwipeUpDetector> createState() => _SwipeUpDetectorState();
+}
+
+class _SwipeUpDetectorState extends State<SwipeUpDetector> {
+  double _startY = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (event) {
+        _startY = event.position.dy;
+      },
+      onPointerUp: (event) {
+        double deltaY = _startY - event.position.dy;
+        // Jika usapan melebihi 80 pixel ke atas
+        if (deltaY > 80) {
+          widget.onSwipeUp();
+        }
+      },
+      child: widget.child,
     );
   }
 }

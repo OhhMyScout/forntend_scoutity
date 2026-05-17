@@ -156,7 +156,7 @@ class SettingsView extends GetView<SettingsController> {
                     () => SwitchListTile(
                       value: controller.isDarkMode.value,
                       onChanged: controller.toggleTheme,
-                      activeColor: secondaryColor,
+                      activeThumbColor: secondaryColor,
                       title: const Text(
                         'Tema Gelap / Terang',
                       ),
@@ -177,7 +177,7 @@ class SettingsView extends GetView<SettingsController> {
                     () => SwitchListTile(
                       value: controller.isNotificationActive.value,
                       onChanged: controller.toggleNotification,
-                      activeColor: secondaryColor,
+                      activeThumbColor: secondaryColor,
                       title: const Text(
                         'Nyalakan / Matikan Notifikasi',
                       ),

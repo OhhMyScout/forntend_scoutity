@@ -63,8 +63,8 @@ class BerandaGameController extends GetxController {
           "Menebak kata sandi kotak 2 dan dapatkan 10 point.",
       "image":
           "https://lh3.googleusercontent.com/aida-public/AB6AXuANTN6R1NarJCMOMoy83mt8eUygvuWOMRXbOJW-hRqouxkczMRVUxjMz78olzG8yHYM9_Gb2lZT_1euO3Q5GLIhdLVcnRmMitWE5nTYMy-AZG4lVEJRadj_HM3akCDNoT6epY1pakHF4BYSVq1tG328rAPcIotmqQT-loOmcACltxNX64yiNnuiPeXsjlrc95WpiZVYNDTNZ_y-3gI2pxEXvDbA-fhxlV5Ssg5c_91obfkrv3oekHvljM3inIEtBfnWvZ2iprOMb3w",
-      "button": "Lanjut Main",
-      "primary": false,
+      "button": "Main Sekarang",
+      "primary": true,
     },
     {
       "title": "Sandi Morse",

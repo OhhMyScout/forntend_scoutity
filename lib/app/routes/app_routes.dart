@@ -39,6 +39,7 @@ abstract class Routes {
   static const TABEL_BERITA_PROVINSI = _Paths.TABEL_BERITA_PROVINSI;
   static const TABEL_BERITA_PALING_POPULER = _Paths.TABEL_BERITA_PALING_POPULER;
   static const SEJARAH_PRAMUKA = _Paths.SEJARAH_PRAMUKA;
+  static const OTP_REGIST = _Paths.OTP_REGIST;
 }
 
 abstract class _Paths {
@@ -79,4 +80,5 @@ abstract class _Paths {
   static const TABEL_BERITA_PROVINSI = '/tabel-berita-provinsi';
   static const TABEL_BERITA_PALING_POPULER = '/tabel-berita-paling-populer';
   static const SEJARAH_PRAMUKA = '/sejarah-pramuka';
+  static const OTP_REGIST = '/otp-regist';
 }

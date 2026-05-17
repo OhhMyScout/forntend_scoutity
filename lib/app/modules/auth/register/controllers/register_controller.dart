@@ -5,6 +5,9 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../../../../routes/app_pages.dart';
 
+// Definisikan enum action
+enum OtpAction { register, resetPassword }
+
 class RegisterController extends GetxController {
   final nicknameController = TextEditingController();
   final fullNameController = TextEditingController();
@@ -14,10 +17,9 @@ class RegisterController extends GetxController {
 
   var selectedProvince = "".obs;
   var isPrivacyAccepted = false.obs;
-  var isLoading = false.obs; // Observable untuk loading state
+  var isLoading = false.obs; 
 
-  // Ganti IP ini dengan IP Laptop kamu (contoh: 192.168.1.5)
-  // Jika pakai emulator Android standar, gunakan 10.0.2.2
+  // Menggunakan 127.0.0.1 karena jembatan ADB Reverse kamu sudah aktif
   final String baseUrl = "http://127.0.0.1:5000/api/register";
 
   void register() async {
@@ -47,11 +49,11 @@ class RegisterController extends GetxController {
       final Map<String, dynamic> registerData = {
         "username": nicknameController.text,
         "fullname": fullNameController.text,
-        "email": emailController.text,
+        "email": emailController.text.trim(), // Tambahkan .trim() biar spasi gak sengaja keikut bray
         "password": passwordController.text,
         "provinsi": selectedProvince.value,
         "role": "user",
-        "images": "default_profile.png" // Sesuai default di backend
+        "images": "default_profile.png" 
       };
 
       // 3. Eksekusi API Call
@@ -63,26 +65,33 @@ class RegisterController extends GetxController {
 
       final result = jsonDecode(response.body);
 
+      // Matikan loading spinner sebelum melakukan perpindahan halaman
+      isLoading.value = false;
+
       if (response.statusCode == 201) {
-        // Berhasil! 
-        Get.snackbar("Sukses", "Akun berhasil didaftarkan!", 
-            backgroundColor: Colors.green, colorText: Colors.white);
+        // Berhasil! Munculkan info untuk cek email
+        Get.snackbar("Sukses", "Registrasi berhasil! Silakan cek email kamu untuk kode OTP.", 
+            backgroundColor: Colors.green, colorText: Colors.white, duration: const Duration(seconds: 3));
         
-        // Simpan token ke local storage jika perlu sebelum pindah
-        // Contoh: GetStorage().write('token', result['token']);
-        
-        Get.offAllNamed(Routes.HOME);
+        // 4. ALIKHAN KE LAYAR OTP REUSABLE
+        // Bawa data email dan actionType agar OtpController tahu harus nembak endpoint verifikasi yang mana
+        Get.toNamed(
+          Routes.OTP, 
+          arguments: {
+            "email": emailController.text.trim(),
+            "actionType": OtpAction.register
+          }
+        );
       } else {
         // Gagal dari sisi server (email sudah ada, dsb)
         Get.snackbar("Gagal", result['message'] ?? "Terjadi kesalahan", 
             backgroundColor: Colors.orange, colorText: Colors.white);
       }
     } catch (e) {
+      isLoading.value = false;
       Get.snackbar("Error", "Tidak dapat terhubung ke server. Cek koneksi & IP API.", 
           backgroundColor: Colors.red, colorText: Colors.white);
       print("Error API: $e");
-    } finally {
-      isLoading.value = false;
     }
   }
 
@@ -99,5 +108,44 @@ class RegisterController extends GetxController {
     super.onClose();
   }
 
-  final List<String> provinces = ["Jawa Tengah", "Jawa Barat", "Jawa Timur", "DKI Jakarta", "Bali", "Sumatera Utara"]; 
+ final List<String> provinces = [
+    "Aceh",
+    "Sumatera Utara",
+    "Sumatera Barat",
+    "Riau",
+    "Kepulauan Riau",
+    "Jambi",
+    "Sumatera Selatan",
+    "Kepulauan Bangka Belitung",
+    "Bengkulu",
+    "Lampung",
+    "DKI Jakarta",
+    "Jawa Barat",
+    "Jawa Tengah",
+    "DI Yogyakarta",
+    "Jawa Timur",
+    "Banten",
+    "Bali",
+    "Nusa Tenggara Barat",
+    "Nusa Tenggara Timur",
+    "Kalimantan Barat",
+    "Kalimantan Tengah",
+    "Kalimantan Selatan",
+    "Kalimantan Timur",
+    "Kalimantan Utara",
+    "Sulawesi Utara",
+    "Gorontalo",
+    "Sulawesi Tengah",
+    "Sulawesi Barat",
+    "Sulawesi Selatan",
+    "Sulawesi Tenggara",
+    "Maluku",
+    "Maluku Utara",
+    "Papua",
+    "Papua Barat",
+    "Papua Selatan",
+    "Papua Tengah",
+    "Papua Pegunungan",
+    "Papua Barat Daya"
+  ];
 }

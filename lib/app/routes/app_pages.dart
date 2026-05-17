@@ -28,6 +28,8 @@ import '../modules/edukasi/beranda_edukasi/bindings/beranda_edukasi_binding.dart
 import '../modules/edukasi/beranda_edukasi/views/beranda_edukasi_view.dart';
 import '../modules/edukasi/detail_morse/bindings/detail_morse_binding.dart';
 import '../modules/edukasi/detail_morse/views/detail_morse_view.dart';
+import '../modules/edukasi/sejarah_pramuka/bindings/sejarah_pramuka_binding.dart';
+import '../modules/edukasi/sejarah_pramuka/views/sejarah_pramuka_view.dart';
 import '../modules/games/beranda_game/bindings/beranda_game_binding.dart';
 import '../modules/games/beranda_game/views/beranda_game_view.dart';
 import '../modules/games/kotak1_challenge/bindings/kotak1_challenge_binding.dart';
@@ -48,8 +50,6 @@ import '../modules/profile/edit_profile/bindings/edit_profile_binding.dart';
 import '../modules/profile/edit_profile/views/edit_profile_view.dart';
 import '../modules/profile/feedback/bindings/feedback_binding.dart';
 import '../modules/profile/feedback/views/feedback_view.dart';
-import '../modules/edukasi/sejarah_pramuka/bindings/sejarah_pramuka_binding.dart';
-import '../modules/edukasi/sejarah_pramuka/views/sejarah_pramuka_view.dart';
 import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/settings_view.dart';
 import '../modules/survival/beranda_survival/bindings/beranda_survival_binding.dart';

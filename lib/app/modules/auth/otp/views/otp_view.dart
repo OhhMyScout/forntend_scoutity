@@ -82,46 +82,71 @@ class OtpView extends GetView<OtpController> {
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
-                  onPressed: controller.verify,
+                // Kita bungkus pakai Obx agar tombolnya mendeteksi perubahan status isLoading secara real-time bray
+                child: Obx(() => ElevatedButton(
+                  // Kunci tombol: kalau lagi loading, set jadi null (tombol otomatis mati/disabled)
+                  onPressed: controller.isLoading.value ? null : controller.verify,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     shape: const StadiumBorder(),
                     elevation: 6,
                     shadowColor: primaryColor.withOpacity(0.3),
+                    // Tambahkan warna ini agar saat loading/disabled, tombolnya agak redup estetik bray
+                    disabledBackgroundColor: primaryColor.withOpacity(0.6), 
                   ),
-                  child: const Text(
-                    "Verifikasi",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                  // Logika pergantian widget di dalam tombol
+                  child: controller.isLoading.value
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
+                        )
+                      : const Text(
+                          "Verifikasi",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                )),
               ),
 
               const SizedBox(height: 24),
 
               // Resend Link
-              TextButton(
-                onPressed: controller.resendCode,
-                child: const Text.rich(
-                  TextSpan(
-                    text: "Tidak menerima kode? ",
-                    style: TextStyle(color: Color(0xFF504442)),
-                    children: [
-                      TextSpan(
-                        text: "Kirim Ulang Kode",
-                        style: TextStyle(
-                          color: secondaryColor,
-                          fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline,
+              // Resend Link dengan Proteksi Anti-Spam 60 Detik
+              Obx(() {
+                // Cek apakah statusnya sedang dikunci (cooldown masih di atas 0)
+                final bool isCooldown = controller.cooldownSeconds.value > 0;
+
+                return TextButton(
+                  // Jika masih cooldown, set onPressed ke null biar tombol otomatis kekunci (disabled) bray
+                  onPressed: isCooldown ? null : controller.resendCode,
+                  child: Text.rich(
+                    TextSpan(
+                      text: "Tidak menerima kode? ",
+                      style: const TextStyle(color: Color(0xFF504442)),
+                      children: [
+                        TextSpan(
+                          // Teks otomatis berubah memunculkan sisa detik kalau lagi cooldown bray
+                          text: isCooldown 
+                              ? "Kirim Ulang Kode (${controller.cooldownSeconds.value}s)" 
+                              : "Kirim Ulang Kode",
+                          style: TextStyle(
+                            // Warnanya otomatis abu-abu redup kalau kekunci, dan cokelat kalau aktif kembali
+                            color: isCooldown ? Colors.grey : secondaryColor,
+                            fontWeight: FontWeight.bold,
+                            decoration: isCooldown ? TextDecoration.none : TextDecoration.underline,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
 
               const SizedBox(height: 40),
               const Text(

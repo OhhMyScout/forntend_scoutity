@@ -38,6 +38,8 @@ dependencies:
   url_launcher: ^6.3.2
   torch_light: ^1.1.0
   http: ^1.6.0
+  get_storage: ^2.1.1
+  shared_preferences: ^2.5.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/register_controller.dart';
+import 'package:flutter/gestures.dart'; 
+import '../../../../routes/app_pages.dart';
+
 
 class RegisterView extends GetView<RegisterController> {
   const RegisterView({super.key});
@@ -108,14 +111,29 @@ class RegisterView extends GetView<RegisterController> {
               onChanged: controller.togglePrivacy,
               activeColor: secondary,
             )),
-            const Expanded(
+            Expanded(
               child: Text.rich(
                 TextSpan(
                   text: "Menyetujui ",
-                  style: TextStyle(fontSize: 12),
+                  style: const TextStyle(fontSize: 12),
                   children: [
-                    TextSpan(text: "Kebijakan Privasi", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF7D562D))),
-                    TextSpan(text: " Scoutify."),
+                    TextSpan(
+                      text: "Kebijakan Privasi",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        color: Color(0xFF7D562D),
+                        decoration: TextDecoration.underline, // Kasih garis bawah biar estetik bray (opsional)
+                      ),
+                      // --- KUNCI DETEKSI KLIKNYA DI SINI BRAY ---
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          print("Membuka halaman Kebijakan Privasi...");
+                          
+                          // Lempar ke rute halaman privacy_policy kamu bray
+                          Get.toNamed(Routes.PRIVACY_POLICY); 
+                        },
+                    ),
+                    const TextSpan(text: " Scoutify."),
                   ],
                 ),
               ),

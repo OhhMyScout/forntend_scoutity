@@ -7,8 +7,7 @@ import '../../../theme/theme.dart';
 import '../../../theme/tabbar.dart';
 import '../controllers/beranda_profile_controller.dart';
 
-class BerandaProfileView
-    extends GetView<BerandaProfileController> {
+class BerandaProfileView extends GetView<BerandaProfileController> {
   const BerandaProfileView({super.key});
 
   @override
@@ -47,9 +46,7 @@ class BerandaProfileView
 
             Align(
               alignment: Alignment.bottomCenter,
-              child: AppTabBar(
-                currentIndex: 4,
-              ),
+              child: AppTabBar(currentIndex: 4),
             ),
           ],
         ),
@@ -85,15 +82,10 @@ class BerandaProfileView
                 height: 130,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 4,
-                  ),
+                  border: Border.all(color: Colors.white, width: 4),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(
-                        alpha: 0.1,
-                      ),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -101,8 +93,7 @@ class BerandaProfileView
                 ),
                 child: ClipOval(
                   child: Image.network(
-                    controller.user["image"]
-                        .toString(),
+                    controller.user["image"].toString(),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -114,16 +105,11 @@ class BerandaProfileView
                 child: GestureDetector(
                   onTap: () {},
                   child: Container(
-                    padding: const EdgeInsets.all(
-                      10,
-                    ),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: AppTheme.primary,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
-                      ),
+                      border: Border.all(color: Colors.white, width: 2),
                     ),
                     child: const Icon(
                       Icons.edit,
@@ -161,44 +147,26 @@ class BerandaProfileView
           const SizedBox(height: 24),
 
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 22,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(
-                0xFFFFCA98,
-              ).withValues(alpha: 0.3),
-              borderRadius:
-                  BorderRadius.circular(
-                100,
-              ),
+              color: const Color(0xFFFFCA98).withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(100),
               border: Border.all(
-                color: const Color(
-                  0xFFFFCA98,
-                ).withValues(alpha: 0.5),
+                color: const Color(0xFFFFCA98).withValues(alpha: 0.5),
               ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.stars,
-                  color: AppTheme.secondary,
-                  size: 20,
-                ),
+                const Icon(Icons.stars, color: AppTheme.secondary, size: 20),
 
                 const SizedBox(width: 8),
 
                 Text(
-                  controller.user["points"]
-                      .toString(),
+                  controller.user["points"].toString(),
                   style: const TextStyle(
-                    fontWeight:
-                        FontWeight.bold,
-                    color: Color(
-                      0xFF7A532A,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF7A532A),
                   ),
                 ),
               ],
@@ -211,8 +179,7 @@ class BerandaProfileView
 
   Widget _buildInfoSection() {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
           padding: EdgeInsets.only(left: 4),
@@ -232,13 +199,8 @@ class BerandaProfileView
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius:
-                BorderRadius.circular(24),
-            border: Border.all(
-              color: const Color(
-                0xFFF0EDE9,
-              ),
-            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFF0EDE9)),
           ),
 
           child: Column(
@@ -246,29 +208,21 @@ class BerandaProfileView
               _buildInfoTile(
                 icon: Icons.map,
                 title: "Provinsi",
-                value: controller
-                    .user["province"]
-                    .toString(),
+                value: controller.user["province"].toString(),
                 showBorder: true,
               ),
 
               _buildInfoTile(
                 icon: Icons.groups,
                 title: "Gugus Depan",
-                value: controller
-                    .user["gudep"]
-                    .toString(),
+                value: controller.user["gudep"].toString(),
                 showBorder: true,
               ),
 
               _buildInfoTile(
-                icon:
-                    Icons.calendar_today,
-                title:
-                    "Tanggal Bergabung",
-                value: controller
-                    .user["joined"]
-                    .toString(),
+                icon: Icons.calendar_today,
+                title: "Tanggal Bergabung",
+                value: controller.user["joined"].toString(),
                 showBorder: false,
               ),
             ],
@@ -289,13 +243,7 @@ class BerandaProfileView
 
       decoration: BoxDecoration(
         border: showBorder
-            ? const Border(
-                bottom: BorderSide(
-                  color: Color(
-                    0xFFF6F3EE,
-                  ),
-                ),
-              )
+            ? const Border(bottom: BorderSide(color: Color(0xFFF6F3EE)))
             : null,
       ),
 
@@ -305,32 +253,23 @@ class BerandaProfileView
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(
-                0xFFF0EDE9,
-              ),
+              color: const Color(0xFFF0EDE9),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              color: AppTheme.secondary,
-            ),
+            child: Icon(icon, color: AppTheme.secondary),
           ),
 
           const SizedBox(width: 16),
 
           Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
                 style: const TextStyle(
                   fontSize: 12,
-                  color:
-                      AppTheme
-                          .onSurfaceVariant,
-                  fontWeight:
-                      FontWeight.w600,
+                  color: AppTheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
 
@@ -340,10 +279,8 @@ class BerandaProfileView
                 value,
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight:
-                      FontWeight.bold,
-                  color:
-                      AppTheme.primary,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primary,
                 ),
               ),
             ],
@@ -360,32 +297,19 @@ class BerandaProfileView
           width: double.infinity,
           height: 58,
           child: ElevatedButton.icon(
-            style:
-                ElevatedButton.styleFrom(
-              backgroundColor:
-                  AppTheme.primary,
-              foregroundColor:
-                  Colors.white,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
               elevation: 2,
-              shape:
-                  RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(
-                  20,
-                ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
             onPressed: () {},
-            icon: const Icon(
-              Icons.person,
-            ),
+            icon: const Icon(Icons.person),
             label: const Text(
               "Edit Profile",
-              style: TextStyle(
-                fontWeight:
-                    FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
         ),
@@ -396,37 +320,19 @@ class BerandaProfileView
           width: double.infinity,
           height: 58,
           child: OutlinedButton.icon(
-            style:
-                OutlinedButton.styleFrom(
-              backgroundColor:
-                  Colors.white,
-              foregroundColor:
-                  AppTheme
-                      .onSurfaceVariant,
-              side: const BorderSide(
-                color: Color(
-                  0xFFD4C3BF,
-                ),
-              ),
-              shape:
-                  RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(
-                  20,
-                ),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: AppTheme.onSurfaceVariant,
+              side: const BorderSide(color: Color(0xFFD4C3BF)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
             onPressed: () {},
-            icon: const Icon(
-              Icons.settings,
-            ),
+            icon: const Icon(Icons.settings),
             label: const Text(
               "Settings",
-              style: TextStyle(
-                fontWeight:
-                    FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
         ),
@@ -436,43 +342,57 @@ class BerandaProfileView
         SizedBox(
           width: double.infinity,
           height: 58,
-          child: ElevatedButton.icon(
-            style:
-                ElevatedButton.styleFrom(
-              backgroundColor:
-                  const Color(
-                0xFFFFDAD6,
-              ).withValues(alpha: 0.3),
-              foregroundColor:
-                  const Color(
-                0xFF93000A,
-              ),
-              elevation: 0,
-              side: BorderSide(
-                color: const Color(
-                  0xFFFFDAD6,
-                ).withValues(alpha: 0.5),
-              ),
-              shape:
-                  RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(
-                  20,
-                ),
-              ),
-            ),
-            onPressed: () => controller.logout(),
-            icon: const Icon(
-              Icons.logout,
-            ),
-            label: const Text(
-              "Keluar",
-              style: TextStyle(
-                fontWeight:
-                    FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
+          child: Obx(
+            () => controller.isLoading.value
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppTheme.primary),
+                  )
+                : ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(
+                        0xFFFFDAD6,
+                      ).withValues(alpha: 0.3),
+                      foregroundColor: const Color(0xFF93000A),
+                      elevation: 0,
+                      side: BorderSide(
+                        color: const Color(0xFFFFDAD6).withValues(alpha: 0.5),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    // --- DI SINI KITA PASANG KONFIRMASI POP-UP PRO BRAY ---
+                    onPressed: () {
+                      Get.defaultDialog(
+                        title: "Keluar Akun?",
+                        titleStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primary,
+                        ),
+                        middleText:
+                            "Apakah kamu yakin ingin keluar dari aplikasi Scoutify bray?",
+                        textConfirm: "Ya, Keluar",
+                        textCancel: "Batal",
+                        confirmTextColor: Colors.white,
+                        cancelTextColor: AppTheme.primary,
+                        buttonColor: const Color(0xFF93000A),
+                        radius: 16,
+                        onConfirm: () {
+                          Get.back(); // Tutup pop-up dialognya dulu bray
+                          controller
+                              .logout(); // Eksekusi fungsi hancurkan session!
+                        },
+                      );
+                    },
+                    icon: const Icon(Icons.logout),
+                    label: const Text(
+                      "Keluar",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
           ),
         ),
       ],

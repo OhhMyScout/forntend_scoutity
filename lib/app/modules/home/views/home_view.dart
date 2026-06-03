@@ -15,23 +15,34 @@ class HomeView extends GetView<HomeController> {
       body: SafeArea(
         child: Stack(
           children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(
-                bottom:
-                    120, // Memberikan ruang agar konten terbawah tidak terpotong oleh TabBar
-              ),
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  _buildHero(),
-                  _buildShortcuts(),
-                  const SizedBox(height: 32),
-                  _buildAIFeature(),
-                  const SizedBox(height: 8),
-                  _buildActivities(),
-                ],
-              ),
-            ),
+            // 🔥 BUNGKUS DENGAN OBX: Memantau status loading pengecekan token SharedPreferences
+            Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppTheme.primary,
+                  ),
+                );
+              }
+
+              // Jika loading selesai, langsung tampilkan konten dashboard seutuhnya
+              return SingleChildScrollView(
+                padding: const EdgeInsets.only(
+                  bottom: 120, // Memberikan ruang agar konten terbawah tidak terpotong oleh TabBar
+                ),
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    _buildHero(),
+                    _buildShortcuts(),
+                    const SizedBox(height: 32),
+                    _buildAIFeature(),
+                    const SizedBox(height: 8),
+                    _buildActivities(),
+                  ],
+                ),
+              );
+            }),
             Align(
               alignment: Alignment.bottomCenter,
               child: AppTabBar(currentIndex: 0),
@@ -69,19 +80,20 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Column(
+              Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Halo, Kak Adit!",
-                    style: TextStyle(
+                  // 🔥 BUNGKUS OBX DI SINI: Menampilkan nama user dinamis hasil split email dari SharedPreferences bray!
+                  Obx(() => Text(
+                    "Halo, Kak ${controller.usernameDisplay.value}!",
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppTheme.onSurfaceVariant,
                     ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
+                  )),
+                  const SizedBox(height: 2),
+                  const Text(
                     "Scoutify",
                     style: TextStyle(
                       fontSize: 20,
@@ -220,7 +232,7 @@ class HomeView extends GetView<HomeController> {
                 child: InkWell(
                   onTap: () => controller.onShortcutTap(
                     item["id"].toString(),
-                  ), // Mengirimkan ID unik
+                  ), // Mengirimkan ID unik string ke controller bray
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     width: 58,
@@ -274,7 +286,6 @@ class HomeView extends GetView<HomeController> {
             ),
           ],
         ),
-
         child: Column(
           children: [
             Container(

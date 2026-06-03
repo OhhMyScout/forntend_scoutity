@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:scoutify/app/routes/app_pages.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../data/api_endpoint.dart';
 import '../../register/controllers/register_controller.dart'; // Import enum OtpAction dari register
 
 class OtpController extends GetxController {
@@ -20,6 +22,7 @@ class OtpController extends GetxController {
   var isLoading = false.obs;
   var cooldownSeconds = 0.obs; // Menyimpan sisa waktu pembatasan kirim ulang
   Timer? _timer;
+  String apiUrl = ApiEndpoint.resendOtpRegister;
 
   late String email;
   late OtpAction actionType;
@@ -57,71 +60,65 @@ class OtpController extends GetxController {
   }
 
   // Fungsi utama untuk verifikasi kode ke Flask
+  // Fungsi utama untuk verifikasi kode ke Flask (VERSI UPDATE ANTI-MENTAL BRAY)
   void verify() async {
     String otp = otpControllers.map((e) => e.text.trim()).join();
-    
+
     if (otp.length < 4) {
-      Get.snackbar(
-        "Perhatian", 
-        "Masukkan 4 digit kode verifikasi dengan lengkap bray!",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      Get.snackbar("Perhatian", "Masukkan 4 digit kode verifikasi bray!", 
+          backgroundColor: Colors.orange, colorText: Colors.white);
       return;
     }
 
     try {
       isLoading.value = true;
-      const String apiUrl = "http://127.0.0.1:5000/api/verify-otp";
 
       final response = await http.post(
-        Uri.parse(apiUrl),
+        Uri.parse(ApiEndpoint.verifyOtp),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "email": email,
-          "otp": otp.trim(),
-        }),
+        body: jsonEncode({"email": email, "otp": otp.trim()}),
       );
 
       final result = jsonDecode(response.body);
       isLoading.value = false;
 
       if (response.statusCode == 200) {
-        Get.snackbar(
-          "Verifikasi Sukses", 
-          "Akun Scoutify kamu telah aktif. Selamat berpetualang!",
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          icon: const Icon(Icons.check_circle_outline, color: Colors.white),
-        );
+        // 1. Ambil instansiasi preferensi lokal HP bray
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        
+        String? tokenDariServer = result['token'];
 
-        if (actionType == OtpAction.register) {
-          Future.delayed(const Duration(milliseconds: 1500), () {
-            Get.offAllNamed(Routes.HOME); // Langsung jebol ke Home utama bray
-          });
+        if (tokenDariServer != null && tokenDariServer.isNotEmpty) {
+          // 2. Kunci data secara asinkron ke dalam hardisk HP fisik bray
+          await prefs.setString('token', tokenDariServer);
+          await prefs.setBool('is_logged_in', true);
+          await prefs.setBool('is_intro_seen', true); // Jaring pengaman mutlak
+          await prefs.setString('email', email);
+
+          Get.snackbar(
+            "Verifikasi Sukses",
+            "Akun Scoutify kamu telah aktif bray!",
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+
+          if (actionType == OtpAction.register) {
+            // Kasih jeda 1.2 detik biar user sempet baca snackbar dan data kelar ditulis ke disk HP
+            Future.delayed(const Duration(milliseconds: 1200), () {
+              Get.offAllNamed(Routes.HOME); 
+            });
+          } else {
+            Get.offNamed(Routes.RESET_PASSWORD, arguments: {"email": email});
+          }
         } else {
-          // Skenario reset password di masa depan
-          Get.offNamed(Routes.RESET_PASSWORD, arguments: {"email": email});
+          Get.snackbar("Error", "Token dari server kosong bray!", backgroundColor: Colors.red);
         }
       } else {
-        Get.snackbar(
-          "Verifikasi Gagal", 
-          result['message'] ?? "Kode OTP salah atau sudah hangus!",
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        Get.snackbar("Verifikasi Gagal", result['message'] ?? "OTP salah!", backgroundColor: Colors.redAccent);
       }
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar(
-        "Error", 
-        "Tidak dapat terhubung ke server. Pastikan adb reverse aktif bray!",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar("Error", "Gagal terhubung ke server bray!", backgroundColor: Colors.red);
     }
   }
 
@@ -137,12 +134,8 @@ class OtpController extends GetxController {
         duration: const Duration(seconds: 2),
       );
 
-      // JALUR SAKLAR DINAMIS BERDASARKAN EMIT/ASAL HALAMAN:
-      String apiUrl = "http://127.0.0.1:5000/api/resend-otp"; // Jalur default Registrasi
-      
       if (actionType != OtpAction.register) {
-        // Kalau tipenya BUKAN register (alias reset password), belokin ke endpoint reset bray!
-        apiUrl = "http://127.0.0.1:5000/api/resend-otp-reset";
+        apiUrl = ApiEndpoint.resendOtpReset; // Jalur reset dari pusat bray
       }
 
       final response = await http.post(
@@ -155,7 +148,7 @@ class OtpController extends GetxController {
 
       if (response.statusCode == 200) {
         Get.snackbar(
-          "Sukses", 
+          "Sukses",
           result['message'] ?? "Kode baru telah dikirim ke email Anda!",
           backgroundColor: Colors.green,
           colorText: Colors.white,
@@ -164,7 +157,7 @@ class OtpController extends GetxController {
         startCooldown();
       } else {
         Get.snackbar(
-          "Gagal", 
+          "Gagal",
           result['message'] ?? "Gagal mengirim ulang kode.",
           backgroundColor: Colors.orange,
           colorText: Colors.white,
@@ -172,7 +165,7 @@ class OtpController extends GetxController {
       }
     } catch (e) {
       Get.snackbar(
-        "Error", 
+        "Error",
         "Gagal terhubung ke server. Periksa kembali status adb reverse bray!",
         backgroundColor: Colors.red,
         colorText: Colors.white,

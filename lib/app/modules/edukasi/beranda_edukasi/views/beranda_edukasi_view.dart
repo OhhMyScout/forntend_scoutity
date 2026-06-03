@@ -129,7 +129,7 @@ class BerandaEdukasiView
               Text(
                 "Pusat Belajar Pramuka",
                 style: TextStyle(
-                  fontSize: 30,
+                  fontSize: 24,
                   fontWeight:
                       FontWeight.bold,
                   color: Colors.white,

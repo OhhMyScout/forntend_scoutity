@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../../../../routes/app_pages.dart';
+import '../../../data/api_endpoint.dart';
 
 // Definisikan enum action
 enum OtpAction { register, resetPassword }
@@ -19,8 +20,7 @@ class RegisterController extends GetxController {
   var isPrivacyAccepted = false.obs;
   var isLoading = false.obs; 
 
-  // Menggunakan 127.0.0.1 karena jembatan ADB Reverse kamu sudah aktif
-  final String baseUrl = "http://127.0.0.1:5000/api/register";
+
 
   void register() async {
     // 1. Validasi Sederhana
@@ -58,7 +58,7 @@ class RegisterController extends GetxController {
 
       // 3. Eksekusi API Call
       final response = await http.post(
-        Uri.parse(baseUrl),
+        Uri.parse(ApiEndpoint.register),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(registerData),
       );

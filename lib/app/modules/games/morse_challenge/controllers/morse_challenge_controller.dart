@@ -1,12 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
-// Enum untuk status akhir permainan
-enum GameResultStatus { win, timeout }
+import '../../../data/api_endpoint.dart';
+import '../../../data/session_manager.dart';
+
+// Enum untuk status akhir permainan ditambahkan "lose"
+enum GameResultStatus { win, timeout, lose }
 
 class MorseChallengeController extends GetxController {
   // =========================================================
@@ -16,6 +21,9 @@ class MorseChallengeController extends GetxController {
   final currentQuestion = 1.obs;
   final totalQuestion = 10.obs;
   final score = 0.obs;
+  
+  // Melacak jumlah salah ketik (Maksimal 5)
+  final mistakes = 0.obs;
 
   final currentWord = ''.obs;
   final currentLetterIndex = 0.obs;
@@ -168,20 +176,42 @@ class MorseChallengeController extends GetxController {
   }
 
   // =========================================================
-  // TIME OUT
+  // TIME OUT & GAME OVER LOGIC
   // =========================================================
 
   void onTimeOut() {
     HapticFeedback.heavyImpact();
     
+    // SIMPAN SKOR SAAT WAKTU HABIS
+    _submitScore();
+    
     _showResultDialog(
       status: GameResultStatus.timeout,
       title: "WAKTU HABIS!",
-      message: "Game akan diulang dari awal dan skor menjadi 0.",
+      message: "Kamu berhasil meraih ${score.value} poin. Game akan diulang dari awal.",
       actionText: "Ulangi",
       onAction: () {
-        Get.back(); // Tutup dialog
+        Get.back();
         resetHardModeGame();
+      },
+    );
+  }
+
+  void onGameOver() {
+    HapticFeedback.heavyImpact();
+    stopTimer();
+    
+    // SIMPAN SKOR SAAT KALAH (SALAH 5 KALI)
+    _submitScore();
+
+    _showResultDialog(
+      status: GameResultStatus.lose,
+      title: "GAME OVER!",
+      message: "Kamu telah salah mengetik kode morse sebanyak 5 kali. Skor akhirmu adalah ${score.value} poin.",
+      actionText: "Coba Lagi",
+      onAction: () {
+        Get.back();
+        showModeDialog();
       },
     );
   }
@@ -193,6 +223,7 @@ class MorseChallengeController extends GetxController {
   void resetHardModeGame() {
     stopTimer();
     score.value = 0;
+    mistakes.value = 0; // Reset kesalahan
     currentQuestion.value = 1;
     currentLetterIndex.value = 0;
     currentInput.value = '';
@@ -200,6 +231,22 @@ class MorseChallengeController extends GetxController {
     generateQuestions();
     loadQuestion();
     startTimer();
+  }
+
+  // =========================================================
+  // RESTART GAME
+  // =========================================================
+
+  void restartGame() {
+    stopTimer();
+    currentQuestion.value = 1;
+    score.value = 0;
+    mistakes.value = 0; // Reset kesalahan
+    currentLetterIndex.value = 0;
+    currentInput.value = '';
+
+    generateQuestions();
+    loadQuestion();
   }
 
   // =========================================================
@@ -238,18 +285,21 @@ class MorseChallengeController extends GetxController {
   // =========================================================
 
   void inputDot() {
+    if (mistakes.value >= 5) return;
     HapticFeedback.lightImpact();
     currentInput.value += '.';
     checkCurrentLetter();
   }
 
   void inputDash() {
+    if (mistakes.value >= 5) return;
     HapticFeedback.lightImpact();
     currentInput.value += '-';
     checkCurrentLetter();
   }
 
   void deleteInput() {
+    if (mistakes.value >= 5) return;
     if (currentInput.value.isNotEmpty) {
       currentInput.value = currentInput.value.substring(0, currentInput.value.length - 1);
     }
@@ -270,17 +320,25 @@ class MorseChallengeController extends GetxController {
     final correctMorse = morseMap[letter] ?? '';
     final input = currentInput.value;
 
-    // WRONG
+    // WRONG (Jika input tidak sesuai dengan awal dari kode morse yang benar)
     if (!correctMorse.startsWith(input)) {
       HapticFeedback.heavyImpact();
+      
+      mistakes.value++; // Tambah 1 kesalahan
+
+      // Cek apakah sudah 5 kali salah
+      if (mistakes.value >= 5) {
+        onGameOver();
+        return;
+      }
 
       Get.snackbar(
         "Salah",
-        "Kode morse tidak sesuai",
+        "Kode morse tidak sesuai! (Kesalahan: ${mistakes.value}/5)",
         backgroundColor: Colors.red,
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
-        duration: const Duration(milliseconds: 700),
+        duration: const Duration(milliseconds: 1000),
       );
 
       currentInput.value = '';
@@ -327,20 +385,54 @@ class MorseChallengeController extends GetxController {
   void finishGame() {
     stopTimer();
     
+    // SIMPAN SKOR SAAT MENANG
+    _submitScore();
+    
     _showResultDialog(
       status: GameResultStatus.win,
       title: "LUAR BIASA!",
-      message: "Kamu berhasil menyelesaikan Mode ${gameMode.value.toUpperCase()}!",
+      message: "Kamu berhasil menyelesaikan Mode ${gameMode.value.toUpperCase()} dan meraih ${score.value} poin!",
       actionText: "Main Lagi",
       onAction: () {
-        Get.back(); // Tutup dialog
-        showModeDialog(); // Kembali ke pemilihan mode
+        Get.back();
+        showModeDialog();
       },
     );
   }
 
+  // ==========================================================
+  // FITUR BARU: UPLOAD SKOR KE DATABASE
+  // ==========================================================
+  Future<void> _submitScore() async {
+    // Abaikan jika skor 0 agar database tidak penuh
+    if (score.value <= 0) return; 
+
+    try {
+      final token = SessionManager.getToken();
+      final response = await http.post(
+        Uri.parse(ApiEndpoint.submitScore),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "game_name": "morse_challenge",
+          "score": score.value,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint("[Morse] Skor berhasil disimpan: ${score.value}");
+      } else {
+        debugPrint("[Morse] Gagal menyimpan skor: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("[Morse] Error submit skor: $e");
+    }
+  }
+
   // =========================================================
-  // DESAIN DIALOG RESULT CUSTOM (MENANG / TIMEOUT)
+  // DESAIN DIALOG RESULT CUSTOM (MENANG / TIMEOUT / LOSE)
   // =========================================================
 
   void _showResultDialog({
@@ -364,6 +456,11 @@ class MorseChallengeController extends GetxController {
         headerColor = Colors.orange.shade50;
         iconColor = Colors.orange;
         iconData = Icons.timer_off_rounded;
+        break;
+      case GameResultStatus.lose:
+        headerColor = Colors.red.shade50;
+        iconColor = Colors.red;
+        iconData = Icons.cancel_rounded;
         break;
     }
 
@@ -524,22 +621,7 @@ class MorseChallengeController extends GetxController {
   }
 
   // =========================================================
-  // RESTART GAME
-  // =========================================================
-
-  void restartGame() {
-    stopTimer();
-    currentQuestion.value = 1;
-    score.value = 0;
-    currentLetterIndex.value = 0;
-    currentInput.value = '';
-
-    generateQuestions();
-    loadQuestion();
-  }
-
-  // =========================================================
-  // MODE DIALOG TERBARU (DENGAN ANIMASI)
+  // MODE DIALOG
   // =========================================================
 
   void showModeDialog() {
@@ -626,10 +708,6 @@ class MorseChallengeController extends GetxController {
     );
   }
 
-  // =========================================================
-  // MODE BUTTON
-  // =========================================================
-
   Widget _modeButton({
     required String title,
     required String subtitle,
@@ -638,7 +716,7 @@ class MorseChallengeController extends GetxController {
   }) {
     return GestureDetector(
       onTap: () {
-        Get.back(); // Menutup dialog
+        Get.back();
         startGame(mode);
       },
       child: Container(
@@ -685,10 +763,6 @@ class MorseChallengeController extends GetxController {
       ),
     );
   }
-
-  // =========================================================
-  // MORSE TABLE
-  // =========================================================
 
   void openMorseTable() {
     Get.bottomSheet(
@@ -774,11 +848,109 @@ class MorseChallengeController extends GetxController {
   }
 
   // =========================================================
-  // BACK
+  // KELUAR DARI PERMAINAN (BACK DENGAN KONFIRMASI)
   // =========================================================
 
   void onBack() {
-    stopTimer();
-    Get.offAllNamed('/beranda-game');
+    // Memunculkan popup konfirmasi sebelum keluar
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.exit_to_app_rounded, color: Colors.red, size: 40),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Yakin Ingin Keluar?",
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Color(0xFF361F1A),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Jika kamu keluar sekarang, poin yang telah kamu kumpulkan pada sesi ini tidak akan disimpan.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Urbanist',
+                  fontSize: 14,
+                  color: Color(0xFF504442),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(), // Tutup dialog
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: Color(0xFFD4C3BF), width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Batal",
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF827471),
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // KELUAR TANPA MEMANGGIL _submitScore()
+                        stopTimer();
+                        Get.offAllNamed('/beranda-game');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Keluar",
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -106,14 +106,14 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.REGISTER,
-      page: () => const RegisterView(),
+      page: () => RegisterView(),
       binding: RegisterBinding(),
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 100),
       children: [
         GetPage(
           name: _Paths.REGISTER,
-          page: () => const RegisterView(),
+          page: () => RegisterView(),
           binding: RegisterBinding(),
           transition: Transition.fadeIn,
           transitionDuration: const Duration(milliseconds: 100),

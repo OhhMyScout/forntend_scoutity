@@ -1,50 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-// 🚨 KUNCI UTAMA: Import app_pages.dart agar GetX mengenali rute dan kelas Routes kamu bray!
-import 'app/routes/app_pages.dart'; 
+import 'package:get_storage/get_storage.dart';
 
-void main() async {
-  // 1. Pastikan native engine Flutter siap menerima perintah async bray
+import 'app/routes/app_pages.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Ambil instansiasi Shared Preferences asli bawaan HP
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  // =====================================================
+  // INISIALISASI GET STORAGE
+  // =====================================================
 
-  // 3. Baca datanya dari storage internal HP fisik
-  bool isIntroSeen = prefs.getBool('is_intro_seen') ?? false;
-  bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
-  String? token = prefs.getString('token');
+  await GetStorage.init();
 
-  // 🕵️‍♂️ PRINT DEBUG: Biar kamu bisa pantau langsung di terminal saat HP dinyalakan bray
-  print("=============================================");
-  print("🚀 [SCOUTIFY BOOTING INITIALIZE]");
-  print("is_intro_seen di HP: $isIntroSeen");
-  print("is_logged_in di HP: $isLoggedIn");
-  print("token di HP: ${token != null ? 'ADA (Valid)' : 'KOSONG'}");
-  print("=============================================");
+  final box = GetStorage();
 
-  // 4. Tentukan rute pertama secara dinamis berdasarkan data di atas
-  String penentuRuteAwal = Routes.ONBOARDING; // Nilai default bawaan awal
+  // =====================================================
+  // BACA DATA SESSION
+  // =====================================================
 
-  if (isLoggedIn && token != null && token.isNotEmpty) {
-    penentuRuteAwal = Routes.HOME; // Langsung tembus ke dashboard tanpa login ulang bray!
+  final bool isIntroSeen =
+      box.read('is_intro_seen') ?? false;
+
+  final bool isLoggedIn =
+      box.read('is_logged_in') ?? false;
+
+  final String? token =
+      box.read('token');
+
+  // =====================================================
+  // DEBUG LOG
+  // =====================================================
+
+  debugPrint("=============================================");
+  debugPrint("🚀 [SCOUTIFY BOOTING INITIALIZE]");
+  debugPrint("is_intro_seen : $isIntroSeen");
+  debugPrint("is_logged_in  : $isLoggedIn");
+  debugPrint(
+    "token         : ${token != null && token.isNotEmpty ? 'ADA' : 'KOSONG'}",
+  );
+  debugPrint("=============================================");
+
+  // =====================================================
+  // PENENTUAN HALAMAN AWAL
+  // =====================================================
+
+  String initialRoute = Routes.ONBOARDING;
+
+  if (isLoggedIn &&
+      token != null &&
+      token.isNotEmpty) {
+    initialRoute = Routes.HOME;
   } else if (isIntroSeen) {
-    penentuRuteAwal = Routes.LOGIN; // Lewati onboarding, langsung masuk form login
+    initialRoute = Routes.LOGIN;
   }
 
-  print("🎯 RUTE AWAL YANG DIPILIH APLIKASI: $penentuRuteAwal");
-  print("=============================================");
+  debugPrint(
+    "🎯 RUTE AWAL YANG DIPILIH: $initialRoute",
+  );
+
+  debugPrint("=============================================");
 
   runApp(
     GetMaterialApp(
       title: "Scoutify",
       debugShowCheckedModeBanner: false,
-      initialRoute: penentuRuteAwal, // 🔥 Mengunci rute dinamis hasil seleksi data HP
+      initialRoute: initialRoute,
       getPages: AppPages.routes,
       theme: ThemeData(
         useMaterial3: true,
-        fontFamily: 'Urbanist',
+        fontFamily: "Urbanist",
         colorSchemeSeed: const Color(0xFF361F1A),
       ),
     ),

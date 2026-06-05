@@ -1,10 +1,12 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../routes/app_pages.dart';
 import 'package:http/http.dart' as http;
+
+import '../../../../routes/app_pages.dart';
 import '../../../data/api_endpoint.dart';
-import 'package:get_storage/get_storage.dart';
+import '../../../data/session_manager.dart';
 
 class LoginController extends GetxController {
   final emailController = TextEditingController();
@@ -13,69 +15,112 @@ class LoginController extends GetxController {
   var isPasswordVisible = false.obs;
   var isLoading = false.obs;
 
+  @override
+  void onInit() {
+    super.onInit();
+    autoLoginCheck();
+  }
+
+  // =========================
+  // AUTO LOGIN CHECK
+  // =========================
+  void autoLoginCheck() {
+    if (SessionManager.hasToken() && SessionManager.isLoggedIn) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        Get.offAllNamed(Routes.HOME);
+      });
+    }
+  }
+
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
 
-  // lib/app/modules/auth/login/controllers/login_controller.dart
-
-  // Di dalam LoginController kamu bray
-  void login() async {
+  // =========================
+  // LOGIN
+  // =========================
+  Future<void> login() async {
     try {
+      final email = emailController.text.trim();
+      final password = passwordController.text;
+
+      if (email.isEmpty || password.isEmpty) {
+        Get.snackbar(
+          "Error",
+          "Email & password wajib diisi",
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
       isLoading.value = true;
-      
-      // Anggaplah ini proses nembak API Login kamu ke Flask
+
       final response = await http.post(
-        Uri.parse(ApiEndpoint.login), // Sesuai file pusat API kita kemarin bray
+        Uri.parse(ApiEndpoint.login),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          "email": emailController.text.trim(),
-          "password": passwordController.text.trim(),
+          "email": email,
+          "password": password,
         }),
       );
 
       final result = jsonDecode(response.body);
-      isLoading.value = false;
 
       if (response.statusCode == 200) {
-        // --- KUNCI PENYELAMATNYA DI SINI BRAY! ---
-        final box = GetStorage();
-        
-        // Wajib pakai await dan ambil token hasil generate login dari Flask bray
-        await box.write('token', result['token']); 
-        await box.write('is_logged_in', true);
-        
-        // Ambil data email buat cadangan jika ada bray
-        if (result['data'] != null) {
-          await box.write('email', result['data']['email']);
-        }
-        
-        // Paksa simpan detik ini juga ke memori HP bray
-        await box.save();
+        final token = result["token"] ?? "";
+        final user = result["user"] ?? {};
+
+        await SessionManager.saveSession(
+          token: token,
+          userId: user["id"],
+          username: user["username"] ?? "",
+          fullname: user["fullname"] ?? "",
+          email: user["email"] ?? email,
+          role: user["role"] ?? "user",
+          province: user["province"] ?? "",
+          image: user["image"] ?? "",
+          points: user["points"] ?? 0,
+        );
 
         Get.snackbar(
-          "Login Sukses",
-          "Selamat datang kembali di Scoutify!",
+          "Success",
+          "Login berhasil",
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
 
-        // Pindahkan langsung ke HOME tanpa sisa stack halaman lama bray
         Get.offAllNamed(Routes.HOME);
-
       } else {
         Get.snackbar(
           "Login Gagal",
-          result['message'] ?? "Email atau password salah bray!",
-          backgroundColor: Colors.redAccent,
+          result["message"] ?? "Invalid credentials",
+          backgroundColor: Colors.red,
           colorText: Colors.white,
         );
       }
     } catch (e) {
+      debugPrint("LOGIN ERROR: $e");
+
+      Get.snackbar(
+        "Error",
+        "Server tidak dapat dijangkau",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
       isLoading.value = false;
-      print("Error Login: $e");
     }
   }
+
+  // =========================
+  // LOGOUT
+  // =========================
+  Future<void> logout() async {
+    await SessionManager.clear();
+    Get.offAllNamed(Routes.LOGIN);
+  }
+
   @override
   void onClose() {
     emailController.dispose();

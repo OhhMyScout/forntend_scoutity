@@ -7,208 +7,312 @@ class EditProfileView extends GetView<EditProfileController> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF361F1A);
-    const bgColor = Color(0xFFFCF9F4);
-    const containerColor = Color(0xFFF0EDE9);
+    const primary = Color(0xFF361F1A);
+    const bg = Color(0xFFFCF9F4);
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: bg,
+
+      // ================= APPBAR =================
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: primaryColor),
-          onPressed: () => controller.goBack(), // // Kembali
+          icon: const Icon(Icons.arrow_back, color: primary),
+          onPressed: controller.goBack,
         ),
         title: const Text(
-          'Edit Profil',
+          "Edit Profil",
           style: TextStyle(
-            color: primaryColor,
+            color: primary,
             fontWeight: FontWeight.w600,
-            fontFamily: 'Poppins',
+            fontFamily: "Poppins",
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
-            child: Column(
-              children: [
-                // Profile Picture Section
-                _buildPhotoSection(),
-                const SizedBox(height: 40),
 
-                // Form Fields
-                _buildTextField(
-                  label: "Nama Lengkap",
-                  controller: controller.nameController,
-                  icon: Icons.person_outline,
-                ),
-                const SizedBox(height: 24),
-                _buildTextField(
-                  label: "Email",
-                  controller: controller.emailController,
-                  icon: Icons.mail_outline,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 24),
-                _buildDropdownField("Provinsi"),
-                const SizedBox(height: 24),
-                _buildTextField(
-                  label: "Gugus Depan",
-                  controller: controller.unitController,
-                  icon: Icons.corporate_fare_outlined,
-                ),
+      // ================= BODY =================
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-                const SizedBox(height: 40),
-                
-                // Danger Zone
-                const Divider(color: Color(0xFFD4C3BF)),
-                const SizedBox(height: 16),
-                TextButton.icon(
-                  onPressed: () => controller.deleteAccount(), // // Hapus Akun
-                  icon: const Icon(Icons.delete_forever, color: Color(0xFFBA1A1A)),
-                  label: const Text(
-                    "Hapus Akun Permanen",
-                    style: TextStyle(color: Color(0xFFBA1A1A), fontWeight: FontWeight.bold),
+        return Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 140),
+              child: Column(
+                children: [
+                  _buildAvatar(),
+
+                  const SizedBox(height: 30),
+
+                  _cardField(
+                    label: "Nama Lengkap",
+                    child: _input(
+                      controller: controller.nameController,
+                      icon: Icons.person_outline,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          // Bottom Action Bar
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 20,
-                    offset: const Offset(0, -4),
-                  )
+                  const SizedBox(height: 16),
+
+                  _cardField(
+                    label: "Email",
+                    child: _input(
+                      controller: controller.emailController,
+                      icon: Icons.mail_outline,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  _cardField(
+                    label: "Provinsi",
+                    child: _dropdown(),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  _cardField(
+                    label: "Username",
+                    child: _input(
+                      controller: controller.usernameController,
+                      icon: Icons.badge_outlined,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  _cardField(
+                    label: "Gugus Depan",
+                    child: _input(
+                      controller: controller.unitController,
+                      icon: Icons.apartment_outlined,
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  TextButton.icon(
+                    onPressed: controller.deleteAccount,
+                    icon: const Icon(Icons.delete_forever,
+                        color: Color(0xFFBA1A1A)),
+                    label: const Text(
+                      "Hapus Akun Permanen",
+                      style: TextStyle(
+                        color: Color(0xFFBA1A1A),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () => controller.saveProfile(), // // Simpan
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+
+            // ================= SAVE BUTTON =================
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
+                    )
+                  ],
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : _handleSaveWithOtp,
+                    child: const Text(
+                      "Simpan Perubahan",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                  child: const Text("Simpan Perubahan", style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 
-  Widget _buildPhotoSection() {
+  // =====================================================
+  // AVATAR
+  // =====================================================
+  Widget _buildAvatar() {
     return Column(
       children: [
         Stack(
           children: [
             const CircleAvatar(
-              radius: 64,
-              backgroundImage: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuAW_vEZrqIWA57KLjmikorI0PUCeJE65pcJC_640s-73uUZJlcOIvQwsUUPOHLbwW0PZZ78FWO90VAmSHpyM3gRR581vsewO5YlspodWnv9zXELUB_y0syWb4XLwqQICF_uE7AIGUXEaV2LoqxB7yVWFsrlqQzOXNJBLNIMLcZ-X7f3f4Gr20N88GGn8DheMk6wRCuEJVTkY6HSeR_zrT7t1KBuhwkRQDNlEwt_s4ez4S3FfS6_cQxXE-TCllOS1ZxvrXNHE8sXZlA'),
+              radius: 55,
+              backgroundColor: Color(0xFFF0EDE9),
+              child: Icon(Icons.person, size: 55, color: Color(0xFF361F1A)),
             ),
             Positioned(
               bottom: 0,
               right: 0,
               child: GestureDetector(
-                onTap: () => controller.pickImage(), // // Ganti Foto
+                onTap: controller.pickImage,
                 child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF361F1A),
+                  padding: const EdgeInsets.all(7),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF361F1A),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
                   ),
-                  child: const Icon(Icons.photo_camera, color: Colors.white, size: 20),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        const Text("Ubah Foto Profil", style: TextStyle(color: Color(0xFF7D562D), fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        const Text(
+          "Ubah Foto Profil",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF7D562D),
+          ),
+        )
       ],
     );
   }
 
-  Widget _buildTextField({
-    required String label,
+  // =====================================================
+  // CARD FIELD
+  // =====================================================
+  Widget _cardField({required String label, required Widget child}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF361F1A),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF6F3EE),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: child,
+        ),
+      ],
+    );
+  }
+
+  // =====================================================
+  // INPUT
+  // =====================================================
+  Widget _input({
     required TextEditingController controller,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF361F1A))),
-        ),
-        TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          decoration: InputDecoration(
-            fillColor: const Color(0xFFF6F3EE),
-            filled: true,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            suffixIcon: Icon(icon, color: const Color(0xFFD4C3BF)),
-            hintText: "Masukkan $label",
-          ),
-        ),
-      ],
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        icon: Icon(icon, color: Colors.grey),
+      ),
     );
   }
 
-  Widget _buildDropdownField(String label) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF361F1A))),
+  // =====================================================
+  // DROPDOWN
+  // =====================================================
+  Widget _dropdown() {
+    return Obx(
+      () => DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: controller.selectedProvince.value,
+          isExpanded: true,
+          icon: const Icon(Icons.expand_more),
+          onChanged: controller.changeProvince,
+          items: controller.provinces
+              .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e),
+                  ))
+              .toList(),
         ),
-        Obx(() => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF6F3EE),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: controller.selectedProvince.value,
-              isExpanded: true,
-              icon: const Icon(Icons.expand_more, color: Color(0xFFD4C3BF)),
-              onChanged: (String? newValue) {
-                if (newValue != null) controller.selectedProvince.value = newValue;
-              },
-              items: controller.provinces.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            ),
-          ),
-        )),
-      ],
+      ),
     );
+  }
+
+  // =====================================================
+  // OTP FLOW
+  // =====================================================
+  Future<void> _handleSaveWithOtp() async {
+    final newEmail = controller.emailController.text.trim();
+    final oldEmail = controller.box.read("email");
+
+    if (newEmail != oldEmail) {
+      await controller.requestOtp(newEmail);
+
+      Get.defaultDialog(
+        title: "Verifikasi Email",
+        radius: 12,
+        content: Column(
+          children: [
+            const Text("Masukkan kode OTP"),
+            const SizedBox(height: 10),
+            TextField(
+              controller: controller.otpController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: "OTP",
+              ),
+            ),
+          ],
+        ),
+        textConfirm: "Verifikasi",
+        textCancel: "Batal",
+        onConfirm: () async {
+          final ok = await controller.verifyOtp(
+            newEmail,
+            controller.otpController.text.trim(),
+          );
+
+          if (ok) {
+            Get.back();
+            await controller.saveProfile();
+          } else {
+            Get.snackbar("Gagal", "OTP salah / expired");
+          }
+        },
+      );
+    } else {
+      await controller.saveProfile();
+    }
   }
 }

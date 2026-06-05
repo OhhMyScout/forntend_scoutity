@@ -26,4 +26,4 @@ class BankSoalKotak2 {
     'PUTIH', 'PIONERING', 'JAMBORE', 'RAIMUNA', 'GUDEP', 'REGU',
     'SANGGA', 'BARUNG', 'AMBALAN', 'KWARTIR'
   ];
-}
+} 

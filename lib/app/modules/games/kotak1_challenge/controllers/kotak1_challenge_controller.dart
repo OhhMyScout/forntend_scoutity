@@ -1,10 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 import '../data/bank_soal_kotak1.dart';
 import '../models/kotak1_question.dart';
+
+import '../../../data/api_endpoint.dart';
+import '../../../data/session_manager.dart';
+
+enum GameResultStatus { win, lose, timeout }
 
 class Kotak1ChallengeController extends GetxController {
   var questions = <Kotak1Question>[].obs;
@@ -15,9 +23,10 @@ class Kotak1ChallengeController extends GetxController {
 
   var selectedAnswer = ''.obs;
   var isAnswered = false.obs;
+  var isSavingScore = false.obs;
 
   var shuffledOptions = <String>[].obs;
-  
+
   Timer? _timer;
 
   Kotak1Question get current => questions[index.value];
@@ -28,13 +37,19 @@ class Kotak1ChallengeController extends GetxController {
     startGame();
   }
 
+  // =====================================================
+  // GAME START
+  // =====================================================
   void startGame() {
-    _timer?.cancel(); 
+    _timer?.cancel();
+
     index.value = 0;
     score.value = 0;
     timeLeft.value = 40;
+
     selectedAnswer.value = '';
     isAnswered.value = false;
+    isSavingScore.value = false;
 
     var allQuestions = [...BankSoalKotak1.questions]..shuffle(Random());
     questions.value = allQuestions.take(10).toList();
@@ -52,21 +67,29 @@ class Kotak1ChallengeController extends GetxController {
     }
   }
 
+  // =====================================================
+  // TIMER
+  // =====================================================
   void startTimer() {
+    _timer?.cancel();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (timeLeft.value > 0) {
         timeLeft.value--;
       } else {
-        _timer?.cancel();
-        _showResultDialog(
+        timer.cancel();
+        _handleGameEnd(
           status: GameResultStatus.timeout,
           title: "WAKTU HABIS!",
-          message: "Kamu kehabisan waktu. Mari berlatih lebih cepat lagi!",
+          message: "Kamu kehabisan waktu.",
         );
       }
     });
   }
 
+  // =====================================================
+  // ANSWER LOGIC
+  // =====================================================
   void selectAnswer(String answer) {
     if (isAnswered.value) return;
 
@@ -80,16 +103,16 @@ class Kotak1ChallengeController extends GetxController {
 
       if (score.value < 0) {
         _timer?.cancel();
-        _showResultDialog(
+        _handleGameEnd(
           status: GameResultStatus.lose,
-          title: "YAH, KAMU KALAH!",
-          message: "Skor kamu turun di bawah 0. Jangan menyerah, ayo coba lagi!",
+          title: "KAMU KALAH",
+          message: "Aduh, skor kamu mencapai minus. Banyakin belajar lagi ya!",
         );
         return;
       }
     }
 
-    Future.delayed(const Duration(milliseconds: 800), nextQuestion);
+    Future.delayed(const Duration(milliseconds: 700), nextQuestion);
   }
 
   void nextQuestion() {
@@ -98,14 +121,77 @@ class Kotak1ChallengeController extends GetxController {
       loadQuestion();
     } else {
       _timer?.cancel();
-      _showResultDialog(
+      _handleGameEnd(
         status: GameResultStatus.win,
         title: "LUAR BIASA!",
-        message: "Kamu berhasil menyelesaikan seluruh tantangan sandi!",
+        message: "Kamu berhasil menyelesaikan semua soal Sandi Kotak 1.",
       );
     }
   }
 
+  // =====================================================
+  // END GAME + SAVE SCORE (FIXED)
+  // =====================================================
+  Future<void> _handleGameEnd({
+    required GameResultStatus status,
+    required String title,
+    required String message,
+  }) async {
+    _timer?.cancel();
+
+    isSavingScore.value = true;
+
+    try {
+      final token = SessionManager.token ?? '';
+
+      // DEBUG (penting)
+      debugPrint("TOKEN CHECK: $token");
+
+      if (token.isEmpty) {
+        debugPrint("SKIP SAVE SCORE (NO TOKEN)");
+        _showResultDialog(status: status, title: title, message: message);
+        return;
+      }
+
+      if (score.value <= 0) {
+        debugPrint("SKIP SAVE SCORE (SCORE <= 0)");
+        _showResultDialog(status: status, title: title, message: message);
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse(ApiEndpoint.submitScore),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "game_name": "sandi_kotak_1",
+          "score": score.value,
+        }),
+      );
+
+      debugPrint("SUBMIT SCORE STATUS: ${response.statusCode}");
+      debugPrint("SUBMIT SCORE BODY: ${response.body}");
+
+    } catch (e) {
+      debugPrint("ERROR SAVE SCORE: $e");
+    } finally {
+      isSavingScore.value = false;
+
+      if (Get.isDialogOpen == true) Get.back();
+
+      _showResultDialog(
+        status: status,
+        title: title,
+        message: message,
+      );
+    }
+  }
+
+  // =====================================================
+  // RESULT UI (SAMA DENGAN GAME LAINNYA)
+  // =====================================================
   void _showResultDialog({
     required GameResultStatus status,
     required String title,
@@ -114,22 +200,26 @@ class Kotak1ChallengeController extends GetxController {
     Color headerColor;
     Color iconColor;
     IconData iconData;
+    String actionText;
 
     switch (status) {
       case GameResultStatus.win:
         headerColor = Colors.green.shade50;
         iconColor = Colors.green;
         iconData = Icons.emoji_events_rounded;
-        break;
-      case GameResultStatus.lose:
-        headerColor = Colors.red.shade50;
-        iconColor = Colors.red;
-        iconData = Icons.sentiment_dissatisfied_rounded;
+        actionText = "Main Lagi";
         break;
       case GameResultStatus.timeout:
         headerColor = Colors.orange.shade50;
         iconColor = Colors.orange;
         iconData = Icons.timer_off_rounded;
+        actionText = "Ulangi";
+        break;
+      case GameResultStatus.lose:
+        headerColor = Colors.red.shade50;
+        iconColor = Colors.red;
+        iconData = Icons.cancel_rounded;
+        actionText = "Coba Lagi";
         break;
     }
 
@@ -149,10 +239,6 @@ class Kotak1ChallengeController extends GetxController {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(
-                    color: const Color(0xFFEBE8E3), 
-                    width: 2,
-                  ),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFF361F1A).withValues(alpha: 0.15),
@@ -170,11 +256,7 @@ class Kotak1ChallengeController extends GetxController {
                         color: headerColor,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        iconData,
-                        size: 56,
-                        color: iconColor,
-                      ),
+                      child: Icon(iconData, size: 56, color: iconColor),
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -243,7 +325,6 @@ class Kotak1ChallengeController extends GetxController {
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () {
-                              // PERBAIKAN: Gunakan tanda hubung sesuai _Paths
                               Get.offAllNamed('/beranda-game');
                             },
                             style: OutlinedButton.styleFrom(
@@ -280,9 +361,9 @@ class Kotak1ChallengeController extends GetxController {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: const Text(
-                              "Main Lagi",
-                              style: TextStyle(
+                            child: Text(
+                              actionText,
+                              style: const TextStyle(
                                 fontFamily: 'Nunito',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -303,14 +384,107 @@ class Kotak1ChallengeController extends GetxController {
     );
   }
 
-  void gameOver({required bool isTimeOut}) {
-    _timer?.cancel();
-    // PERBAIKAN: Gunakan tanda hubung sesuai _Paths
-    Get.offAllNamed('/beranda-game');
-    Get.snackbar(
-      isTimeOut ? "Waktu Habis!" : "Game Selesai", 
-      "Skor akhir: ${score.value}",
-      snackPosition: SnackPosition.BOTTOM,
+  // =========================================================
+  // KELUAR DARI PERMAINAN (BACK DENGAN KONFIRMASI)
+  // =========================================================
+  void onBack() {
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.exit_to_app_rounded, color: Colors.red, size: 40),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Yakin Ingin Keluar?",
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Color(0xFF361F1A),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Jika kamu keluar sekarang, poin yang telah kamu kumpulkan pada sesi ini tidak akan disimpan.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Urbanist',
+                  fontSize: 14,
+                  color: Color(0xFF504442),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: Color(0xFFD4C3BF), width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Batal",
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF827471),
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _timer?.cancel();
+                        Get.offAllNamed('/beranda-game');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Keluar",
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -320,5 +494,3 @@ class Kotak1ChallengeController extends GetxController {
     super.onClose();
   }
 }
-
-enum GameResultStatus { win, lose, timeout }

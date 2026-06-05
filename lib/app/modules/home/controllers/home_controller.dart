@@ -1,145 +1,256 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 🔥 Import wajib untuk cek session di HP fisik
+
 import '../../../routes/app_pages.dart';
+import '../../data/session_manager.dart';
 
 class HomeController extends GetxController {
-  // ===========================================================================
-  // STATE MANAGEMENT REAKTIF GETX
-  // ===========================================================================
-  var usernameDisplay = "Kak!".obs; // Menampung nama panggilan user secara dinamis
-  var isLoading = true.obs;         // Menangani state loading saat booting data internal
+  var isLoading = true.obs;
 
-  // ===========================================================================
-  // DATA LIST DATASET BAWAAN KAMU BRAY
-  // ===========================================================================
-  // Menambahkan parameter 'id' yang unik untuk mempermudah routing data
+  var usernameDisplay = "Kak!".obs;
+
+  // ======================================================
+  // USER DATA
+  // ======================================================
+
+  var userId = "".obs;
+  var username = "".obs;
+  var fullname = "".obs;
+  var email = "".obs;
+  var role = "".obs;
+  var province = "".obs;
+  var image = "".obs;
+  var points = 0.obs;
+
+  // ======================================================
+  // SHORTCUT MENU
+  // ======================================================
+
   final List<Map<String, dynamic>> shortcuts = [
-    {"id": "leaderboard", "title": "Papan\nPeringkat", "icon": Icons.leaderboard_rounded},
-    {"id": "sejarah", "title": "Sejarah", "icon": Icons.history_edu_rounded},
-    {"id": "berita", "title": "Berita", "icon": Icons.newspaper_rounded},
-    {"id": "permainan", "title": "Permainan", "icon": Icons.sports_esports_rounded},
+    {
+      "id": "leaderboard",
+      "title": "Papan\nPeringkat",
+      "icon": Icons.leaderboard_rounded,
+    },
+    {
+      "id": "sejarah",
+      "title": "Sejarah",
+      "icon": Icons.history_edu_rounded,
+    },
+    {
+      "id": "berita",
+      "title": "Berita",
+      "icon": Icons.newspaper_rounded,
+    },
+    {
+      "id": "permainan",
+      "title": "Permainan",
+      "icon": Icons.sports_esports_rounded,
+    },
   ];
+
+  // ======================================================
+  // DUMMY ACTIVITY
+  // ======================================================
 
   final List<Map<String, String>> activities = [
     {
       "category": "TIPS & TRIK",
       "title": "5 Cara Mengikat Tali yang Benar untuk Tenda",
       "time": "2 jam yang lalu",
-      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuBgIfiIbXaJ-J6kfn_RKdsVq2Ifg3W-__UCZuBmLx39tOfDRQzKUPbtfP-fcvWG-bcdUMvS6Gj4xZdWNrNMTcY4fzH9_J_EcXYXmQKUYgMfZ9zMbuL4yweFT9tTndAHx-wKEhFvhKptWmzDMuGcI1WkNB1LVYgcY790Nj0rsnrr-o2IE0PQCqhhj-LrTI1Om9KHw-US2D0ZN5wTnSWkikS9K79tY3QxxeV18LalsbgGEeQol8iHAZfT_oHKI-mLoOJXOxC5Npt6TsA",
+      "image":
+          "https://lh3.googleusercontent.com/aida-public/AB6AXuBgIfiIbXaJ-J6kfn_RKdsVq2Ifg3W-__UCZuBmLx39tOfDRQzKUPbtfP-fcvWG-bcdUMvS6Gj4xZdWNrNMTcY4fzH9_J_EcXYXmQKUYgMfZ9zMbuL4yweFT9tTndAHx-wKEhFvhKptWmzDMuGcI1WkNB1LVYgcY790Nj0rsnrr-o2IE0PQCqhhj-LrTI1Om9KHw-US2D0ZN5wTnSWkikS9K79tY3QxxeV18LalsbgGEeQol8iHAZfT_oHKI-mLoOJXOxC5Npt6TsA",
     },
     {
       "category": "PRESTASI",
       "title": "Lencana Penjelajah Rimba Kini Tersedia",
       "time": "Kemarin",
-      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuA52WSpB4LbWkmmrtfiX0jVNqxj14ga6ILQj63YgtlZ4oj32QcJMVMmb_hyf44C-Jg3n2PqpdOBLmNSROs-ei4v3ZSmRZ8NHyLDOLBgEiOXqCxV4i09UwppatZkaPWNTcuNLq4pQ98UqU0rJh0g5DWZqE0rT7jxAEhvKke8l11T4Xv5N-SHzAgVwISUwEv6rrFgKGqxVQqg3CI8WGyCU1tRq5y-CmxlhRBpiD8x80IuIbMONe42uJ_aW7fni8HbZnlfuHFI02sc0iw",
+      "image":
+          "https://lh3.googleusercontent.com/aida-public/AB6AXuA52WSpB4LbWkmmrtfiX0jVNqxj14ga6ILQj63YgtlZ4oj32QcJMVMmb_hyf44C-Jg3n2PqpdOBLmNSROs-ei4v3ZSmRZ8NHyLDOLBgEiOXqCxV4i09UwppatZkaPWNTcuNLq4pQ98UqU0rJh0g5DWZqE0rT7jxAEhvKke8l11T4Xv5N-SHzAgVwISUwEv6rrFgKGqxVQqg3CI8WGyCU1tRq5y-CmxlhRBpiD8x80IuIbMONe42uJ_aW7fni8HbZnlfuHFI02sc0iw",
     },
   ];
 
-  // ===========================================================================
-  // SIKLUS HIDUP CONTROLLER (LIFECYCLE)
-  // ===========================================================================
+  // ======================================================
+  // INIT
+  // ======================================================
+
   @override
   void onInit() {
     super.onInit();
-    checkUserSession(); // 🔥 Eksekusi validasi session detik pertama Home dibuka bray!
+    loadCurrentUser();
   }
 
-  // ===========================================================================
-  // LOGIKA UTAMA: CEK TOKEN SESSION USER DI HP FISIK
-  // ===========================================================================
-  void checkUserSession() async {
+  @override
+  void onReady() {
+    super.onReady();
+
+    Future.delayed(
+      const Duration(milliseconds: 500),
+      () {
+        if (fullname.value.isNotEmpty) {
+          Get.snackbar(
+            "Selamat Datang",
+            "Halo ${fullname.value}",
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: const Color(0xFF361F1A),
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
+        }
+      },
+    );
+  }
+
+  // ======================================================
+  // LOAD CURRENT USER
+  // ======================================================
+
+  Future<void> loadCurrentUser() async {
     try {
       isLoading.value = true;
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      
-      String? token = prefs.getString('token');
-      String? savedEmail = prefs.getString('email');
 
-      // 🔍 JARING KEAMANAN CADANGAN LAPIS KEDUA: Jika token gaib, paksa balik ke login
-      if (token == null || token.isEmpty) {
-        print("🚨 HOME VALIDATION: Token kosong! Tendang user ke halaman LOGIN.");
-        Get.offAllNamed(Routes.LOGIN);
+      debugPrint("========== SESSION CHECK ==========");
+      debugPrint("TOKEN      : ${SessionManager.token}");
+      debugPrint("HAS TOKEN  : ${SessionManager.hasToken()}");
+      debugPrint("LOGGED IN  : ${SessionManager.isLoggedIn}");
+      debugPrint("USER ID    : ${SessionManager.userId}");
+      debugPrint("USERNAME   : ${SessionManager.username}");
+      debugPrint("FULLNAME   : ${SessionManager.fullname}");
+      debugPrint("EMAIL      : ${SessionManager.email}");
+      debugPrint("ROLE       : ${SessionManager.role}");
+      debugPrint("POINTS     : ${SessionManager.points}");
+      debugPrint("===================================");
+
+      if (!SessionManager.isLoggedIn ||
+          !SessionManager.hasToken()) {
+        debugPrint("SESSION TIDAK DITEMUKAN");
+
+        Get.offAllNamed(
+          Routes.LOGIN,
+        );
+
         return;
       }
 
-      // 1. Ekstrak nama user dari email (Sebagai nama panggilan sementara di UI bray)
-      if (savedEmail != null && savedEmail.isNotEmpty) {
-        String cleanName = savedEmail.split('@')[0];
-        // Mengubah huruf pertama nama panggilan jadi Kapital bray
-        usernameDisplay.value = cleanName.length > 1 
-            ? cleanName[0].toUpperCase() + cleanName.substring(1)
-            : cleanName;
-      }
+      userId.value = SessionManager.userId;
+      username.value = SessionManager.username;
+      fullname.value = SessionManager.fullname;
+      email.value = SessionManager.email;
+      role.value = SessionManager.role;
+      province.value = SessionManager.province;
+      image.value = SessionManager.image;
+      points.value = SessionManager.points;
 
-      isLoading.value = false;
+      usernameDisplay.value =
+          fullname.value.isNotEmpty
+              ? fullname.value
+              : username.value.isNotEmpty
+                  ? username.value
+                  : "Kak!";
 
-      // 2. Tampilkan Notifikasi Selamat Datang khas Scoutify bray
-      Get.snackbar(
-        "Selamat Datang Kembali!",
-        "Halo, Kak ${usernameDisplay.value}! Siap berpetualang hari ini?",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: const Color(0xFF361F1A), // Sesuai warna tema coklat Scoutify kamu
-        colorText: Colors.white,
-        icon: const Icon(Icons.sentiment_satisfied_alt, color: Colors.white),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-      );
-
+      debugPrint("========== USER LOADED ==========");
+      debugPrint("ID       : ${userId.value}");
+      debugPrint("USERNAME : ${username.value}");
+      debugPrint("FULLNAME : ${fullname.value}");
+      debugPrint("EMAIL    : ${email.value}");
+      debugPrint("ROLE     : ${role.value}");
+      debugPrint("POINTS   : ${points.value}");
+      debugPrint("=================================");
     } catch (e) {
+      debugPrint("HOME ERROR : $e");
+
+      await SessionManager.clear();
+
+      Get.offAllNamed(
+        Routes.LOGIN,
+      );
+    } finally {
       isLoading.value = false;
-      print("🚨 Error Session Check di Home: $e");
-      Get.offAllNamed(Routes.LOGIN);
     }
   }
 
-  // ===========================================================================
-  // FUNGSI INTERAKSI NAVIGASI BAWAAN KAMU BRAY
-  // ===========================================================================
-  void onNotificationTap() {
-    Get.toNamed(Routes.SETTINGS);
+  // ======================================================
+  // REFRESH USER
+  // ======================================================
+
+  Future<void> refreshUser() async {
+    await loadCurrentUser();
   }
 
-  // Fungsi routing berdasarkan ID unik yang dikirim oleh View
+  // ======================================================
+  // LOGOUT
+  // ======================================================
+
+  Future<void> logout() async {
+    await SessionManager.clear();
+
+    Get.offAllNamed(
+      Routes.LOGIN,
+    );
+  }
+
+  // ======================================================
+  // ACTIONS
+  // ======================================================
+
+  void onNotificationTap() {
+    Get.toNamed(
+      Routes.SETTINGS,
+    );
+  }
+
   void onShortcutTap(String id) {
     switch (id) {
-      case 'leaderboard':
-        Get.toNamed(Routes.LEADERBOARD);
+      case "leaderboard":
+        Get.toNamed(
+          Routes.LEADERBOARD,
+        );
         break;
-      case 'sejarah':
-        Get.toNamed(Routes.SEJARAH_PRAMUKA);
+
+      case "sejarah":
+        Get.toNamed(
+          Routes.SEJARAH_PRAMUKA,
+        );
         break;
-      case 'berita':
-        Get.toNamed(Routes.BERANDA_BERITA);
+
+      case "berita":
+        Get.toNamed(
+          Routes.BERANDA_BERITA,
+        );
         break;
-      case 'permainan':
-        Get.toNamed(Routes.BERANDA_GAME);
+
+      case "permainan":
+        Get.toNamed(
+          Routes.BERANDA_GAME,
+        );
         break;
+
       default:
         Get.snackbar(
-          "Informasi", 
-          "Modul menu belum dikonfigurasi.",
-          snackPosition: SnackPosition.BOTTOM,
-          margin: const EdgeInsets.all(16),
+          "Informasi",
+          "Menu belum tersedia",
         );
     }
   }
 
   void onStartDetection() {
-    Get.toNamed(Routes.SEMAPHORE_DETECT);
+    Get.toNamed(
+      Routes.SEMAPHORE_DETECT,
+    );
   }
 
   void onSeeAll() {
-    Get.toNamed(Routes.BERANDA_BERITA);
+    Get.toNamed(
+      Routes.BERANDA_BERITA,
+    );
   }
 
-  void onActivityTap(Map<String, String> activity) {
-    // Logika tambahan jika kartu aktivitas terkini ditekan di kemudian hari
+  void onActivityTap(
+    Map<String, String> activity,
+  ) {
     Get.snackbar(
       activity["category"] ?? "Aktivitas",
-      activity["title"] ?? "Detail artikel belum tersedia",
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
+      activity["title"] ?? "",
     );
   }
 }

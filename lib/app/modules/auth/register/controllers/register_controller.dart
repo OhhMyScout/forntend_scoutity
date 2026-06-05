@@ -1,13 +1,16 @@
-// lib/app/modules/auth/register/controllers/register_controller.dart
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+
 import '../../../../routes/app_pages.dart';
 import '../../../data/api_endpoint.dart';
 
-// Definisikan enum action
-enum OtpAction { register, resetPassword }
+enum OtpAction {
+  register,
+  resetPassword,
+}
 
 class RegisterController extends GetxController {
   final nicknameController = TextEditingController();
@@ -16,99 +19,11 @@ class RegisterController extends GetxController {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  var selectedProvince = "".obs;
+  var selectedProvince = RxnString();
   var isPrivacyAccepted = false.obs;
-  var isLoading = false.obs; 
+  var isLoading = false.obs;
 
-
-
-  void register() async {
-    // 1. Validasi Sederhana
-    if (emailController.text.isEmpty || passwordController.text.isEmpty || nicknameController.text.isEmpty) {
-      Get.snackbar("Error", "Semua kolom wajib diisi", 
-          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
-      return;
-    }
-
-    if (passwordController.text != confirmPasswordController.text) {
-      Get.snackbar("Error", "Konfirmasi password tidak cocok", 
-          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
-      return;
-    }
-
-    if (!isPrivacyAccepted.value) {
-      Get.snackbar("Perhatian", "Anda harus menyetujui Kebijakan Privasi", 
-          snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
-
-    try {
-      isLoading.value = true;
-
-      // 2. Siapkan Request Body sesuai API Flask
-      final Map<String, dynamic> registerData = {
-        "username": nicknameController.text,
-        "fullname": fullNameController.text,
-        "email": emailController.text.trim(), // Tambahkan .trim() biar spasi gak sengaja keikut bray
-        "password": passwordController.text,
-        "provinsi": selectedProvince.value,
-        "role": "user",
-        "images": "default_profile.png" 
-      };
-
-      // 3. Eksekusi API Call
-      final response = await http.post(
-        Uri.parse(ApiEndpoint.register),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(registerData),
-      );
-
-      final result = jsonDecode(response.body);
-
-      // Matikan loading spinner sebelum melakukan perpindahan halaman
-      isLoading.value = false;
-
-      if (response.statusCode == 201) {
-        // Berhasil! Munculkan info untuk cek email
-        Get.snackbar("Sukses", "Registrasi berhasil! Silakan cek email kamu untuk kode OTP.", 
-            backgroundColor: Colors.green, colorText: Colors.white, duration: const Duration(seconds: 3));
-        
-        // 4. ALIKHAN KE LAYAR OTP REUSABLE
-        // Bawa data email dan actionType agar OtpController tahu harus nembak endpoint verifikasi yang mana
-        Get.toNamed(
-          Routes.OTP, 
-          arguments: {
-            "email": emailController.text.trim(),
-            "actionType": OtpAction.register
-          }
-        );
-      } else {
-        // Gagal dari sisi server (email sudah ada, dsb)
-        Get.snackbar("Gagal", result['message'] ?? "Terjadi kesalahan", 
-            backgroundColor: Colors.orange, colorText: Colors.white);
-      }
-    } catch (e) {
-      isLoading.value = false;
-      Get.snackbar("Error", "Tidak dapat terhubung ke server. Cek koneksi & IP API.", 
-          backgroundColor: Colors.red, colorText: Colors.white);
-      print("Error API: $e");
-    }
-  }
-
-  void togglePrivacy(bool? value) => isPrivacyAccepted.value = value ?? false;
-  void goToLogin() => Get.back();
-
-  @override
-  void onClose() {
-    nicknameController.dispose();
-    fullNameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.onClose();
-  }
-
- final List<String> provinces = [
+  final List<String> provinces = [
     "Aceh",
     "Sumatera Utara",
     "Sumatera Barat",
@@ -134,11 +49,11 @@ class RegisterController extends GetxController {
     "Kalimantan Timur",
     "Kalimantan Utara",
     "Sulawesi Utara",
-    "Gorontalo",
     "Sulawesi Tengah",
     "Sulawesi Barat",
     "Sulawesi Selatan",
     "Sulawesi Tenggara",
+    "Gorontalo",
     "Maluku",
     "Maluku Utara",
     "Papua",
@@ -146,6 +61,155 @@ class RegisterController extends GetxController {
     "Papua Selatan",
     "Papua Tengah",
     "Papua Pegunungan",
-    "Papua Barat Daya"
+    "Papua Barat Daya",
   ];
+
+  Future<void> register() async {
+    try {
+      final username = nicknameController.text.trim();
+      final fullname = fullNameController.text.trim();
+      final email = emailController.text.trim().toLowerCase();
+      final password = passwordController.text.trim();
+      final confirmPassword = confirmPasswordController.text.trim();
+
+      if (username.isEmpty ||
+          fullname.isEmpty ||
+          email.isEmpty ||
+          password.isEmpty ||
+          confirmPassword.isEmpty) {
+        Get.snackbar(
+          "Error",
+          "Semua kolom wajib diisi",
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      if (selectedProvince.value == null ||
+          selectedProvince.value!.isEmpty) {
+        Get.snackbar(
+          "Error",
+          "Pilih provinsi terlebih dahulu",
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      if (password != confirmPassword) {
+        Get.snackbar(
+          "Error",
+          "Password tidak cocok",
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      if (!isPrivacyAccepted.value) {
+        Get.snackbar(
+          "Perhatian",
+          "Harap setujui kebijakan privasi !",
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      isLoading.value = true;
+
+      final body = {
+        "username": username,
+        "fullname": fullname,
+        "email": email,
+        "password": password,
+        "provinsi": selectedProvince.value,
+        "role": "user",
+        "image": "default_profile.png",
+      };
+
+      final response = await http.post(
+        Uri.parse(ApiEndpoint.register),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(body),
+      );
+
+      debugPrint("REGISTER STATUS : ${response.statusCode}");
+      debugPrint("REGISTER BODY   : ${response.body}");
+
+      final result = jsonDecode(response.body);
+
+      if (response.statusCode == 201 &&
+          result["status"] == "success") {
+        Get.snackbar(
+          "Sukses",
+          result["message"] ?? "Registrasi berhasil",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+
+        Get.toNamed(
+          Routes.OTP,
+          arguments: {
+            "email": email,
+            "actionType": OtpAction.register,
+            "token": result["token"],
+          },
+        );
+
+        return;
+      }
+
+      Get.snackbar(
+        "Gagal",
+        result["message"] ?? "Registrasi gagal",
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      debugPrint("REGISTER ERROR: $e");
+
+      Get.snackbar(
+        "Error",
+        "Server tidak merespon",
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void togglePrivacy(bool? value) {
+    isPrivacyAccepted.value = value ?? false;
+  }
+
+  void changeProvince(String? value) {
+    if (value != null) {
+      selectedProvince.value = value;
+    }
+  }
+
+  void goToLogin() {
+    Get.back();
+  }
+
+  @override
+  void onClose() {
+    nicknameController.dispose();
+    fullNameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.onClose();
+  }
 }

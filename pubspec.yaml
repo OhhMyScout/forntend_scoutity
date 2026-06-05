@@ -40,6 +40,7 @@ dependencies:
   http: ^1.6.0
   get_storage: ^2.1.1
   shared_preferences: ^2.5.5
+  audioplayers: ^6.7.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -77,6 +78,7 @@ flutter:
     - assets/images/kotak2/
     - assets/images/huruf_semaphore/
     - assets/images/image_sandi/
+    - assets/sounds/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

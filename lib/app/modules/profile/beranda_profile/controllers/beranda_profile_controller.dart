@@ -1,79 +1,200 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
-import 'package:scoutify/app/routes/app_pages.dart';
-import '../../../data/api_endpoint.dart'; // Pastikan path import ApiEndpoint kamu tepat bray
+import 'package:http/http.dart' as http;
 
-class BerandaProfileController extends GetxController {
+import '../../../data/api_endpoint.dart';
+import '../../../../routes/app_pages.dart';
+
+class BerandaProfileController extends GetxController
+    with GetSingleTickerProviderStateMixin {
+  final GetStorage box = GetStorage();
+
   var isLoading = false.obs;
 
-  // Data user reaktif (Nanti bisa diisi via fungsi Get Profile dari Flask bray)
-  final user = {
-    "name": "Arkan Pratama",
-    "email": "aditya.pratama@scoutify.id",
-    "points": "1.250 Points",
-    "province": "Jawa Barat",
-    "gudep": "01.023",
-    "joined": "12 Maret 2023",
-    "image":
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBhEh1v1fcpsCJDgbK6XEUEyMWC9-bIl35rhVFrHoXWNs4ciWW0ifwG2DkaPz481o2gd1Z-eqBmFGK4oK42O0I7gnndm9MOEkPj3j1uGy0bn4wUFlB_vvB8Y-4u5MOdn2rrOuoyjCsB4Wv-9YVuqSpxIWK8GXN5OpvtG6z_aqhKuiqvIxtNZgS0-6ZCFV9Fn6Ga-VIBwGf3ExgzrtrV7ukW0Jbz_-6YnoZjxwdubyap7nnvuNaiTZdZP8pjGoUGiT0vnJ4l4QlG0aI",
+  final user = <String, dynamic>{
+    "id": 0,
+    "username": "",
+    "fullname": "",
+    "email": "",
+    "role": "",
+    "points": "0 Points",
+    "province": "-",
+    "gudep": "isi gudep mu",
+    "joined": "-",
+    "image": "",
   }.obs;
 
-  // --- FUNGSI LOGOUT INTEGRASI BACKEND + LOCAL STORAGE BRAY ---
-  void logout() async {
-    final box = GetStorage();
-    String? token = box.read('token');
+  @override
+  void onInit() {
+    super.onInit();
 
+    loadUserSession();
+
+    // 🔥 AUTO REFRESH SAAT MASUK PAGE
+    Future.delayed(
+      const Duration(milliseconds: 200),
+      () => getProfile(),
+    );
+  }
+
+  // =====================================================
+  // LOAD LOCAL CACHE (FAST UI FIRST LOAD)
+  // =====================================================
+  void loadUserSession() {
+    user.value = {
+      "id": box.read("user_id") ?? 0,
+      "username": box.read("username") ?? "",
+      "fullname": box.read("fullname") ?? "",
+      "email": box.read("email") ?? "",
+      "role": box.read("role") ?? "",
+      "points": box.read("points") ?? "0 Points",
+      "province": box.read("province") ?? "-",
+      "gudep": box.read("gudep") ?? "isi gudep mu",
+      "joined": box.read("joined") ?? "-",
+      "image": box.read("image") ?? "",
+    };
+  }
+
+  // =====================================================
+  // FORCE REFRESH (REAL DATA ALWAYS)
+  // =====================================================
+  Future<void> getProfile({bool force = true}) async {
     try {
       isLoading.value = true;
 
-      // 1. Kirim sinyal logout ke backend Flask bray
-      if (token != null) {
-        print("--- DEBUG: MENCOBA TEMBAK API LOGOUT FLASK ---");
-        await http
-            .post(
-              Uri.parse("${ApiEndpoint.baseUrl}/logout"),
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization":
-                    "Bearer $token", // Sesuai dengan request.headers.get di Flask bray
-              },
-            )
-            .timeout(
-              const Duration(seconds: 5),
-            ); // Batasi waktu tunggu biar gak hang
+      final token = box.read("token");
+
+      if (token == null || token.toString().isEmpty) {
+        Get.offAllNamed(Routes.LOGIN);
+        return;
       }
 
-      // 2. BERSIHKAN LOCAL STORAGE HP SAMPAI AMNESIA BRAY
-      await box.remove('token');
-      await box.remove('is_logged_in');
-      await box.save(); // Kunci pembersihan memori detik ini juga
-
-      isLoading.value = false;
-
-      Get.snackbar(
-        "Logout Sukses",
-        "Kamu telah keluar dari akun Scoutify.",
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-        icon: const Icon(Icons.logout, color: Colors.white),
+      final response = await http.get(
+        Uri.parse(ApiEndpoint.profile),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+          "Cache-Control": "no-cache", // 🔥 force no cache
+        },
       );
 
-      // 3. TENDANG USER BALIK KE GERBANG LOGIN & HANCURKAN STACK NAVIGASI
-      Get.offAllNamed(Routes.LOGIN);
-    } catch (e) {
-      isLoading.value = false;
-      print("🚨 Error Pas Proses Logout: $e");
+      final result = jsonDecode(response.body);
 
-      // JALUR AMAN CADANGAN: Kalau server Flask mati/koneksi putus, tetep paksa logout di HP
-      // Biar user kamu gak terjebak/stuck di halaman profile bray!
-      await box.remove('token');
-      await box.remove('is_logged_in');
-      await box.save();
+      if (response.statusCode == 200) {
+        final profile = result["user"];
+
+        // =====================================================
+        // NORMALIZE DATA (ANTI NULL + CONSISTENT FIELD)
+        // =====================================================
+        final freshUser = {
+          "id": profile["id"] ?? 0,
+          "username": profile["username"] ?? "",
+          "fullname": profile["fullname"] ?? "",
+          "email": profile["email"] ?? "",
+          "role": profile["role"] ?? "",
+          "points": profile["points"]?.toString() ?? "0 Points",
+          "province": profile["province"] ?? "-",
+          "gudep": profile["gudep"] ?? "isi gudep mu",
+          "joined": profile["created_at"] ?? profile["joined"] ?? "-",
+          "image": profile["image"] ?? "",
+        };
+
+        user.value = freshUser;
+
+        // =====================================================
+        // UPDATE STORAGE
+        // =====================================================
+        await box.write("user_id", freshUser["id"]);
+        await box.write("username", freshUser["username"]);
+        await box.write("fullname", freshUser["fullname"]);
+        await box.write("email", freshUser["email"]);
+        await box.write("role", freshUser["role"]);
+        await box.write("province", freshUser["province"]);
+        await box.write("gudep", freshUser["gudep"]);
+        await box.write("points", freshUser["points"]);
+        await box.write("image", freshUser["image"]);
+      } else if (response.statusCode == 401) {
+        await logout();
+      } else {
+        debugPrint("PROFILE ERROR: $result");
+      }
+    } catch (e) {
+      debugPrint("GET PROFILE ERROR : $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // =====================================================
+  // 🔥 AUTO REFRESH SETIAP KEMBALI KE PAGE
+  // =====================================================
+  @override
+  void onReady() {
+    super.onReady();
+    getProfile(); // refresh saat page ready
+  }
+
+  // =====================================================
+  // REFRESH MANUAL (PULL TO REFRESH)
+  // =====================================================
+  Future<void> refreshProfile() async {
+    await getProfile();
+  }
+
+  // =====================================================
+  // NAVIGATION
+  // =====================================================
+  void goToEditProfile() {
+    Get.toNamed(Routes.EDIT_PROFILE)?.then((_) {
+      // 🔥 refresh setelah balik dari edit profile
+      getProfile();
+    });
+  }
+
+  void goToSettings() {
+    Get.toNamed(Routes.SETTINGS);
+  }
+
+  // =====================================================
+  // LOGOUT
+  // =====================================================
+  Future<void> logout() async {
+    try {
+      isLoading.value = true;
+
+      final token = box.read("token");
+
+      if (token != null && token.toString().isNotEmpty) {
+        try {
+          await http.post(
+            Uri.parse(ApiEndpoint.logout),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token",
+            },
+          );
+        } catch (_) {}
+      }
+
+      await box.erase();
+
       Get.offAllNamed(Routes.LOGIN);
+
+      Get.snackbar(
+        "Logout Berhasil",
+        "Sampai jumpa kembali",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      await box.erase();
+      Get.offAllNamed(Routes.LOGIN);
+      debugPrint("LOGOUT ERROR : $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 }

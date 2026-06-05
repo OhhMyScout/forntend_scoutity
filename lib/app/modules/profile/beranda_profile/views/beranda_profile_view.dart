@@ -1,5 +1,3 @@
-// lib/app/modules/profile/beranda_profile/views/beranda_profile_view.dart
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -14,33 +12,32 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-
       body: SafeArea(
         child: Stack(
           children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 120,
-              ),
-              child: Column(
-                children: [
-                  _buildHeader(),
-
-                  const SizedBox(height: 24),
-
-                  _buildProfileSection(),
-
-                  const SizedBox(height: 32),
-
-                  _buildInfoSection(),
-
-                  const SizedBox(height: 32),
-
-                  _buildActionButtons(),
-                ],
+            RefreshIndicator(
+              onRefresh: () async {
+                await controller.refreshProfile();
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  bottom: 120,
+                ),
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 24),
+                    _buildProfileSection(),
+                    const SizedBox(height: 32),
+                    _buildInfoSection(),
+                    const SizedBox(height: 32),
+                    _buildActionButtons(),
+                  ],
+                ),
               ),
             ),
 
@@ -54,6 +51,7 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
     );
   }
 
+  // =====================================================
   Widget _buildHeader() {
     return SizedBox(
       height: 60,
@@ -71,63 +69,36 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
     );
   }
 
+  // =====================================================
   Widget _buildProfileSection() {
     return Obx(
       () => Column(
         children: [
-          Stack(
-            children: [
-              Container(
-                width: 130,
-                height: 130,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ClipOval(
-                  child: Image.network(
-                    controller.user["image"].toString(),
-                    fit: BoxFit.cover,
-                  ),
-                ),
+          CircleAvatar(
+            radius: 65,
+            backgroundColor: AppTheme.primary,
+            child: Text(
+              (controller.user["fullname"] ?? "U")
+                      .toString()
+                      .trim()
+                      .isNotEmpty
+                  ? controller.user["fullname"][0].toUpperCase()
+                  : "U",
+              style: const TextStyle(
+                fontSize: 40,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(
-                      Icons.edit,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
 
           const SizedBox(height: 24),
 
           Text(
-            controller.user["name"].toString(),
+            controller.user["fullname"] ?? "-",
+            textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 30,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
               color: AppTheme.primary,
               fontFamily: "Poppins",
@@ -137,39 +108,27 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
           const SizedBox(height: 8),
 
           Text(
-            controller.user["email"].toString(),
+            controller.user["email"] ?? "-",
             style: const TextStyle(
               fontSize: 16,
               color: AppTheme.onSurfaceVariant,
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFCA98).withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(
-                color: const Color(0xFFFFCA98).withValues(alpha: 0.5),
-              ),
+              color: AppTheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(50),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.stars, color: AppTheme.secondary, size: 20),
-
-                const SizedBox(width: 8),
-
-                Text(
-                  controller.user["points"].toString(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF7A532A),
-                  ),
-                ),
-              ],
+            child: Text(
+              controller.user["role"] ?? "-",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primary,
+              ),
             ),
           ),
         ],
@@ -177,58 +136,74 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
     );
   }
 
+  // =====================================================
   Widget _buildInfoSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 4),
-          child: Text(
-            "Informasi Akun",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primary,
-              fontFamily: "Poppins",
+    return Obx(
+      () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 4),
+            child: Text(
+              "Informasi Akun",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primary,
+                fontFamily: "Poppins",
+              ),
             ),
           ),
-        ),
 
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFF0EDE9)),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF0EDE9)),
+            ),
+            child: Column(
+              children: [
+                _buildInfoTile(
+                  icon: Icons.person,
+                  title: "Username",
+                  value: controller.user["username"] ?? "-",
+                  showBorder: true,
+                ),
+
+                _buildInfoTile(
+                  icon: Icons.apartment,
+                  title: "Gudep",
+                  value: controller.user["gudep"] ?? "-",
+                  showBorder: true,
+                ),
+
+                _buildInfoTile(
+                  icon: Icons.email,
+                  title: "Email",
+                  value: controller.user["email"] ?? "-",
+                  showBorder: true,
+                ),
+
+                _buildInfoTile(
+                  icon: Icons.map,
+                  title: "Provinsi",
+                  value: controller.user["province"] ?? "-",
+                  showBorder: true,
+                ),
+
+                _buildInfoTile(
+                  icon: Icons.security,
+                  title: "Role",
+                  value: controller.user["role"] ?? "-",
+                  showBorder: false,
+                ),
+              ],
+            ),
           ),
-
-          child: Column(
-            children: [
-              _buildInfoTile(
-                icon: Icons.map,
-                title: "Provinsi",
-                value: controller.user["province"].toString(),
-                showBorder: true,
-              ),
-
-              _buildInfoTile(
-                icon: Icons.groups,
-                title: "Gugus Depan",
-                value: controller.user["gudep"].toString(),
-                showBorder: true,
-              ),
-
-              _buildInfoTile(
-                icon: Icons.calendar_today,
-                title: "Tanggal Bergabung",
-                value: controller.user["joined"].toString(),
-                showBorder: false,
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -240,20 +215,18 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
         border: showBorder
             ? const Border(bottom: BorderSide(color: Color(0xFFF6F3EE)))
             : null,
       ),
-
       child: Row(
         children: [
           Container(
             width: 42,
             height: 42,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0EDE9),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF0EDE9),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: AppTheme.secondary),
@@ -261,29 +234,29 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
 
           const SizedBox(width: 16),
 
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 4),
-
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primary,
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -300,15 +273,16 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primary,
               foregroundColor: Colors.white,
-              elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-            onPressed: () {},
-            icon: const Icon(Icons.person),
+            onPressed: () {
+              Get.toNamed('/edit-profile');
+            },
+            icon: const Icon(Icons.edit),
             label: const Text(
-              "Edit Profile",
+              "Edit Profil",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
@@ -328,7 +302,9 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Get.toNamed('/settings');
+            },
             icon: const Icon(Icons.settings),
             label: const Text(
               "Settings",
@@ -339,48 +315,28 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
 
         const SizedBox(height: 20),
 
-        SizedBox(
-          width: double.infinity,
-          height: 58,
-          child: Obx(
-            () => controller.isLoading.value
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppTheme.primary),
-                  )
-                : ElevatedButton.icon(
+        Obx(
+          () => controller.isLoading.value
+              ? const Center(child: CircularProgressIndicator())
+              : SizedBox(
+                  width: double.infinity,
+                  height: 58,
+                  child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(
-                        0xFFFFDAD6,
-                      ).withValues(alpha: 0.3),
+                      backgroundColor:
+                          const Color(0xFFFFDAD6).withValues(alpha: 0.3),
                       foregroundColor: const Color(0xFF93000A),
-                      elevation: 0,
-                      side: BorderSide(
-                        color: const Color(0xFFFFDAD6).withValues(alpha: 0.5),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
                     ),
-                    // --- DI SINI KITA PASANG KONFIRMASI POP-UP PRO BRAY ---
                     onPressed: () {
                       Get.defaultDialog(
                         title: "Keluar Akun?",
-                        titleStyle: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primary,
-                        ),
-                        middleText:
-                            "Apakah kamu yakin ingin keluar dari aplikasi Scoutify bray?",
-                        textConfirm: "Ya, Keluar",
+                        middleText: "Apakah Anda yakin ingin logout?",
+                        textConfirm: "Logout",
                         textCancel: "Batal",
                         confirmTextColor: Colors.white,
-                        cancelTextColor: AppTheme.primary,
-                        buttonColor: const Color(0xFF93000A),
-                        radius: 16,
                         onConfirm: () {
-                          Get.back(); // Tutup pop-up dialognya dulu bray
-                          controller
-                              .logout(); // Eksekusi fungsi hancurkan session!
+                          Get.back();
+                          controller.logout();
                         },
                       );
                     },
@@ -393,7 +349,7 @@ class BerandaProfileView extends GetView<BerandaProfileController> {
                       ),
                     ),
                   ),
-          ),
+                ),
         ),
       ],
     );

@@ -77,9 +77,9 @@ class Kotak2ChallengeView extends GetView<Kotak2ChallengeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: background,
-      // Membungkus body dengan detektor swipe up kustom
-      body: SwipeUpDetector(
-        onSwipeUp: _showSandiTable,
+      // MENGGUNAKAN DETEKTOR SWIPE DOWN BARU
+      body: SwipeDownDetector(
+        onSwipeDown: _showSandiTable,
         child: Stack(
           children: [
             Positioned.fill(
@@ -94,6 +94,7 @@ class Kotak2ChallengeView extends GetView<Kotak2ChallengeController> {
                   _buildHeader(),
                   Expanded(
                     child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(), // Agar area kosong tetap bisa di-swipe
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                       child: Column(
                         children: [
@@ -421,8 +422,9 @@ class Kotak2ChallengeView extends GetView<Kotak2ChallengeController> {
                         text: "Petunjuk: ", 
                         style: TextStyle(fontWeight: FontWeight.bold, color: primary),
                       ),
+                      // Teks panduan diubah menyesuaikan aksi tarik ke bawah
                       TextSpan(
-                        text: "Sandi Kotak 2 menggunakan satu kotak untuk tiga huruf. Jumlah titik menentukan posisinya. Atau kamu juga bisa swipe/usap ke atas untuk melihat tabel bantuan.",
+                        text: "Sandi Kotak 2 menggunakan satu kotak untuk tiga huruf. Jumlah titik menentukan posisinya. Atau kamu juga bisa tarik layar dari atas ke bawah untuk melihat tabel bantuan.",
                       ),
                     ],
                   ),
@@ -432,19 +434,7 @@ class Kotak2ChallengeView extends GetView<Kotak2ChallengeController> {
           ),
         ),
         const SizedBox(height: 16),
-        ElevatedButton.icon(
-          onPressed: _showSandiTable,
-          icon: const Icon(Icons.grid_on, size: 18),
-          label: const Text("Tabel Sandi Kotak 2"),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primary,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            textStyle: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-        ),
+
       ],
     );
   }
@@ -468,7 +458,7 @@ class Kotak2ChallengeView extends GetView<Kotak2ChallengeController> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag Handle (Indikator visual untuk swipe up)
+          // Drag Handle
           Center(
             child: Container(
               width: 48,
@@ -583,22 +573,24 @@ class Kotak2ChallengeView extends GetView<Kotak2ChallengeController> {
   }
 }
 
-// Widget Stateful Khusus untuk mendeteksi Swipe Up secara global
-class SwipeUpDetector extends StatefulWidget {
+// =========================================================================
+// PERBAIKAN: Widget Pendeteksi Tarik Kebawah (Swipe Down)
+// =========================================================================
+class SwipeDownDetector extends StatefulWidget {
   final Widget child;
-  final VoidCallback onSwipeUp;
+  final VoidCallback onSwipeDown;
 
-  const SwipeUpDetector({
+  const SwipeDownDetector({
     super.key,
     required this.child,
-    required this.onSwipeUp,
+    required this.onSwipeDown,
   });
 
   @override
-  State<SwipeUpDetector> createState() => _SwipeUpDetectorState();
+  State<SwipeDownDetector> createState() => _SwipeDownDetectorState();
 }
 
-class _SwipeUpDetectorState extends State<SwipeUpDetector> {
+class _SwipeDownDetectorState extends State<SwipeDownDetector> {
   double _startY = 0.0;
 
   @override
@@ -608,10 +600,12 @@ class _SwipeUpDetectorState extends State<SwipeUpDetector> {
         _startY = event.position.dy;
       },
       onPointerUp: (event) {
-        double deltaY = _startY - event.position.dy;
-        // Jika jari diusap ke atas lebih dari 80 pixel, jalankan fungsi
+        // Delta positif berarti gerakan dari atas ke bawah
+        double deltaY = event.position.dy - _startY; 
+        
+        // Jika jari ditarik ke bawah lebih dari 80 pixel
         if (deltaY > 80) {
-          widget.onSwipeUp();
+          widget.onSwipeDown();
         }
       },
       child: widget.child,

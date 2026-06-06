@@ -132,14 +132,15 @@ class HomeController extends GetxController {
         return;
       }
 
-      userId.value = SessionManager.userId;
-      username.value = SessionManager.username;
-      fullname.value = SessionManager.fullname;
-      email.value = SessionManager.email;
-      role.value = SessionManager.role;
-      province.value = SessionManager.province;
-      image.value = SessionManager.image;
-      points.value = SessionManager.points;
+      // PERBAIKAN: Gunakan .toString() dan int.tryParse() untuk mencegah crash tipe data
+      userId.value = SessionManager.userId?.toString() ?? "";
+      username.value = SessionManager.username?.toString() ?? "";
+      fullname.value = SessionManager.fullname?.toString() ?? "";
+      email.value = SessionManager.email?.toString() ?? "";
+      role.value = SessionManager.role?.toString() ?? "";
+      province.value = SessionManager.province?.toString() ?? "";
+      image.value = SessionManager.image?.toString() ?? "";
+      points.value = int.tryParse(SessionManager.points?.toString() ?? "0") ?? 0;
 
       usernameDisplay.value =
           fullname.value.isNotEmpty

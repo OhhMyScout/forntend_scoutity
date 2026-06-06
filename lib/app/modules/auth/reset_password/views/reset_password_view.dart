@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../routes/app_pages.dart';
 import '../controllers/reset_password_controller.dart';
 
 class ResetPasswordView extends GetView<ResetPasswordController> {
@@ -19,7 +20,8 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: primaryColor),
-          onPressed: () => Get.back(),
+          // Sebaiknya gunakan navigasi kembali ke login yang aman jika user batal
+          onPressed: () => Get.until((route) => route.settings.name == Routes.LOGIN),
         ),
         title: const Text(
           "Scoutify",
@@ -99,28 +101,43 @@ class ResetPasswordView extends GetView<ResetPasswordController> {
               ),
 
               const SizedBox(height: 32),
-              // Action Button
+              
+              // Action Button (Sudah dibungkus Obx untuk Loading State)
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
-                  onPressed: controller.savePassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: const Text(
-                    "Simpan Kata Sandi",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                child: Obx(
+                  () => ElevatedButton(
+                    // Matikan tombol saat loading
+                    onPressed: controller.isLoading.value ? null : controller.savePassword,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      disabledBackgroundColor: primaryColor.withOpacity(0.6),
+                      shape: const StadiumBorder(),
                     ),
+                    child: controller.isLoading.value
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                          )
+                        : const Text(
+                            "Simpan Kata Sandi",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ),
 
+              // Tombol Batal
               TextButton(
-                onPressed: () => Get.back(),
+                onPressed: () => Get.until((route) => route.settings.name == Routes.LOGIN),
                 child: const Text(
                   "Batalkan dan Kembali ke Masuk",
                   style: TextStyle(

@@ -6,12 +6,79 @@ import 'package:flutter/gestures.dart';
 import '../controllers/register_controller.dart';
 import '../../../../routes/app_pages.dart';
 
-class RegisterView extends GetView<RegisterController> {
-  RegisterView({super.key});
+class RegisterView extends StatefulWidget {
+  const RegisterView({super.key});
 
-  // State lokal khusus untuk UI (menyembunyikan/menampilkan teks sandi)
+  @override
+  State<RegisterView> createState() => _RegisterViewState();
+}
+
+class _RegisterViewState extends State<RegisterView> with SingleTickerProviderStateMixin {
+  // Panggil controller secara manual karena kita tidak menggunakan GetView lagi
+  final RegisterController controller = Get.find<RegisterController>();
+
+  // State lokal untuk menyembunyikan/menampilkan kata sandi
   final RxBool _isPasswordHidden = true.obs;
   final RxBool _isConfirmPasswordHidden = true.obs;
+
+  // Setup Animasi
+  late AnimationController _animationController;
+  late Animation<double> _bgFade;
+  late Animation<double> _headerFade;
+  late Animation<Offset> _headerSlide;
+  late Animation<double> _formFade;
+  late Animation<Offset> _formSlide;
+  late Animation<double> _footerFade;
+  late Animation<Offset> _footerSlide;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Durasi animasi diatur agar terasa mulus dan tidak terburu-buru
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+
+    // 1. Animasi Background Blob (0.0 - 0.4)
+    _bgFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.0, 0.4, curve: Curves.easeOut)),
+    );
+
+    // 2. Animasi Header (0.1 - 0.6)
+    _headerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.1, 0.6, curve: Curves.easeOutCubic)),
+    );
+    _headerSlide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.1, 0.6, curve: Curves.easeOutCubic)),
+    );
+
+    // 3. Animasi Form Input (0.3 - 0.8)
+    _formFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic)),
+    );
+    _formSlide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic)),
+    );
+
+    // 4. Animasi Footer & Tombol (0.5 - 1.0)
+    _footerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic)),
+    );
+    _footerSlide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic)),
+    );
+
+    // Jalankan animasi saat halaman dibuka
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,16 +91,24 @@ class RegisterView extends GetView<RegisterController> {
       body: Stack(
         children: [
           // ================= BACKGROUND ACCENTS =================
-          Positioned(
-            top: -80,
-            right: -50,
-            child: _blurAccent(const Color(0xFFFFCA98).withOpacity(0.4), 250),
+          FadeTransition(
+            opacity: _bgFade,
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -80,
+                  right: -50,
+                  child: _blurAccent(const Color(0xFFFFCA98).withOpacity(0.4), 250),
+                ),
+                Positioned(
+                  bottom: -100,
+                  left: -80,
+                  child: _blurAccent(const Color(0xFF7D562D).withOpacity(0.15), 300),
+                ),
+              ],
+            ),
           ),
-          Positioned(
-            bottom: -100,
-            left: -80,
-            child: _blurAccent(const Color(0xFF7D562D).withOpacity(0.15), 300),
-          ),
+          
           // Efek Glassmorphism transparan menutupi background accent
           Positioned.fill(
             child: BackdropFilter(
@@ -53,11 +128,36 @@ class RegisterView extends GetView<RegisterController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(primaryColor),
+                      // Header Dianimasikan
+                      FadeTransition(
+                        opacity: _headerFade,
+                        child: SlideTransition(
+                          position: _headerSlide,
+                          child: _buildHeader(primaryColor),
+                        ),
+                      ),
+                      
                       const SizedBox(height: 40),
-                      _buildForm(primaryColor, secondaryColor, inputBgColor),
+                      
+                      // Form Dianimasikan
+                      FadeTransition(
+                        opacity: _formFade,
+                        child: SlideTransition(
+                          position: _formSlide,
+                          child: _buildForm(primaryColor, secondaryColor, inputBgColor),
+                        ),
+                      ),
+                      
                       const SizedBox(height: 32),
-                      _buildFooter(secondaryColor),
+                      
+                      // Footer Dianimasikan
+                      FadeTransition(
+                        opacity: _footerFade,
+                        child: SlideTransition(
+                          position: _footerSlide,
+                          child: _buildFooter(secondaryColor),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -94,6 +194,7 @@ class RegisterView extends GetView<RegisterController> {
             fontWeight: FontWeight.w900,
             color: primaryColor,
             letterSpacing: -0.5,
+            fontFamily: 'Poppins',
           ),
         ),
         const SizedBox(height: 8),
@@ -277,6 +378,7 @@ class RegisterView extends GetView<RegisterController> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: primary,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: primary.withOpacity(0.6),
                 elevation: 4,
                 shadowColor: primary.withOpacity(0.4),
                 shape: RoundedRectangleBorder(

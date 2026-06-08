@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:convert'; 
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http; 
 
+import '../../../data/api_endpoint.dart'; 
+import '../../../data/session_manager.dart'; 
 import '../data/bank_soal_kotak2.dart'; 
 
 class Kotak2ChallengeController extends GetxController {
@@ -43,8 +47,11 @@ class Kotak2ChallengeController extends GetxController {
   }
 
   void loadQuestion() {
+    // KONDISI MENANG: Soal sudah habis
     if (currentQuestionIndex.value >= questions.length) {
       _timer?.cancel();
+      _submitScore(); // Simpan skor ke database
+      
       _showResultDialog(
         isWin: true,
         title: "TANTANGAN SELESAI!",
@@ -133,10 +140,10 @@ class Kotak2ChallengeController extends GetxController {
     _timer?.cancel();
     lives.value--;
 
-    // Kondisi 1: Nyawa Habis (0)
+    // Kondisi 1: Nyawa Habis (0) -> GAME OVER
     if (lives.value <= 0) {
+      _submitScore(); // Simpan skor ke database sebelum dialog muncul
       
-      // LOGIKA BARU: Jika dari awal game sampai nyawa habis tidak ada interaksi sama sekali
       if (!hasInteracted) {
         _showResultDialog(
           isWin: false,
@@ -145,17 +152,13 @@ class Kotak2ChallengeController extends GetxController {
           customIcon: Icons.snooze_rounded,
           customColor: Colors.blueGrey,
         );
-      } 
-      // Jika nyawa habis tapi skor masih 0 (Pernah mencoba tapi salah terus)
-      else if (score.value == 0) {
+      } else if (score.value == 0) {
         _showResultDialog(
           isWin: false,
           title: "YAH, KAMU KALAH!",
           message: "Aduh, kamu banyakin belajar yah! Nyawa kamu habis dan skor kamu masih 0.",
         );
-      } 
-      // Jika nyawa habis tapi punya skor
-      else {
+      } else {
         _showResultDialog(
           isWin: false,
           title: "KAMU HEBAT!",
@@ -182,7 +185,40 @@ class Kotak2ChallengeController extends GetxController {
     }
   }
 
-  // Desain Dialog Peringatan (Nyawa sisa 1)
+  // ==========================================================
+  // FITUR UPLOAD SKOR KE DATABASE
+  // ==========================================================
+  Future<void> _submitScore() async {
+    if (score.value <= 0) return; 
+
+    try {
+      final token = SessionManager.getToken();
+      final response = await http.post(
+        Uri.parse(ApiEndpoint.submitScore),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "game_name": "sandi_kotak_2", 
+          "score": score.value,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint("[Kotak 2] Skor berhasil disimpan: ${score.value}");
+      } else {
+        debugPrint("[Kotak 2] Gagal menyimpan skor: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("[Kotak 2] Error submit skor: $e");
+    }
+  }
+
+  // =========================================================
+  // DIALOG WIDGETS
+  // =========================================================
+
   void _showWarningDialog() {
     Get.dialog(
       Dialog(
@@ -284,7 +320,6 @@ class Kotak2ChallengeController extends GetxController {
     );
   }
 
-  // Desain Dialog Akhir Game (Diperbarui agar mendukung ikon/warna kustom)
   void _showResultDialog({
     required bool isWin,
     required String title,
@@ -456,6 +491,112 @@ class Kotak2ChallengeController extends GetxController {
         ),
       ),
       barrierDismissible: false,
+    );
+  }
+
+  // =========================================================
+  // KELUAR DARI PERMAINAN (BACK DENGAN KONFIRMASI)
+  // =========================================================
+  void onBack() {
+    // Memunculkan popup konfirmasi sebelum keluar
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.exit_to_app_rounded, color: Colors.red, size: 40),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Yakin Ingin Keluar?",
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Color(0xFF361F1A),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Jika kamu keluar sekarang, poin yang telah kamu kumpulkan pada sesi ini tidak akan disimpan.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Urbanist',
+                  fontSize: 14,
+                  color: Color(0xFF504442),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(), // Tutup dialog
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: Color(0xFFD4C3BF), width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Batal",
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF827471),
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // KELUAR TANPA MEMANGGIL _submitScore()
+                        _timer?.cancel();
+                        Get.offAllNamed('/beranda-game');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Keluar",
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

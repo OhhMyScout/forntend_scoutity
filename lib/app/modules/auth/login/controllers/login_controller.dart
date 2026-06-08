@@ -1,55 +1,125 @@
-import 'dart:convert'; 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../routes/app_pages.dart';
 import 'package:http/http.dart' as http;
+
+import '../../../../routes/app_pages.dart';
+import '../../../data/api_endpoint.dart';
+import '../../../data/session_manager.dart';
 
 class LoginController extends GetxController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  
+
   var isPasswordVisible = false.obs;
   var isLoading = false.obs;
 
-  // Gunakan 127.0.0.1 jika sudah jalankan 'adb reverse tcp:5000 tcp:5000'
-  final String apiUrl = "http://127.0.0.1:5000/api/login";
+  @override
+  void onInit() {
+    super.onInit();
+    autoLoginCheck();
+  }
+
+  // =========================
+  // AUTO LOGIN CHECK
+  // =========================
+  void autoLoginCheck() {
+    if (SessionManager.hasToken() && SessionManager.isLoggedIn) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        Get.offAllNamed(Routes.HOME);
+      });
+    }
+  }
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
 
-  // lib/app/modules/auth/login/controllers/login_controller.dart
+  // =========================
+  // LOGIN
+  // =========================
+  Future<void> login() async {
+    try {
+      final email = emailController.text.trim();
+      final password = passwordController.text;
 
-void login() async {
-  try {
-    isLoading.value = true;
+      if (email.isEmpty || password.isEmpty) {
+        Get.snackbar(
+          "Error",
+          "Email & password wajib diisi",
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
 
-    // Kirim password asli, biarkan Backend yang memverifikasi
-    Map<String, String> body = {
-      "email": emailController.text.trim(),
-      "password": passwordController.text, // Teks asli
-    };
+      isLoading.value = true;
 
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(body),
-    );
+      final response = await http.post(
+        Uri.parse(ApiEndpoint.login),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "email": email,
+          "password": password,
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      // Di sini kita terima TOKEN hasil generate backend
-      // Simpan token ini untuk akses fitur-fitur Scoutify lainnya
-      Get.offAllNamed(Routes.HOME);
-    } else {
-      Get.snackbar("Gagal", "Email atau Password salah");
+      final result = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final token = result["token"] ?? "";
+        final user = result["user"] ?? {};
+
+        await SessionManager.saveSession(
+          token: token,
+          userId: user["id"],
+          username: user["username"] ?? "",
+          fullname: user["fullname"] ?? "",
+          email: user["email"] ?? email,
+          role: user["role"] ?? "user",
+          province: user["province"] ?? "",
+          image: user["image"] ?? "",
+          points: user["points"] ?? 0,
+        );
+
+        Get.snackbar(
+          "Success",
+          "Login berhasil",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+
+        Get.offAllNamed(Routes.HOME);
+      } else {
+        Get.snackbar(
+          "Login Gagal",
+          result["message"] ?? "Invalid credentials",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      debugPrint("LOGIN ERROR: $e");
+
+      Get.snackbar(
+        "Error",
+        "Server tidak dapat dijangkau",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
     }
-  } catch (e) {
-    Get.snackbar("Error", "Koneksi ke server terputus");
-  } finally {
-    isLoading.value = false;
   }
-}
+
+  // =========================
+  // LOGOUT
+  // =========================
+  Future<void> logout() async {
+    await SessionManager.clear();
+    Get.offAllNamed(Routes.LOGIN);
+  }
 
   @override
   void onClose() {

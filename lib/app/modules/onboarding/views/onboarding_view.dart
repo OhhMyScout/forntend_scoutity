@@ -1,43 +1,151 @@
-// lib/modules/onboarding/onboarding_view.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/gestures.dart';
 import '../controllers/onboarding_controller.dart';
 
-class OnboardingView extends GetView<OnboardingController> {
+class OnboardingView extends StatefulWidget {
   const OnboardingView({super.key});
+
+  @override
+  State<OnboardingView> createState() => _OnboardingViewState();
+}
+
+class _OnboardingViewState extends State<OnboardingView> with SingleTickerProviderStateMixin {
+  // Panggil controller GetX secara manual
+  final OnboardingController controller = Get.find<OnboardingController>();
+
+  // Setup Animasi
+  late AnimationController _animationController;
+  
+  // Background & Header
+  late Animation<double> _bgFadeAnimation;
+  late Animation<double> _headerFadeAnimation;
+  late Animation<Offset> _headerSlideAnimation;
+
+  // Konten Slide (Gambar & Teks)
+  late Animation<double> _contentFadeAnimation;
+  late Animation<Offset> _contentSlideAnimation;
+  late Animation<double> _contentScaleAnimation;
+
+  // Footer (Indikator & Tombol)
+  late Animation<double> _footerFadeAnimation;
+  late Animation<Offset> _footerSlideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Durasi total animasi 1.8 detik
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+
+    // 1. Animasi Background (0.0 - 0.3)
+    _bgFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.0, 0.3, curve: Curves.easeOut)),
+    );
+
+    // 2. Animasi Header (0.1 - 0.5) meluncur dari atas ke bawah
+    _headerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.1, 0.5, curve: Curves.easeOutCubic)),
+    );
+    _headerSlideAnimation = Tween<Offset>(begin: const Offset(0, -0.5), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.1, 0.5, curve: Curves.easeOutCubic)),
+    );
+
+    // 3. Animasi Konten Utama (0.3 - 0.8) meluncur dari bawah + zoom halus
+    _contentFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic)),
+    );
+    _contentSlideAnimation = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic)),
+    );
+    _contentScaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.3, 0.8, curve: Curves.easeOutBack)),
+    );
+
+    // 4. Animasi Footer (0.5 - 1.0) meluncur dari bawah
+    _footerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic)),
+    );
+    _footerSlideAnimation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic)),
+    );
+
+    // Eksekusi animasi saat halaman pertama kali dibuka
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Visual Accents
-          Positioned(
-            top: -100,
-            right: -100,
-            child: _blurCircle(Colors.brown[100]!),
-          ),
-          Positioned(
-            bottom: -100,
-            left: -100,
-            child: _blurCircle(Colors.orange[50]!),
+          // Visual Accents Dianimasikan
+          FadeTransition(
+            opacity: _bgFadeAnimation,
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -100,
+                  right: -100,
+                  child: _blurCircle(Colors.brown[100]!),
+                ),
+                Positioned(
+                  bottom: -100,
+                  left: -100,
+                  child: _blurCircle(Colors.orange[50]!),
+                ),
+              ],
+            ),
           ),
 
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(),
-                Expanded(
-                  child: PageView.builder(
-                    controller: controller.pageController,
-                    onPageChanged: controller.onPageChanged,
-                    itemCount: controller.data.length,
-                    itemBuilder: (context, i) =>
-                        _buildSlide(controller.data[i]),
+                // Header Dianimasikan
+                FadeTransition(
+                  opacity: _headerFadeAnimation,
+                  child: SlideTransition(
+                    position: _headerSlideAnimation,
+                    child: _buildHeader(),
                   ),
                 ),
-                _buildFooter(),
+                
+                // Konten Slide (PageView) Dianimasikan
+                Expanded(
+                  child: FadeTransition(
+                    opacity: _contentFadeAnimation,
+                    child: SlideTransition(
+                      position: _contentSlideAnimation,
+                      child: ScaleTransition(
+                        scale: _contentScaleAnimation,
+                        child: PageView.builder(
+                          controller: controller.pageController,
+                          onPageChanged: controller.onPageChanged,
+                          itemCount: controller.data.length,
+                          itemBuilder: (context, i) => _buildSlide(controller.data[i]),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                
+                // Footer Dianimasikan
+                FadeTransition(
+                  opacity: _footerFadeAnimation,
+                  child: SlideTransition(
+                    position: _footerSlideAnimation,
+                    child: _buildFooter(),
+                  ),
+                ),
               ],
             ),
           ),
@@ -57,11 +165,15 @@ class OnboardingView extends GetView<OnboardingController> {
             style: Get.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: const Color(0xFF361F1A),
+              fontFamily: 'Poppins',
             ),
           ),
           TextButton(
-            onPressed: controller.goToLogin, // Panggil fungsi ke login
-            child: const Text("Lewati", style: TextStyle(color: Colors.grey)),
+            onPressed: controller.goToLogin,
+            child: const Text(
+              "Lewati", 
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -86,6 +198,7 @@ class OnboardingView extends GetView<OnboardingController> {
               child: Image.network(
                 item['image']!,
                 height: 320,
+                width: double.infinity,
                 fit: BoxFit.cover,
               ),
             ),
@@ -97,13 +210,14 @@ class OnboardingView extends GetView<OnboardingController> {
             style: Get.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: const Color(0xFF361F1A),
+              fontFamily: 'Poppins',
             ),
           ),
           const SizedBox(height: 16),
           Text(
             item['desc']!,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16, color: Colors.black54),
+            style: const TextStyle(fontSize: 16, color: Colors.black54, height: 1.5),
           ),
         ],
       ),
@@ -138,23 +252,26 @@ class OnboardingView extends GetView<OnboardingController> {
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
-            height: 56,
+            height: 52, // Sedikit ditebalkan agar konsisten dengan tombol Login
             child: ElevatedButton(
               onPressed: controller.next,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF361F1A),
                 shape: const StadiumBorder(),
+                elevation: 4,
+                shadowColor: const Color(0xFF361F1A).withOpacity(0.4),
               ),
               child: const Text(
                 "Lanjutkan",
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text.rich(
             TextSpan(
               text: "Sudah punya akun? ",
@@ -162,11 +279,10 @@ class OnboardingView extends GetView<OnboardingController> {
               children: [
                 TextSpan(
                   text: "Masuk",
-                  // Menggunakan recognizer agar teks bisa diklik
                   recognizer: TapGestureRecognizer()..onTap = controller.goToLogin,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF361F1A),
+                    color: Color(0xFF7D562D),
                   ),
                 ),
               ],
@@ -178,11 +294,11 @@ class OnboardingView extends GetView<OnboardingController> {
   }
 
   Widget _blurCircle(Color color) => Container(
-    width: 300,
-    height: 300,
-    decoration: BoxDecoration(
-      color: color.withOpacity(0.3),
-      shape: BoxShape.circle,
-    ),
-  );
+        width: 300,
+        height: 300,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.3),
+          shape: BoxShape.circle,
+        ),
+      );
 }

@@ -1,41 +1,163 @@
-// lib/modules/register/register_view.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/register_controller.dart';
+import 'package:flutter/gestures.dart';
 
-class RegisterView extends GetView<RegisterController> {
+import '../controllers/register_controller.dart';
+import '../../../../routes/app_pages.dart';
+
+class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
 
   @override
+  State<RegisterView> createState() => _RegisterViewState();
+}
+
+class _RegisterViewState extends State<RegisterView> with SingleTickerProviderStateMixin {
+  // Panggil controller secara manual karena kita tidak menggunakan GetView lagi
+  final RegisterController controller = Get.find<RegisterController>();
+
+  // State lokal untuk menyembunyikan/menampilkan kata sandi
+  final RxBool _isPasswordHidden = true.obs;
+  final RxBool _isConfirmPasswordHidden = true.obs;
+
+  // Setup Animasi
+  late AnimationController _animationController;
+  late Animation<double> _bgFade;
+  late Animation<double> _headerFade;
+  late Animation<Offset> _headerSlide;
+  late Animation<double> _formFade;
+  late Animation<Offset> _formSlide;
+  late Animation<double> _footerFade;
+  late Animation<Offset> _footerSlide;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Durasi animasi diatur agar terasa mulus dan tidak terburu-buru
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+
+    // 1. Animasi Background Blob (0.0 - 0.4)
+    _bgFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.0, 0.4, curve: Curves.easeOut)),
+    );
+
+    // 2. Animasi Header (0.1 - 0.6)
+    _headerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.1, 0.6, curve: Curves.easeOutCubic)),
+    );
+    _headerSlide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.1, 0.6, curve: Curves.easeOutCubic)),
+    );
+
+    // 3. Animasi Form Input (0.3 - 0.8)
+    _formFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic)),
+    );
+    _formSlide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic)),
+    );
+
+    // 4. Animasi Footer & Tombol (0.5 - 1.0)
+    _footerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic)),
+    );
+    _footerSlide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic)),
+    );
+
+    // Jalankan animasi saat halaman dibuka
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const Color primaryColor = Color(0xFF361F1A);
-    const Color secondaryColor = Color(0xFF7D562D);
-    const Color inputBgColor = Color(0xFFF6F3EE);
+    const primaryColor = Color(0xFF361F1A);
+    const secondaryColor = Color(0xFF7D562D);
+    const inputBgColor = Color(0xFFF6F3EE);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F4),
       body: Stack(
         children: [
-          // Background Decorative Elements
-          Positioned(
-            top: -100, right: -100,
-            child: _blurAccent(const Color(0xFFE5E2DD).withOpacity(0.5)),
+          // ================= BACKGROUND ACCENTS =================
+          FadeTransition(
+            opacity: _bgFade,
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -80,
+                  right: -50,
+                  child: _blurAccent(const Color(0xFFFFCA98).withOpacity(0.4), 250),
+                ),
+                Positioned(
+                  bottom: -100,
+                  left: -80,
+                  child: _blurAccent(const Color(0xFF7D562D).withOpacity(0.15), 300),
+                ),
+              ],
+            ),
           ),
           
+          // Efek Glassmorphism transparan menutupi background accent
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              child: const SizedBox(),
+            ),
+          ),
+
+          // ================= MAIN CONTENT =================
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
               child: Center(
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 500),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(),
+                      // Header Dianimasikan
+                      FadeTransition(
+                        opacity: _headerFade,
+                        child: SlideTransition(
+                          position: _headerSlide,
+                          child: _buildHeader(primaryColor),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 40),
+                      
+                      // Form Dianimasikan
+                      FadeTransition(
+                        opacity: _formFade,
+                        child: SlideTransition(
+                          position: _formSlide,
+                          child: _buildForm(primaryColor, secondaryColor, inputBgColor),
+                        ),
+                      ),
+                      
                       const SizedBox(height: 32),
-                      _buildForm(primaryColor, secondaryColor, inputBgColor),
-                      const SizedBox(height: 32),
-                      _buildFooter(secondaryColor),
+                      
+                      // Footer Dianimasikan
+                      FadeTransition(
+                        opacity: _footerFade,
+                        child: SlideTransition(
+                          position: _footerSlide,
+                          child: _buildFooter(secondaryColor),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -47,154 +169,347 @@ class RegisterView extends GetView<RegisterController> {
     );
   }
 
-  Widget _buildHeader() {
+  // ================= HEADER =================
+  Widget _buildHeader(Color primaryColor) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: Container(
-            width: 90, height: 90,
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFF6F3EE), width: 4),
-            ),
-            child: ClipOval(child: Image.network("https://lh3.googleusercontent.com/aida-public/AB6AXuDBlUpWirBBbqgrr8fKUMSTMt4kv0Pa3keckyBpV52O4HmEjPZRIViB6SEqCIZ_j1qCqD9tB8ZbvA2kG70LJV0SzjNLgGwPwqEDgoXqdtZ9wlnUgJ-jyU5UUab-AgcV3YPZU1_TA4xmKB_VWyE4P0_yBuNgYTzqWX9_ffEwW73VSi1HUrVC6vIUwnKdVTbKf3lzxwG1Y22TDhvM0EiJ1I_OyVYqYZGuLHHxgLGFyOgzUVkl5inugMFfpVXZ23At9kM1X___GrnQ_LE", fit: BoxFit.cover)),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFCA98).withOpacity(0.3),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Icon(
+            Icons.explore_rounded,
+            size: 32,
+            color: Color(0xFF7D562D),
           ),
         ),
         const SizedBox(height: 20),
-        const Text("Daftar Akun Baru", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF361F1A), fontFamily: 'Poppins')),
+        Text(
+          "Daftar Akun Baru",
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            color: primaryColor,
+            letterSpacing: -0.5,
+            fontFamily: 'Poppins',
+          ),
+        ),
         const SizedBox(height: 8),
-        const Text("Bergabunglah dengan petualangan pramuka modern.", textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF504442))),
+        const Text(
+          "Bergabunglah dengan petualangan pramuka modern dan mulai jelajahi berbagai tantangan.",
+          style: TextStyle(
+            fontSize: 15,
+            color: Color(0xFF6B5E5B),
+            height: 1.5,
+          ),
+        ),
       ],
     );
   }
 
+  // ================= FORM =================
   Widget _buildForm(Color primary, Color secondary, Color inputBg) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _customField("Nama Panggilan", "Contoh: Budi", controller.nicknameController, inputBg),
-        _customField("Nama Lengkap", "Masukkan nama lengkap", controller.fullNameController, inputBg),
-        _customField("Alamat Email", "nama@email.com", controller.emailController, inputBg),
-        
-        // Province Dropdown dengan konsistensi spasi eksternal (SizedBox)
-        const Text("Provinsi", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF361F1A))),
+        _customField(
+          label: "Nama Panggilan",
+          hint: "Contoh: Budi",
+          icon: Icons.person_outline_rounded,
+          ctr: controller.nicknameController,
+          bg: inputBg,
+          focusColor: secondary,
+        ),
+
+        _customField(
+          label: "Nama Lengkap",
+          hint: "Masukkan nama lengkap",
+          icon: Icons.badge_outlined,
+          ctr: controller.fullNameController,
+          bg: inputBg,
+          focusColor: secondary,
+        ),
+
+        _customField(
+          label: "Alamat Email",
+          hint: "nama@email.com",
+          icon: Icons.email_outlined,
+          ctr: controller.emailController,
+          bg: inputBg,
+          focusColor: secondary,
+          inputType: TextInputType.emailAddress,
+        ),
+
+        // ================= DROPDOWN PROVINSI =================
+        Text(
+          "Provinsi",
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: primary,
+            fontSize: 14,
+          ),
+        ),
         const SizedBox(height: 8),
-        Obx(() => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(12)),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              hint: const Text("Pilih Provinsi"),
-              value: controller.selectedProvince.value.isEmpty ? null : controller.selectedProvince.value,
-              items: controller.provinces.map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
-              onChanged: (val) => controller.selectedProvince.value = val!,
+        Obx(
+          () => Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              color: inputBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.transparent),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                isExpanded: true,
+                icon: Icon(Icons.keyboard_arrow_down_rounded, color: secondary),
+                value: controller.selectedProvince.value,
+                hint: const Row(
+                  children: [
+                    Icon(Icons.map_outlined, color: Colors.grey, size: 22),
+                    SizedBox(width: 12),
+                    Text("Pilih Provinsi", style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+                onChanged: controller.changeProvince,
+                items: controller.provinces
+                    .map(
+                      (p) => DropdownMenuItem(
+                        value: p,
+                        child: Text(
+                          p,
+                          style: TextStyle(
+                            color: p == controller.selectedProvince.value ? primary : Colors.black87,
+                            fontWeight: p == controller.selectedProvince.value ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
           ),
+        ),
+        const SizedBox(height: 20),
+
+        // ================= KATA SANDI =================
+        Obx(() => _customField(
+          label: "Kata Sandi",
+          hint: "Masukkan kata sandi",
+          icon: Icons.lock_outline_rounded,
+          ctr: controller.passwordController,
+          bg: inputBg,
+          focusColor: secondary,
+          isPassword: true,
+          isObscured: _isPasswordHidden.value,
+          onTogglePassword: () => _isPasswordHidden.toggle(),
         )),
-        const SizedBox(height: 16), // Memberikan jarak setelah dropdown agar konsisten dengan _customField
-        
-        _customField("Kata Sandi", "Masukkan kata sandi", controller.passwordController, inputBg, isPassword: true),
-        _customField("Konfirmasi Kata Sandi", "Ulangi kata sandi", controller.confirmPasswordController, inputBg, isPassword: true),
-        
-        // Privacy Checkbox
+
+        Obx(() => _customField(
+          label: "Konfirmasi Kata Sandi",
+          hint: "Ulangi kata sandi",
+          icon: Icons.lock_reset_rounded,
+          ctr: controller.confirmPasswordController,
+          bg: inputBg,
+          focusColor: secondary,
+          isPassword: true,
+          isObscured: _isConfirmPasswordHidden.value,
+          onTogglePassword: () => _isConfirmPasswordHidden.toggle(),
+        )),
+
+        // ================= PRIVACY CHECKBOX =================
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Obx(() => Checkbox(
-              value: controller.isPrivacyAccepted.value,
-              onChanged: controller.togglePrivacy,
-              activeColor: secondary,
-            )),
-            const Expanded(
-              child: Text.rich(
-                TextSpan(
-                  text: "Menyetujui ",
-                  style: TextStyle(fontSize: 12),
-                  children: [
-                    TextSpan(text: "Kebijakan Privasi", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF7D562D))),
-                    TextSpan(text: " Scoutify."),
-                  ],
+            Obx(
+              () => Transform.scale(
+                scale: 1.1,
+                child: Checkbox(
+                  value: controller.isPrivacyAccepted.value,
+                  onChanged: controller.togglePrivacy,
+                  activeColor: secondary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  side: BorderSide(color: secondary.withOpacity(0.5), width: 1.5),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text.rich(
+                  TextSpan(
+                    text: "Saya menyetujui ",
+                    style: const TextStyle(color: Color(0xFF6B5E5B), fontSize: 13, height: 1.5),
+                    children: [
+                      TextSpan(
+                        text: "Kebijakan Privasi",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: secondary,
+                          decoration: TextDecoration.underline,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Get.toNamed(Routes.PRIVACY_POLICY);
+                          },
+                      ),
+                      const TextSpan(text: " yang berlaku di aplikasi Scoutify."),
+                    ],
+                  ),
                 ),
               ),
             ),
           ],
         ),
-        
-        const SizedBox(height: 24),
-        
-        // Submit Button dengan status loading yang reaktif
-        SizedBox(
-          width: double.infinity, height: 52,
-          child: Obx(() => ElevatedButton(
-            onPressed: controller.isLoading.value ? null : controller.register,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primary, 
-              shape: const StadiumBorder(),
-              disabledBackgroundColor: primary.withOpacity(0.6), // Warna saat loading aktif
-            ),
-            child: controller.isLoading.value
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 3,
-                    ),
-                  )
-                : const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Daftar Sekarang", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 20, color: Colors.white),
-                    ],
-                  ),
-          )),
-        ),
-      ],
-    );
-  }
 
-  Widget _customField(String label, String hint, TextEditingController ctr, Color bg, {bool isPassword = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF361F1A))),
-        const SizedBox(height: 8),
-        TextField(
-          controller: ctr,
-          obscureText: isPassword,
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: bg,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        const SizedBox(height: 32),
+
+        // ================= BUTTON REGISTER =================
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: Obx(
+            () => ElevatedButton(
+              onPressed: controller.isLoading.value ? null : controller.register,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primary,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: primary.withOpacity(0.6),
+                elevation: 4,
+                shadowColor: primary.withOpacity(0.4),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: controller.isLoading.value
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    )
+                  : const Text(
+                      "Daftar Sekarang",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+            ),
           ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }
 
+  // ================= CUSTOM TEXT FIELD =================
+  Widget _customField({
+    required String label,
+    required String hint,
+    required IconData icon,
+    required TextEditingController ctr,
+    required Color bg,
+    required Color focusColor,
+    bool isPassword = false,
+    bool isObscured = false,
+    VoidCallback? onTogglePassword,
+    TextInputType inputType = TextInputType.text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF361F1A),
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: ctr,
+            obscureText: isObscured,
+            keyboardType: inputType,
+            style: const TextStyle(fontSize: 15),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+              filled: true,
+              fillColor: bg,
+              prefixIcon: Icon(icon, color: Colors.grey.shade600, size: 22),
+              suffixIcon: isPassword
+                  ? IconButton(
+                      icon: Icon(
+                        isObscured ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                        color: Colors.grey.shade600,
+                        size: 22,
+                      ),
+                      onPressed: onTogglePassword,
+                      splashRadius: 24,
+                    )
+                  : null,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: focusColor, width: 1.5),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================= FOOTER =================
   Widget _buildFooter(Color secondary) {
     return Center(
       child: GestureDetector(
         onTap: controller.goToLogin,
-        child: Text.rich(
-          TextSpan(
-            text: "Sudah punya akun? ",
-            style: const TextStyle(color: Color(0xFF504442)),
-            children: [
-              TextSpan(text: "Masuk", style: TextStyle(fontWeight: FontWeight.bold, color: secondary)),
-            ],
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text.rich(
+            TextSpan(
+              text: "Sudah punya akun? ",
+              style: const TextStyle(color: Color(0xFF6B5E5B), fontSize: 14),
+              children: [
+                TextSpan(
+                  text: "Masuk",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: secondary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _blurAccent(Color color) => Container(width: 300, height: 300, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+  // ================= BACKGROUND BLOB =================
+  Widget _blurAccent(Color color, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
 }

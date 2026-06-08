@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:scoutify/app/modules/auth/auth_middleware.dart';
 
 import '../modules/auth/forgot_password/bindings/forgot_password_binding.dart';
 import '../modules/auth/forgot_password/views/forgot_password_view.dart';
@@ -87,6 +88,7 @@ class AppPages {
       binding: HomeBinding(),
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 100),
+      // middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.ONBOARDING,
@@ -104,14 +106,14 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.REGISTER,
-      page: () => const RegisterView(),
+      page: () => RegisterView(),
       binding: RegisterBinding(),
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 100),
       children: [
         GetPage(
           name: _Paths.REGISTER,
-          page: () => const RegisterView(),
+          page: () => RegisterView(),
           binding: RegisterBinding(),
           transition: Transition.fadeIn,
           transitionDuration: const Duration(milliseconds: 100),

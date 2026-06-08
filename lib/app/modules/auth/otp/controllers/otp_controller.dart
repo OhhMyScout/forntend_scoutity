@@ -1,24 +1,26 @@
-import 'dart:async'; // Wajib untuk mengelola Timer hitung mundur bray
+import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:scoutify/app/routes/app_pages.dart';
-import '../../register/controllers/register_controller.dart'; // Import enum OtpAction dari register
+
+import '../../../../routes/app_pages.dart';
+import '../../../data/api_endpoint.dart';
+import '../../../data/session_manager.dart';
+// Pastikan enum OtpAction ada di dalam file ini atau buat file terpisah
+import '../../register/controllers/register_controller.dart'; 
 
 class OtpController extends GetxController {
-  // List controller untuk 4 kotak input OTP terpisah di View kamu bray
-  final List<TextEditingController> otpControllers = List.generate(
-    4,
-    (index) => TextEditingController(),
-  );
+  final List<TextEditingController> otpControllers =
+      List.generate(4, (_) => TextEditingController());
 
-  // List focus nodes untuk otomatis pindah kursor/kotak secara interaktif
-  final List<FocusNode> focusNodes = List.generate(4, (index) => FocusNode());
+  final List<FocusNode> focusNodes =
+      List.generate(4, (_) => FocusNode());
 
-  // State management reaktif GetX
-  var isLoading = false.obs;
-  var cooldownSeconds = 0.obs; // Menyimpan sisa waktu pembatasan kirim ulang
+  final RxBool isLoading = false.obs;
+  final RxInt cooldownSeconds = 0.obs;
+
   Timer? _timer;
 
   late String email;
@@ -27,123 +29,184 @@ class OtpController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Tangkap data email dan tipe aksi yang dilempar dari halaman sebelumnya bray
-    email = Get.arguments['email'] ?? '';
-    actionType = Get.arguments['actionType'] ?? OtpAction.register;
 
-    // Otomatis jalankan hitung mundur 60 detik begitu user mendarat di halaman OTP
+    email = Get.arguments?['email'] ?? '';
+    actionType = Get.arguments?['actionType'] ?? OtpAction.register;
+
     startCooldown();
   }
 
-  // Fungsi pengelola hitung mundur 60 detik
+  // ======================================================
+  // COOLDOWN TIMER
+  // ======================================================
   void startCooldown() {
+    _timer?.cancel();
     cooldownSeconds.value = 60;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (cooldownSeconds.value > 0) {
-        cooldownSeconds.value--;
-      } else {
-        _timer?.cancel(); // Stop timer kalau sudah menyentuh angka 0
-      }
-    });
+
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        if (cooldownSeconds.value > 0) {
+          cooldownSeconds.value--;
+        } else {
+          timer.cancel();
+        }
+      },
+    );
   }
 
-  // Mengatur perpindahan fokus otomatis antar-kotak input OTP
+  // ======================================================
+  // OTP INPUT (AUTO VERIFY)
+  // ======================================================
   void onOtpChanged(String value, int index) {
-    if (value.length == 1 && index < 3) {
-      focusNodes[index + 1].requestFocus();
-    } else if (value.isEmpty && index > 0) {
+    if (value.isNotEmpty) {
+      if (index < focusNodes.length - 1) {
+        focusNodes[index + 1].requestFocus();
+      } else {
+        focusNodes[index].unfocus();
+      }
+    }
+
+    if (value.isEmpty && index > 0) {
       focusNodes[index - 1].requestFocus();
+    }
+
+    final allFilled = otpControllers.every(
+      (e) => e.text.trim().isNotEmpty,
+    );
+
+    // Jika ke-4 kotak sudah terisi, jalankan fungsi verify otomatis
+    if (allFilled && !isLoading.value) {
+      Future.delayed(
+        const Duration(milliseconds: 200),
+        () {
+          if (!isLoading.value) {
+            verify();
+          }
+        },
+      );
     }
   }
 
-  // Fungsi utama untuk verifikasi kode ke Flask
-  void verify() async {
-    String otp = otpControllers.map((e) => e.text.trim()).join();
-    
-    if (otp.length < 4) {
-      Get.snackbar(
-        "Perhatian", 
-        "Masukkan 4 digit kode verifikasi dengan lengkap bray!",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+  // ======================================================
+  // VERIFY OTP API CALL
+  // ======================================================
+  Future<void> verify() async {
+    if (isLoading.value) return;
+
+    final otp = otpControllers.map((e) => e.text.trim()).join();
+
+    if (otp.length != 4) {
+      Get.snackbar("Perhatian", "Masukkan 4 digit kode OTP");
       return;
     }
 
     try {
       isLoading.value = true;
-      const String apiUrl = "http://127.0.0.1:5000/api/verify-otp";
+
+      // 1. Tentukan Endpoint berdasarkan actionType
+      final apiUrl = actionType == OtpAction.register
+          ? ApiEndpoint.verifyOtp
+          : ApiEndpoint.verifyForgotOtp;
 
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "email": email,
-          "otp": otp.trim(),
+          "otp": otp,
         }),
       );
 
       final result = jsonDecode(response.body);
-      isLoading.value = false;
 
-      if (response.statusCode == 200) {
+      debugPrint("VERIFY STATUS : ${response.statusCode}");
+      debugPrint("VERIFY BODY   : ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        
         Get.snackbar(
-          "Verifikasi Sukses", 
-          "Akun Scoutify kamu telah aktif. Selamat berpetualang!",
+          "Berhasil",
+          result["message"] ?? "Verifikasi OTP berhasil",
           backgroundColor: Colors.green,
           colorText: Colors.white,
-          icon: const Icon(Icons.check_circle_outline, color: Colors.white),
         );
 
+        // 2. Pemisahan Alur Setelah Sukses
         if (actionType == OtpAction.register) {
-          Future.delayed(const Duration(milliseconds: 1500), () {
-            Get.offAllNamed(Routes.HOME); // Langsung jebol ke Home utama bray
-          });
+          // --- ALUR REGISTER ---
+          final token = result["token"];
+
+          if (token == null || token.toString().isEmpty) {
+            Get.snackbar("Error", "Token tidak ditemukan dari server");
+            return;
+          }
+
+          final user = result["user"] ?? {};
+
+          // Simpan sesi login
+          await SessionManager.saveSession(
+            token: token,
+            userId: user["id"]?.toString() ?? "", 
+            username: user["username"]?.toString() ?? "Scout",
+            fullname: user["fullname"]?.toString() ?? "Scout",
+            email: email, 
+            role: user["role"]?.toString() ?? "user",
+            province: user["province"]?.toString() ?? "-",
+            points: int.tryParse(user["points"]?.toString() ?? "0") ?? 0,
+            image: user["image"]?.toString() ?? "default_profile.png",
+          );
+
+          debugPrint("TOKEN STORED : ${SessionManager.token}");
+          debugPrint("LOGIN STATUS : ${SessionManager.isLoggedIn}");
+
+          Get.offAllNamed(Routes.HOME);
+
         } else {
-          // Skenario reset password di masa depan
-          Get.offNamed(Routes.RESET_PASSWORD, arguments: {"email": email});
+          // --- ALUR FORGOT PASSWORD ---
+          // Langsung arahkan ke halaman reset password dan bawa email & otp (jika diperlukan backend nanti)
+          Get.offNamed(
+            Routes.RESET_PASSWORD,
+            arguments: {
+              "email": email,
+              "otp": otp, 
+            },
+          );
         }
+
       } else {
         Get.snackbar(
-          "Verifikasi Gagal", 
-          result['message'] ?? "Kode OTP salah atau sudah hangus!",
-          backgroundColor: Colors.redAccent,
+          "Gagal",
+          result["message"] ?? "OTP tidak valid",
+          backgroundColor: Colors.red,
           colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
         );
+        
+        // Bersihkan kotak agar user bisa input ulang
+        for (var controller in otpControllers) {
+          controller.clear();
+        }
+        focusNodes[0].requestFocus();
       }
     } catch (e) {
+      debugPrint("VERIFY OTP ERROR : $e");
+      Get.snackbar("Error", "Gagal terhubung ke server");
+    } finally {
       isLoading.value = false;
-      Get.snackbar(
-        "Error", 
-        "Tidak dapat terhubung ke server. Pastikan adb reverse aktif bray!",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
     }
   }
 
-  // --- DI SINI LOGIKA UTAMA RESEND OTP YANG FLEKSIBEL BRAY ---
-  void resendCode() async {
-    // Proteksi di level fungsi: Cegah klik jika waktu cooldown masih berjalan
+  // ======================================================
+  // RESEND OTP
+  // ======================================================
+  Future<void> resendCode() async {
     if (cooldownSeconds.value > 0) return;
 
     try {
-      Get.rawSnackbar(
-        message: "Sedang mengirim ulang kode OTP...",
-        backgroundColor: Colors.blueGrey,
-        duration: const Duration(seconds: 2),
-      );
-
-      // JALUR SAKLAR DINAMIS BERDASARKAN EMIT/ASAL HALAMAN:
-      String apiUrl = "http://127.0.0.1:5000/api/resend-otp"; // Jalur default Registrasi
-      
-      if (actionType != OtpAction.register) {
-        // Kalau tipenya BUKAN register (alias reset password), belokin ke endpoint reset bray!
-        apiUrl = "http://127.0.0.1:5000/api/resend-otp-reset";
-      }
+      // Endpoint dinamis untuk resend OTP
+      final apiUrl = actionType == OtpAction.register
+          ? ApiEndpoint.resendOtpRegister
+          : ApiEndpoint.resendOtpReset;
 
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -155,39 +218,33 @@ class OtpController extends GetxController {
 
       if (response.statusCode == 200) {
         Get.snackbar(
-          "Sukses", 
-          result['message'] ?? "Kode baru telah dikirim ke email Anda!",
+          "Berhasil",
+          result["message"] ?? "OTP berhasil dikirim ulang",
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        // Picu kembali hitung mundur 60 detik dari nol biar aman dari spam klik bray
+        
+        for (var controller in otpControllers) {
+          controller.clear();
+        }
+        focusNodes[0].requestFocus();
         startCooldown();
       } else {
-        Get.snackbar(
-          "Gagal", 
-          result['message'] ?? "Gagal mengirim ulang kode.",
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
+        Get.snackbar("Gagal", result["message"] ?? "Gagal mengirim OTP");
       }
     } catch (e) {
-      Get.snackbar(
-        "Error", 
-        "Gagal terhubung ke server. Periksa kembali status adb reverse bray!",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      print("Error Resend API: $e");
+      debugPrint("RESEND OTP ERROR : $e");
+      Get.snackbar("Error", "Gagal terhubung ke server");
     }
   }
 
   @override
   void onClose() {
-    _timer?.cancel(); // Bersihkan timer biar ram laptop gak jebol (leak memory)
-    for (var controller in otpControllers) {
+    _timer?.cancel();
+    for (final controller in otpControllers) {
       controller.dispose();
     }
-    for (var node in focusNodes) {
+    for (final node in focusNodes) {
       node.dispose();
     }
     super.onClose();

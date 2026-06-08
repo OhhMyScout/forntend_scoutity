@@ -1,60 +1,223 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../routes/app_pages.dart';
+import '../../data/session_manager.dart';
 
 class HomeController extends GetxController {
-  
-  // Menambahkan parameter 'id' yang unik untuk mempermudah routing data
+  var isLoading = true.obs;
+
+  var usernameDisplay = "Kak!".obs;
+
+  // ======================================================
+  // STATE FLAG UNTUK SNACKBAR
+  // (Static agar nilainya tidak hilang saat controller di-rebuild)
+  // ======================================================
+  static bool hasShownWelcome = false;
+
+  // ======================================================
+  // USER DATA
+  // ======================================================
+
+  var userId = "".obs;
+  var username = "".obs;
+  var fullname = "".obs;
+  var email = "".obs;
+  var role = "".obs;
+  var province = "".obs;
+  var image = "".obs;
+  var points = 0.obs;
+
+  // ======================================================
+  // SHORTCUT MENU
+  // ======================================================
+
   final List<Map<String, dynamic>> shortcuts = [
-    {"id": "leaderboard", "title": "Papan\nPeringkat", "icon": Icons.leaderboard_rounded},
-    {"id": "sejarah", "title": "Sejarah", "icon": Icons.history_edu_rounded},
-    {"id": "berita", "title": "Berita", "icon": Icons.newspaper_rounded},
-    {"id": "permainan", "title": "Permainan", "icon": Icons.sports_esports_rounded},
+    {
+      "id": "leaderboard",
+      "title": "Papan\nPeringkat",
+      "icon": Icons.leaderboard_rounded,
+    },
+    {
+      "id": "sejarah",
+      "title": "Sejarah",
+      "icon": Icons.history_edu_rounded,
+    },
+    {
+      "id": "berita",
+      "title": "Berita",
+      "icon": Icons.newspaper_rounded,
+    },
+    {
+      "id": "permainan",
+      "title": "Permainan",
+      "icon": Icons.sports_esports_rounded,
+    },
   ];
+
+  // ======================================================
+  // DUMMY ACTIVITY
+  // ======================================================
 
   final List<Map<String, String>> activities = [
     {
       "category": "TIPS & TRIK",
       "title": "5 Cara Mengikat Tali yang Benar untuk Tenda",
       "time": "2 jam yang lalu",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuBgIfiIbXaJ-J6kfn_RKdsVq2Ifg3W-__UCZuBmLx39tOfDRQzKUPbtfP-fcvWG-bcdUMvS6Gj4xZdWNrNMTcY4fzH9_J_EcXYXmQKUYgMfZ9zMbuL4yweFT9tTndAHx-wKEhFvhKptWmzDMuGcI1WkNB1LVYgcY790Nj0rsnrr-o2IE0PQCqhhj-LrTI1Om9KHw-US2D0ZN5wTnSWkikS9K79tY3QxxeV18LalsbgGEeQol8iHAZfT_oHKI-mLoOJXOxC5Npt6TsA",
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuBgIfiIbXaJ-J6kfn_RKdsVq2Ifg3W-__UCZuBmLx39tOfDRQzKUPbtfP-fcvWG-bcdUMvS6Gj4xZdWNrNMTcY4fzH9_J_EcXYXmQKUYgMfZ9zMbuL4yweFT9tTndAHx-wKEhFvhKptWmzDMuGcI1WkNB1LVYgcY790Nj0rsnrr-o2IE0PQCqhhj-LrTI1Om9KHw-US2D0ZN5wTnSWkikS9K79tY3QxxeV18LalsbgGEeQol8iHAZfT_oHKI-mLoOJXOxC5Npt6TsA",
     },
     {
       "category": "PRESTASI",
       "title": "Lencana Penjelajah Rimba Kini Tersedia",
       "time": "Kemarin",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuA52WSpB4LbWkmmrtfiX0jVNqxj14ga6ILQj63YgtlZ4oj32QcJMVMmb_hyf44C-Jg3n2PqpdOBLmNSROs-ei4v3ZSmRZ8NHyLDOLBgEiOXqCxV4i09UwppatZkaPWNTcuNLq4pQ98UqU0rJh0g5DWZqE0rT7jxAEhvKke8l11T4Xv5N-SHzAgVwISUwEv6rrFgKGqxVQqg3CI8WGyCU1tRq5y-CmxlhRBpiD8x80IuIbMONe42uJ_aW7fni8HbZnlfuHFI02sc0iw",
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuA52WSpB4LbWkmmrtfiX0jVNqxj14ga6ILQj63YgtlZ4oj32QcJMVMmb_hyf44C-Jg3n2PqpdOBLmNSROs-ei4v3ZSmRZ8NHyLDOLBgEiOXqCxV4i09UwppatZkaPWNTcuNLq4pQ98UqU0rJh0g5DWZqE0rT7jxAEhvKke8l11T4Xv5N-SHzAgVwISUwEv6rrFgKGqxVQqg3CI8WGyCU1tRq5y-CmxlhRBpiD8x80IuIbMONe42uJ_aW7fni8HbZnlfuHFI02sc0iw",
     },
   ];
+
+  // ======================================================
+  // INIT
+  // ======================================================
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadCurrentUser();
+  }
+
+  // ======================================================
+  // LOAD CURRENT USER
+  // ======================================================
+
+  Future<void> loadCurrentUser() async {
+    try {
+      isLoading.value = true;
+
+      // Hapus atau komen debugPrint ini jika log terlalu penuh
+      debugPrint("========== SESSION CHECK ==========");
+      debugPrint("TOKEN      : ${SessionManager.token}");
+      debugPrint("HAS TOKEN  : ${SessionManager.hasToken()}");
+      debugPrint("LOGGED IN  : ${SessionManager.isLoggedIn}");
+      debugPrint("USER ID    : ${SessionManager.userId}");
+      debugPrint("USERNAME   : ${SessionManager.username}");
+      debugPrint("FULLNAME   : ${SessionManager.fullname}");
+      debugPrint("EMAIL      : ${SessionManager.email}");
+      debugPrint("ROLE       : ${SessionManager.role}");
+      debugPrint("POINTS     : ${SessionManager.points}");
+      debugPrint("===================================");
+
+      if (!SessionManager.isLoggedIn || !SessionManager.hasToken()) {
+        debugPrint("SESSION TIDAK DITEMUKAN");
+        Get.offAllNamed(Routes.LOGIN);
+        return;
+      }
+
+      // Parsing data aman dari SessionManager
+      userId.value = SessionManager.userId;
+      username.value = SessionManager.username;
+      fullname.value = SessionManager.fullname;
+      email.value = SessionManager.email;
+      role.value = SessionManager.role;
+      province.value = SessionManager.province;
+      image.value = SessionManager.image;
+      points.value = SessionManager.points;
+
+      usernameDisplay.value = fullname.value.isNotEmpty
+          ? fullname.value
+          : username.value.isNotEmpty
+              ? username.value
+              : "Kak!";
+
+      debugPrint("========== USER LOADED ==========");
+      debugPrint("ID       : ${userId.value}");
+      debugPrint("USERNAME : ${username.value}");
+      debugPrint("FULLNAME : ${fullname.value}");
+      debugPrint("EMAIL    : ${email.value}");
+      debugPrint("ROLE     : ${role.value}");
+      debugPrint("POINTS   : ${points.value}");
+      debugPrint("=================================");
+
+      // Menampilkan Snackbar Welcome secara aman agar tidak memicu LateInitializationError
+      if (!hasShownWelcome && fullname.value.isNotEmpty) {
+        hasShownWelcome = true; // Kunci agar tidak muncul lagi
+
+        // Tutup snackbar yang mungkin sedang gantung
+        if (Get.isSnackbarOpen) {
+          Get.closeAllSnackbars();
+        }
+
+        // Delay 1 detik memastikan render halaman Home sudah selesai
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          Get.snackbar(
+            "Selamat Datang",
+            "Halo ${fullname.value}",
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: const Color(0xFF361F1A),
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+            margin: const EdgeInsets.all(16),
+            animationDuration: const Duration(milliseconds: 300),
+            isDismissible: true,
+          );
+        });
+      }
+      
+    } catch (e) {
+      debugPrint("HOME ERROR : $e");
+      await SessionManager.clear();
+      Get.offAllNamed(Routes.LOGIN);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ======================================================
+  // REFRESH USER
+  // ======================================================
+
+  Future<void> refreshUser() async {
+    await loadCurrentUser();
+  }
+
+  // ======================================================
+  // LOGOUT
+  // ======================================================
+
+  Future<void> logout() async {
+    // Reset flag agar saat login kembali pesan welcome bisa muncul
+    hasShownWelcome = false;
+    
+    await SessionManager.clear();
+    Get.offAllNamed(Routes.LOGIN);
+  }
+
+  // ======================================================
+  // ACTIONS
+  // ======================================================
 
   void onNotificationTap() {
     Get.toNamed(Routes.SETTINGS);
   }
 
-  // Fungsi routing berdasarkan ID unik yang dikirim oleh View
   void onShortcutTap(String id) {
     switch (id) {
-      case 'leaderboard':
+      case "leaderboard":
         Get.toNamed(Routes.LEADERBOARD);
         break;
-      case 'sejarah':
+
+      case "sejarah":
         Get.toNamed(Routes.SEJARAH_PRAMUKA);
         break;
-      case 'berita':
+
+      case "berita":
         Get.toNamed(Routes.BERANDA_BERITA);
         break;
-      case 'permainan':
+
+      case "permainan":
         Get.toNamed(Routes.BERANDA_GAME);
         break;
+
       default:
-        Get.snackbar(
-          "Informasi", 
-          "Modul menu belum dikonfigurasi.",
-          snackPosition: SnackPosition.BOTTOM,
-          margin: const EdgeInsets.all(16),
-        );
+        Get.snackbar("Informasi", "Menu belum tersedia");
     }
   }
 
@@ -67,12 +230,9 @@ class HomeController extends GetxController {
   }
 
   void onActivityTap(Map<String, String> activity) {
-    // Logika tambahan jika kartu aktivitas terkini ditekan di kemudian hari
     Get.snackbar(
       activity["category"] ?? "Aktivitas",
-      activity["title"] ?? "Detail artikel belum tersedia",
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
+      activity["title"] ?? "",
     );
   }
 }

@@ -1,12 +1,132 @@
-// lib/app/modules/beranda_game/controllers/beranda_game_controller.dart
-
+import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+
 
 import '../../../../routes/app_pages.dart';
+import '../../../data/api_endpoint.dart';
+import '../../../data/session_manager.dart';
 
 class BerandaGameController extends GetxController {
+  // ==========================================
+  // STATE
+  // ==========================================
   final selectedIndex = 2.obs;
+  final isLoading = false.obs;
 
+  final myPoint = 0.obs;
+  final myRank = 0.obs;
+
+  final games = <Map<String, dynamic>>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchData();
+  }
+
+  // ==========================================
+  // FETCH DATA
+  // ==========================================
+  Future<void> fetchData() async {
+    try {
+      isLoading.value = true;
+
+      final token = SessionManager.token ?? '';
+      final email = SessionManager.email;
+
+      debugPrint("TOKEN GAME: $token");
+      debugPrint("EMAIL GAME: $email");
+
+      // =====================================================
+      // VALIDASI SESSION
+      // =====================================================
+      if (token.isEmpty) {
+        Get.offAllNamed(Routes.LOGIN);
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse(ApiEndpoint.leaderboard),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        final List<dynamic> users = result["data"] ?? [];
+
+        // SORT RANK
+        users.sort((a, b) {
+          final aPoint = int.tryParse(a["points"].toString()) ?? 0;
+          final bPoint = int.tryParse(b["points"].toString()) ?? 0;
+          return bPoint.compareTo(aPoint);
+        });
+
+        // FIND USER
+        final myIndex = users.indexWhere(
+          (u) => (u["email"] ?? "").toString().toLowerCase() ==
+                 email.toLowerCase(),
+        );
+
+        if (myIndex != -1) {
+          myRank.value = myIndex + 1;
+          myPoint.value =
+              int.tryParse(users[myIndex]["points"].toString()) ?? 0;
+        } else {
+          myRank.value = 0;
+          myPoint.value = 0;
+        }
+      }
+
+      // =====================================================
+      // STATIC GAME LIST (SAFE IMAGE + CLEAN)
+      // =====================================================
+      games.assignAll([
+        {
+          "title": "Sandi Kotak I",
+          "description": "Menebak kata sandi kotak 1 dan dapatkan poin.",
+          "image":
+              "https://images.unsplash.com/photo-1529070538774-1843cb3265df",
+          "button": "Main Sekarang",
+          "route": Routes.KOTAK1_CHALLENGE,
+        },
+        {
+          "title": "Sandi Kotak II",
+          "description": "Level lanjutan sandi kotak.",
+          "image":
+              "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
+          "button": "Main Sekarang",
+          "route": Routes.KOTAK2_CHALLENGE,
+        },
+        {
+          "title": "Sandi Morse",
+          "description": "Latihan sandi morse interaktif.",
+          "image":
+              "https://images.unsplash.com/photo-1518770660439-4636190af475",
+          "button": "Main Sekarang",
+          "route": Routes.MORSE_CHALLENGE,
+        },
+      ]);
+    } catch (e) {
+      debugPrint("[BERANDA GAME ERROR] $e");
+
+      Get.snackbar(
+        "Error",
+        "Gagal memuat data game",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ==========================================
+  // ACTIONS
+  // ==========================================
   void changeTab(int index) {
     selectedIndex.value = index;
   }
@@ -24,56 +144,16 @@ class BerandaGameController extends GetxController {
   }
 
   void openGame(Map<String, dynamic> game) {
-    final title = game["title"];
+    final route = game["route"];
 
-    switch (title) {
-      case "Sandi Kotak I":
-        Get.toNamed(Routes.KOTAK1_CHALLENGE);
-        break;
-
-      case "Sandi Kotak II":
-        Get.toNamed(Routes.KOTAK2_CHALLENGE);
-        break;
-
-      case "Sandi Morse":
-        Get.toNamed(Routes.MORSE_CHALLENGE);
-        break;
-
-      default:
-        Get.snackbar(
-          "Info",
-          "Game belum tersedia",
-        );
+    if (route != null) {
+      Get.toNamed(route);
+    } else {
+      Get.snackbar(
+        "Info",
+        "Game belum tersedia",
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
-
-  final games = [
-    {
-      "title": "Sandi Kotak I",
-      "description":
-          "Menebak kata sandi kotak 1 dan dapatkan 10 point.",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuBoh2GjoKrwLHgyb6Fbm8791EtaF1TVwGOVAJ7SYCfdy10BhSpBTjvlWCXdpt3Xpnfobf9T_mhSzM-eOpMBm0kaOCZ1_VjrHKwmksoifA0uxMh-Uqi1DQvjoBKK0ovtPX_7NyxyArpoPGzQ3lisoGB5U7O-HshsazO6D-SihMTNjpUFXAN4XnCllaHU4_k_m8XlqPSeGblrgpb5B4F5Cts22EjAwGTXRsUqoTIXpZk5SA5c4jrULJRoAk51UK5ySOg9o8ynNUerTR4",
-      "button": "Main Sekarang",
-      "primary": true,
-    },
-    {
-      "title": "Sandi Kotak II",
-      "description":
-          "Menebak kata sandi kotak 2 dan dapatkan 10 point.",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuANTN6R1NarJCMOMoy83mt8eUygvuWOMRXbOJW-hRqouxkczMRVUxjMz78olzG8yHYM9_Gb2lZT_1euO3Q5GLIhdLVcnRmMitWE5nTYMy-AZG4lVEJRadj_HM3akCDNoT6epY1pakHF4BYSVq1tG328rAPcIotmqQT-loOmcACltxNX64yiNnuiPeXsjlrc95WpiZVYNDTNZ_y-3gI2pxEXvDbA-fhxlV5Ssg5c_91obfkrv3oekHvljM3inIEtBfnWvZ2iprOMb3w",
-      "button": "Main Sekarang",
-      "primary": true,
-    },
-    {
-      "title": "Sandi Morse",
-      "description":
-          "Menebak kata dan dapatkan 10 point.",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuDt1bzK5oqvadOw2FbxWyeD2iHBW_xbaAV5IaHRN1GrEx00S87biriQbAHvcL508Q3-Gg9xV-MxZOrykWj3dsd6IxPGtyhhoSSmk-aSKHqT0M4707ALuGM3SR3jfWnnxq1TIMowdIZlQhIFZqULoTxsCAmIeACEkGTO0zK57HWKfuLOvQ4CejXWA8EbIGZxVl1hJpx83kN434b1h6oBKooWuSsgCwqZDWf2El7TQJpQu9HfLj5i3sSCA9j1tWVt4PLFvFGJ0yyq2HE",
-      "button": "Mulai Baru",
-      "primary": true,
-    },
-  ];
 }

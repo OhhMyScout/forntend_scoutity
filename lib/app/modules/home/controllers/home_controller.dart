@@ -10,6 +10,12 @@ class HomeController extends GetxController {
   var usernameDisplay = "Kak!".obs;
 
   // ======================================================
+  // STATE FLAG UNTUK SNACKBAR
+  // (Static agar nilainya tidak hilang saat controller di-rebuild)
+  // ======================================================
+  static bool hasShownWelcome = false;
+
+  // ======================================================
   // USER DATA
   // ======================================================
 
@@ -58,15 +64,13 @@ class HomeController extends GetxController {
       "category": "TIPS & TRIK",
       "title": "5 Cara Mengikat Tali yang Benar untuk Tenda",
       "time": "2 jam yang lalu",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuBgIfiIbXaJ-J6kfn_RKdsVq2Ifg3W-__UCZuBmLx39tOfDRQzKUPbtfP-fcvWG-bcdUMvS6Gj4xZdWNrNMTcY4fzH9_J_EcXYXmQKUYgMfZ9zMbuL4yweFT9tTndAHx-wKEhFvhKptWmzDMuGcI1WkNB1LVYgcY790Nj0rsnrr-o2IE0PQCqhhj-LrTI1Om9KHw-US2D0ZN5wTnSWkikS9K79tY3QxxeV18LalsbgGEeQol8iHAZfT_oHKI-mLoOJXOxC5Npt6TsA",
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuBgIfiIbXaJ-J6kfn_RKdsVq2Ifg3W-__UCZuBmLx39tOfDRQzKUPbtfP-fcvWG-bcdUMvS6Gj4xZdWNrNMTcY4fzH9_J_EcXYXmQKUYgMfZ9zMbuL4yweFT9tTndAHx-wKEhFvhKptWmzDMuGcI1WkNB1LVYgcY790Nj0rsnrr-o2IE0PQCqhhj-LrTI1Om9KHw-US2D0ZN5wTnSWkikS9K79tY3QxxeV18LalsbgGEeQol8iHAZfT_oHKI-mLoOJXOxC5Npt6TsA",
     },
     {
       "category": "PRESTASI",
       "title": "Lencana Penjelajah Rimba Kini Tersedia",
       "time": "Kemarin",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuA52WSpB4LbWkmmrtfiX0jVNqxj14ga6ILQj63YgtlZ4oj32QcJMVMmb_hyf44C-Jg3n2PqpdOBLmNSROs-ei4v3ZSmRZ8NHyLDOLBgEiOXqCxV4i09UwppatZkaPWNTcuNLq4pQ98UqU0rJh0g5DWZqE0rT7jxAEhvKke8l11T4Xv5N-SHzAgVwISUwEv6rrFgKGqxVQqg3CI8WGyCU1tRq5y-CmxlhRBpiD8x80IuIbMONe42uJ_aW7fni8HbZnlfuHFI02sc0iw",
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuA52WSpB4LbWkmmrtfiX0jVNqxj14ga6ILQj63YgtlZ4oj32QcJMVMmb_hyf44C-Jg3n2PqpdOBLmNSROs-ei4v3ZSmRZ8NHyLDOLBgEiOXqCxV4i09UwppatZkaPWNTcuNLq4pQ98UqU0rJh0g5DWZqE0rT7jxAEhvKke8l11T4Xv5N-SHzAgVwISUwEv6rrFgKGqxVQqg3CI8WGyCU1tRq5y-CmxlhRBpiD8x80IuIbMONe42uJ_aW7fni8HbZnlfuHFI02sc0iw",
     },
   ];
 
@@ -80,27 +84,6 @@ class HomeController extends GetxController {
     loadCurrentUser();
   }
 
-  @override
-  void onReady() {
-    super.onReady();
-
-    Future.delayed(
-      const Duration(milliseconds: 500),
-      () {
-        if (fullname.value.isNotEmpty) {
-          Get.snackbar(
-            "Selamat Datang",
-            "Halo ${fullname.value}",
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: const Color(0xFF361F1A),
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-          );
-        }
-      },
-    );
-  }
-
   // ======================================================
   // LOAD CURRENT USER
   // ======================================================
@@ -109,6 +92,7 @@ class HomeController extends GetxController {
     try {
       isLoading.value = true;
 
+      // Hapus atau komen debugPrint ini jika log terlalu penuh
       debugPrint("========== SESSION CHECK ==========");
       debugPrint("TOKEN      : ${SessionManager.token}");
       debugPrint("HAS TOKEN  : ${SessionManager.hasToken()}");
@@ -121,33 +105,27 @@ class HomeController extends GetxController {
       debugPrint("POINTS     : ${SessionManager.points}");
       debugPrint("===================================");
 
-      if (!SessionManager.isLoggedIn ||
-          !SessionManager.hasToken()) {
+      if (!SessionManager.isLoggedIn || !SessionManager.hasToken()) {
         debugPrint("SESSION TIDAK DITEMUKAN");
-
-        Get.offAllNamed(
-          Routes.LOGIN,
-        );
-
+        Get.offAllNamed(Routes.LOGIN);
         return;
       }
 
-      // PERBAIKAN: Gunakan .toString() dan int.tryParse() untuk mencegah crash tipe data
-      userId.value = SessionManager.userId?.toString() ?? "";
-      username.value = SessionManager.username?.toString() ?? "";
-      fullname.value = SessionManager.fullname?.toString() ?? "";
-      email.value = SessionManager.email?.toString() ?? "";
-      role.value = SessionManager.role?.toString() ?? "";
-      province.value = SessionManager.province?.toString() ?? "";
-      image.value = SessionManager.image?.toString() ?? "";
-      points.value = int.tryParse(SessionManager.points?.toString() ?? "0") ?? 0;
+      // Parsing data aman dari SessionManager
+      userId.value = SessionManager.userId;
+      username.value = SessionManager.username;
+      fullname.value = SessionManager.fullname;
+      email.value = SessionManager.email;
+      role.value = SessionManager.role;
+      province.value = SessionManager.province;
+      image.value = SessionManager.image;
+      points.value = SessionManager.points;
 
-      usernameDisplay.value =
-          fullname.value.isNotEmpty
-              ? fullname.value
-              : username.value.isNotEmpty
-                  ? username.value
-                  : "Kak!";
+      usernameDisplay.value = fullname.value.isNotEmpty
+          ? fullname.value
+          : username.value.isNotEmpty
+              ? username.value
+              : "Kak!";
 
       debugPrint("========== USER LOADED ==========");
       debugPrint("ID       : ${userId.value}");
@@ -157,14 +135,36 @@ class HomeController extends GetxController {
       debugPrint("ROLE     : ${role.value}");
       debugPrint("POINTS   : ${points.value}");
       debugPrint("=================================");
+
+      // Menampilkan Snackbar Welcome secara aman agar tidak memicu LateInitializationError
+      if (!hasShownWelcome && fullname.value.isNotEmpty) {
+        hasShownWelcome = true; // Kunci agar tidak muncul lagi
+
+        // Tutup snackbar yang mungkin sedang gantung
+        if (Get.isSnackbarOpen) {
+          Get.closeAllSnackbars();
+        }
+
+        // Delay 1 detik memastikan render halaman Home sudah selesai
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          Get.snackbar(
+            "Selamat Datang",
+            "Halo ${fullname.value}",
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: const Color(0xFF361F1A),
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+            margin: const EdgeInsets.all(16),
+            animationDuration: const Duration(milliseconds: 300),
+            isDismissible: true,
+          );
+        });
+      }
+      
     } catch (e) {
       debugPrint("HOME ERROR : $e");
-
       await SessionManager.clear();
-
-      Get.offAllNamed(
-        Routes.LOGIN,
-      );
+      Get.offAllNamed(Routes.LOGIN);
     } finally {
       isLoading.value = false;
     }
@@ -183,11 +183,11 @@ class HomeController extends GetxController {
   // ======================================================
 
   Future<void> logout() async {
+    // Reset flag agar saat login kembali pesan welcome bisa muncul
+    hasShownWelcome = false;
+    
     await SessionManager.clear();
-
-    Get.offAllNamed(
-      Routes.LOGIN,
-    );
+    Get.offAllNamed(Routes.LOGIN);
   }
 
   // ======================================================
@@ -195,60 +195,41 @@ class HomeController extends GetxController {
   // ======================================================
 
   void onNotificationTap() {
-    Get.toNamed(
-      Routes.SETTINGS,
-    );
+    Get.toNamed(Routes.SETTINGS);
   }
 
   void onShortcutTap(String id) {
     switch (id) {
       case "leaderboard":
-        Get.toNamed(
-          Routes.LEADERBOARD,
-        );
+        Get.toNamed(Routes.LEADERBOARD);
         break;
 
       case "sejarah":
-        Get.toNamed(
-          Routes.SEJARAH_PRAMUKA,
-        );
+        Get.toNamed(Routes.SEJARAH_PRAMUKA);
         break;
 
       case "berita":
-        Get.toNamed(
-          Routes.BERANDA_BERITA,
-        );
+        Get.toNamed(Routes.BERANDA_BERITA);
         break;
 
       case "permainan":
-        Get.toNamed(
-          Routes.BERANDA_GAME,
-        );
+        Get.toNamed(Routes.BERANDA_GAME);
         break;
 
       default:
-        Get.snackbar(
-          "Informasi",
-          "Menu belum tersedia",
-        );
+        Get.snackbar("Informasi", "Menu belum tersedia");
     }
   }
 
   void onStartDetection() {
-    Get.toNamed(
-      Routes.SEMAPHORE_DETECT,
-    );
+    Get.toNamed(Routes.SEMAPHORE_DETECT);
   }
 
   void onSeeAll() {
-    Get.toNamed(
-      Routes.BERANDA_BERITA,
-    );
+    Get.toNamed(Routes.BERANDA_BERITA);
   }
 
-  void onActivityTap(
-    Map<String, String> activity,
-  ) {
+  void onActivityTap(Map<String, String> activity) {
     Get.snackbar(
       activity["category"] ?? "Aktivitas",
       activity["title"] ?? "",

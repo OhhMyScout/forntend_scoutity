@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -37,22 +38,12 @@ class ForgotPasswordController extends GetxController {
 
     // 1. Validasi Input
     if (email.isEmpty) {
-      Get.snackbar(
-        "Perhatian",
-        "Alamat email tidak boleh kosong",
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showSnackbar("Perhatian", "Alamat email tidak boleh kosong", Colors.orange);
       return;
     }
 
     if (!GetUtils.isEmail(email)) {
-      Get.snackbar(
-        "Perhatian",
-        "Format email tidak valid",
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showSnackbar("Perhatian", "Format email tidak valid", Colors.orange);
       return;
     }
 
@@ -62,26 +53,38 @@ class ForgotPasswordController extends GetxController {
 
       final response = await http.post(
         Uri.parse(ApiEndpoint.forgotPassword),
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
         body: jsonEncode({
           "email": email,
         }),
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw TimeoutException("Koneksi internet lambat"),
       );
-
-      final result = jsonDecode(response.body);
 
       debugPrint("FORGOT PASS STATUS : ${response.statusCode}");
       debugPrint("FORGOT PASS BODY   : ${response.body}");
 
+      // Parsing JSON dengan aman (mencegah crash jika server mengembalikan HTML)
+      Map<String, dynamic> result = {};
+      try {
+        result = jsonDecode(response.body);
+      } catch (e) {
+        debugPrint("Gagal decode JSON: $e");
+      }
+
+      // 3. Penanganan Response
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar(
-          "Berhasil",
-          result["message"] ?? "Kode OTP telah dikirim ke email Anda",
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+        _showSnackbar(
+          "Berhasil", 
+          result["message"] ?? "Kode verifikasi telah dikirim ke email Anda", 
+          Colors.green,
         );
 
-        // 3. Arahkan ke halaman OTP dengan mode resetPassword
+        // Arahkan ke halaman OTP dengan mode resetPassword
         Get.toNamed(
           Routes.OTP,
           arguments: {
@@ -90,23 +93,36 @@ class ForgotPasswordController extends GetxController {
           },
         );
       } else {
-        Get.snackbar(
-          "Gagal",
-          result["message"] ?? "Email tidak ditemukan atau terjadi kesalahan",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+        _showSnackbar(
+          "Gagal", 
+          result["message"] ?? "Email tidak ditemukan atau terjadi kesalahan server", 
+          Colors.red,
         );
       }
+    } on TimeoutException catch (_) {
+      _showSnackbar("Waktu Habis", "Koneksi internet tidak stabil, coba lagi nanti", Colors.red);
     } catch (e) {
       debugPrint("FORGOT PASSWORD ERROR : $e");
-      Get.snackbar(
-        "Error",
-        "Gagal terhubung ke server",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      _showSnackbar("Error", "Gagal terhubung ke jaringan", Colors.red);
     } finally {
       isLoading.value = false;
     }
+  }
+
+  // ======================================================
+  // HELPER METHOS UNTUK SNACKBAR
+  // ======================================================
+  void _showSnackbar(String title, String message, Color bgColor) {
+    Get.snackbar(
+      title,
+      message,
+      backgroundColor: bgColor,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.TOP,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      icon: const Icon(Icons.info_outline, color: Colors.white),
+      duration: const Duration(seconds: 3),
+    );
   }
 }

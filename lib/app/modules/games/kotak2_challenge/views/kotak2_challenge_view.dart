@@ -441,7 +441,7 @@ class Kotak2ChallengeView extends GetView<Kotak2ChallengeController> {
 
   Widget _buildKeyboard(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-
+  
     return Container(
       padding: EdgeInsets.only(top: 12, bottom: bottomPadding > 0 ? bottomPadding : 24, left: 12, right: 12),
       decoration: BoxDecoration(
@@ -457,7 +457,7 @@ class Kotak2ChallengeView extends GetView<Kotak2ChallengeController> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: [   
           // Drag Handle
           Center(
             child: Container(

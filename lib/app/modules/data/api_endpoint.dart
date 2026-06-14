@@ -1,75 +1,49 @@
-// lib/app/data/api_endpoint.dart
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiEndpoint {
-  // ==========================================
-  // ENVIRONMENT SETUP
-  // ==========================================
-
-  // Ubah nilai ini menjadi:
-  // true  -> Jika aplikasi ingin di-build/rilis (pakai domain trycenter)
-  // false -> Jika sedang ngoding/testing di emulator (pakai IP Laptop)
-  static const bool isProduction = false;
-
-  // 1. URL Local (Development)
-  static const String _localBaseUrl = "http://10.137.17.154:5000/api";
-
-  // 2. URL Domain (Production)
-  // Pastikan Anda memilih URL yang sesuai dengan setup backend Anda.
-  // Jika backend di-host di subdomain 'api', gunakan baris pertama.
-  static const String _prodBaseUrl = "https://api.trycenter.my.id/api";
-  // static const String _prodBaseUrl = "https://trycenter.my.id/api";
-
-  // Variabel utama yang akan menyesuaikan otomatis berdasarkan flag isProduction
-  static const String baseUrl = isProduction ? _prodBaseUrl : _localBaseUrl;
+  // Mengambil Base URL dari .env
+  // Jika .env belum ter-load, gunakan localhost sebagai backup
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? "https://haisen.my.id//api";
 
   // ==========================================
   // Auth & Profile
   // ==========================================
-  static const String register = "$baseUrl/register";
-  static const String login = "$baseUrl/login";
-
-  // Endpoint Verifikasi OTP
-  static const String verifyOtp = "$baseUrl/verify-otp";
-  static const String verifyForgotOtp = "$baseUrl/verify-otp-reset";
-
-  // Endpoint Resend OTP
-  static const String resendOtpRegister = "$baseUrl/resend-otp";
-  static const String resendOtpReset = "$baseUrl/resend-otp-reset";
-
-  static const String profile = "$baseUrl/profile";
-  static const String logout = "$baseUrl/logout";
-
-  // Fitur Lupa Password
-  static const String forgotPassword = "$baseUrl/forgot-password";
-  static const String resetPassword = "$baseUrl/reset-password";
+  static String get register => "$baseUrl/register";
+  static String get login => "$baseUrl/login";
+  static String get verifyOtp => "$baseUrl/verify-otp";
+  static String get verifyForgotOtp => "$baseUrl/verify-otp-reset";
+  static String get resendOtpRegister => "$baseUrl/resend-otp";
+  static String get resendOtpReset => "$baseUrl/resend-otp-reset";
+  static String get profile => "$baseUrl/profile";
+  static String get logout => "$baseUrl/logout";
+  static String get forgotPassword => "$baseUrl/forgot-password";
+  static String get resetPassword => "$baseUrl/reset-password";
 
   // ==========================================
   // Games & Leaderboard
   // ==========================================
-  // Untuk mengambil Total Poin Akumulasi (Leaderboard Global)
-  static const String leaderboard = "$baseUrl/leaderboard";
-
-  // Untuk mengambil Leaderboard per-game (Sandi Kotak 1, dll)
-  static const String gameScore = "$baseUrl/game-scores";
-
-  // Untuk mengambil daftar mini games yang tersedia
-  static const String games = "$baseUrl/games";
-
-  // Untuk mengirim/menyimpan skor setelah selesai bermain
-  static const String submitScore = "$baseUrl/score";
+  static String get leaderboard => "$baseUrl/leaderboard";
+  static String get gameScore => "$baseUrl/game-scores";
+  static String get games => "$baseUrl/games";
+  static String get submitScore => "$baseUrl/score";
 
   // ==========================================
-  // Get Questions dari API (Bank Soal)
+  // Get Questions
   // ==========================================
-  static const String kotak1Questions = "$baseUrl/games/kotak1/questions";
-  static const String kotak2Questions = "$baseUrl/games/kotak2/questions";
-  static const String morseQuestions = "$baseUrl/games/morse/questions";
+  static String get kotak1Questions => "$baseUrl/games/kotak1/questions";
+  static String get kotak2Questions => "$baseUrl/games/kotak2/questions";
+  static String get morseQuestions => "$baseUrl/games/morse/questions";
 
   // ==========================================
   // BERITA
   // ==========================================
-  static const String beritaProvinsi = "$baseUrl/berita/provinsi";
-  static const String beritaProvinsiTop10 = "$baseUrl/berita/provinsi/top10";
-  static const String berita = "$baseUrl/berita";
-  static const String beritaPopuler = "$baseUrl/berita/populer";
+  static String get beritaProvinsi => "$baseUrl/berita/provinsi";
+  static String get beritaProvinsiTop10 => "$baseUrl/berita/provinsi/top10";
+  static String get berita => "$baseUrl/berita";
+  static String get beritaPopuler => "$baseUrl/berita/populer";
+  
+  // ==========================================
+  // Deteksi Semaphore
+  // ==========================================
+  static String get semaphoreDetect => "$baseUrl/deteksi/semaphore";
 }

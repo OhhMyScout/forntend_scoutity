@@ -5,20 +5,21 @@ import '../../../routes/app_pages.dart';
 import '../../data/session_manager.dart';
 
 class HomeController extends GetxController {
-  var isLoading = true.obs;
 
+
+
+  // ======================================================
+  // OBSERVABLE STATES
+  // ======================================================
+  var isLoading = true.obs;
   var usernameDisplay = "Kak!".obs;
 
-  // ======================================================
-  // STATE FLAG UNTUK SNACKBAR
-  // (Static agar nilainya tidak hilang saat controller di-rebuild)
-  // ======================================================
+  // Static flag agar nilainya bertahan meski controller di-rebuild/direstart
   static bool hasShownWelcome = false;
 
   // ======================================================
   // USER DATA
   // ======================================================
-
   var userId = "".obs;
   var username = "".obs;
   var fullname = "".obs;
@@ -31,7 +32,6 @@ class HomeController extends GetxController {
   // ======================================================
   // SHORTCUT MENU
   // ======================================================
-
   final List<Map<String, dynamic>> shortcuts = [
     {
       "id": "leaderboard",
@@ -55,10 +55,13 @@ class HomeController extends GetxController {
     },
   ];
 
+
+
+
+
   // ======================================================
   // DUMMY ACTIVITY
   // ======================================================
-
   final List<Map<String, String>> activities = [
     {
       "category": "TIPS & TRIK",
@@ -75,7 +78,7 @@ class HomeController extends GetxController {
   ];
 
   // ======================================================
-  // INIT
+  // LIFECYCLE METHOD
   // ======================================================
 
   @override
@@ -84,29 +87,25 @@ class HomeController extends GetxController {
     loadCurrentUser();
   }
 
+  @override
+  void onReady() {
+    super.onReady();
+    // onReady dipanggil tepat setelah frame UI selesai dirender,
+    // tempat paling aman untuk memunculkan Snackbar, Dialog, atau BottomSheet.
+    _showWelcomeSnackbarIfNeeded();
+  }
+
   // ======================================================
-  // LOAD CURRENT USER
+  // CORE FUNCTIONS
   // ======================================================
 
   Future<void> loadCurrentUser() async {
     try {
       isLoading.value = true;
 
-      // Hapus atau komen debugPrint ini jika log terlalu penuh
-      debugPrint("========== SESSION CHECK ==========");
-      debugPrint("TOKEN      : ${SessionManager.token}");
-      debugPrint("HAS TOKEN  : ${SessionManager.hasToken()}");
-      debugPrint("LOGGED IN  : ${SessionManager.isLoggedIn}");
-      debugPrint("USER ID    : ${SessionManager.userId}");
-      debugPrint("USERNAME   : ${SessionManager.username}");
-      debugPrint("FULLNAME   : ${SessionManager.fullname}");
-      debugPrint("EMAIL      : ${SessionManager.email}");
-      debugPrint("ROLE       : ${SessionManager.role}");
-      debugPrint("POINTS     : ${SessionManager.points}");
-      debugPrint("===================================");
-
+      // Logika Pengecekan Sesi
       if (!SessionManager.isLoggedIn || !SessionManager.hasToken()) {
-        debugPrint("SESSION TIDAK DITEMUKAN");
+        debugPrint("SESSION TIDAK DITEMUKAN - Redirecting to Login");
         Get.offAllNamed(Routes.LOGIN);
         return;
       }
@@ -121,46 +120,20 @@ class HomeController extends GetxController {
       image.value = SessionManager.image;
       points.value = SessionManager.points;
 
-      usernameDisplay.value = fullname.value.isNotEmpty
-          ? fullname.value
-          : username.value.isNotEmpty
-              ? username.value
-              : "Kak!";
+      // Logika Penentuan Nama Tampilan (Fallback)
+      if (fullname.value.isNotEmpty) {
+        usernameDisplay.value = fullname.value;
+      } else if (username.value.isNotEmpty) {
+        usernameDisplay.value = username.value;
+      } else {
+        usernameDisplay.value = "Kak!";
+      }
 
       debugPrint("========== USER LOADED ==========");
-      debugPrint("ID       : ${userId.value}");
-      debugPrint("USERNAME : ${username.value}");
-      debugPrint("FULLNAME : ${fullname.value}");
-      debugPrint("EMAIL    : ${email.value}");
-      debugPrint("ROLE     : ${role.value}");
-      debugPrint("POINTS   : ${points.value}");
+      debugPrint("NAMA TAMPIL : ${usernameDisplay.value}");
+      debugPrint("ROLE        : ${role.value}");
       debugPrint("=================================");
 
-      // Menampilkan Snackbar Welcome secara aman agar tidak memicu LateInitializationError
-      if (!hasShownWelcome && fullname.value.isNotEmpty) {
-        hasShownWelcome = true; // Kunci agar tidak muncul lagi
-
-        // Tutup snackbar yang mungkin sedang gantung
-        if (Get.isSnackbarOpen) {
-          Get.closeAllSnackbars();
-        }
-
-        // Delay 1 detik memastikan render halaman Home sudah selesai
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          Get.snackbar(
-            "Selamat Datang",
-            "Halo ${fullname.value}",
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: const Color(0xFF361F1A),
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-            margin: const EdgeInsets.all(16),
-            animationDuration: const Duration(milliseconds: 300),
-            isDismissible: true,
-          );
-        });
-      }
-      
     } catch (e) {
       debugPrint("HOME ERROR : $e");
       await SessionManager.clear();
@@ -170,20 +143,36 @@ class HomeController extends GetxController {
     }
   }
 
-  // ======================================================
-  // REFRESH USER
-  // ======================================================
+  // Dipisah agar loadCurrentUser tetap bersih dan fokus pada pengolahan data
+  void _showWelcomeSnackbarIfNeeded() {
+    // Memastikan data nama sudah ada dan welcome belum pernah ditampilkan
+    if (!hasShownWelcome && usernameDisplay.value != "Kak!") {
+      hasShownWelcome = true; // Kunci agar tidak muncul lagi
+
+      Get.closeAllSnackbars(); // Tutup snackbar lain yang mungkin sedang aktif
+
+      Get.snackbar(
+        "Selamat Datang",
+        "Halo ${usernameDisplay.value}, siap untuk berpetualang?",
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: const Color(0xFF361F1A),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        margin: const EdgeInsets.all(16),
+        borderRadius: 14,
+        icon: const Icon(Icons.waving_hand_rounded, color: Colors.amber),
+        animationDuration: const Duration(milliseconds: 400),
+        isDismissible: true,
+      );
+    }
+  }
 
   Future<void> refreshUser() async {
     await loadCurrentUser();
   }
 
-  // ======================================================
-  // LOGOUT
-  // ======================================================
-
   Future<void> logout() async {
-    // Reset flag agar saat login kembali pesan welcome bisa muncul
+    // Reset flag agar saat user login dengan akun lain, pesan welcome muncul lagi
     hasShownWelcome = false;
     
     await SessionManager.clear();
@@ -191,7 +180,7 @@ class HomeController extends GetxController {
   }
 
   // ======================================================
-  // ACTIONS
+  // ROUTING & ACTIONS
   // ======================================================
 
   void onNotificationTap() {
@@ -203,21 +192,22 @@ class HomeController extends GetxController {
       case "leaderboard":
         Get.toNamed(Routes.LEADERBOARD);
         break;
-
       case "sejarah":
         Get.toNamed(Routes.SEJARAH_PRAMUKA);
         break;
-
       case "berita":
         Get.toNamed(Routes.BERANDA_BERITA);
         break;
-
       case "permainan":
         Get.toNamed(Routes.BERANDA_GAME);
         break;
-
       default:
-        Get.snackbar("Informasi", "Menu belum tersedia");
+        Get.snackbar(
+          "Informasi", 
+          "Menu belum tersedia",
+          backgroundColor: Colors.grey.shade800,
+          colorText: Colors.white,
+        );
     }
   }
 
@@ -233,6 +223,15 @@ class HomeController extends GetxController {
     Get.snackbar(
       activity["category"] ?? "Aktivitas",
       activity["title"] ?? "",
+      backgroundColor: Colors.white,
+      colorText: const Color(0xFF361F1A),
+      boxShadows: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        )
+      ]
     );
   }
 }

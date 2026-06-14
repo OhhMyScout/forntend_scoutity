@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/forgot_password_controller.dart';
 
-//update forgot password view with new design and layout
 class ForgotPasswordView extends GetView<ForgotPasswordController> {
   const ForgotPasswordView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Definisi Warna
     const Color primaryColor = Color(0xFF361F1A);
     const Color secondaryColor = Color(0xFF7D562D);
     const Color inputBgColor = Color(0xFFF5EEE6);
@@ -23,7 +23,11 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
         ),
         title: const Text(
           "Scoutify",
-          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
+          style: TextStyle(
+            color: primaryColor,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Poppins',
+          ),
         ),
         centerTitle: true,
       ),
@@ -33,11 +37,12 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              
-              // Illustration Section
+
+              // --- Bagian Ilustrasi ---
               Center(
                 child: Container(
-                  width: 180, height: 180,
+                  width: 180,
+                  height: 180,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF6F3EE),
@@ -53,16 +58,24 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
                   child: Image.network(
                     "https://lh3.googleusercontent.com/aida-public/AB6AXuBGusxjQOdUbHMTxLHdptc6boiy0vbTicrYmJd3i3rMHeYbcd2nleWJKkfbfbgSOo9TmwMA4icjT2JAZAA6CiFRHsqE6FgVYawvNTlKTvf5Mo0B7cgcUZPUA3EbN6it80QL8TLAyWYU2HYaUMg3mXvaCIFheOFYTL3BIV_IgYsfkCyQB1WmxRv7M5aHYrXw-AhZXqhhsMCc3rDXSNBq1kDlzGHxSuOmJIMX_QWzQG-D8eZuBKfcl1Ze3oc-5n3VKLXaaPQxzSMrTQI",
                     fit: BoxFit.contain,
+                    // Fallback jika URL gambar gagal dimuat
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.person, size: 80, color: Color(0xFFD4C3BF)),
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
-              // Typography Section
+
+              // --- Bagian Tipografi (Judul & Deskripsi) ---
               const Text(
                 "Lupa Kata Sandi?",
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: primaryColor, fontFamily: 'Poppins'),
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                  fontFamily: 'Poppins',
+                ),
               ),
               const SizedBox(height: 12),
               const Padding(
@@ -73,10 +86,10 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
                   style: TextStyle(fontSize: 16, color: Color(0xFF504442)),
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
-              // Form Card
+
+              // --- Bagian Form (Input & Tombol) ---
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -95,7 +108,10 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
                   children: [
                     const Text(
                       "Alamat Email",
-                      style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -112,34 +128,82 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: controller.sendResetCode,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          shape: const StadiumBorder(),
-                          elevation: 4,
-                          shadowColor: primaryColor.withOpacity(0.4),
+                    
+                    // --- Tombol dengan Animasi Loading ---
+                    Obx(() {
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          // Disable tombol saat loading agar tidak ter-klik dua kali
+                          onPressed: controller.isLoading.value
+                              ? null
+                              : controller.sendResetCode,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            // Menjaga warna background saat tombol berstatus disabled
+                            disabledBackgroundColor: primaryColor.withOpacity(0.8),
+                            shape: const StadiumBorder(),
+                            // Hilangkan bayangan saat loading
+                            elevation: controller.isLoading.value ? 0 : 4,
+                            shadowColor: primaryColor.withOpacity(0.4),
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (Widget child, Animation<double> animation) {
+                              // Animasi zoom in/out (scale)
+                              return ScaleTransition(scale: animation, child: child);
+                            },
+                            // Logika pergantian widget di dalam tombol
+                            child: controller.isLoading.value
+                                ? const Row(
+                                    key: ValueKey('loading_state'),
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        "Memproses...",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const Row(
+                                    key: ValueKey('idle_state'),
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Kirim Kode",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Icon(Icons.send, size: 18, color: Colors.white),
+                                    ],
+                                  ),
+                          ),
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text("Kirim Kode", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            SizedBox(width: 8),
-                            Icon(Icons.send, size: 18, color: Colors.white),
-                          ],
-                        ),
-                      ),
-                    ),
+                      );
+                    }),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
-              // Back to Login Link
+
+              // --- Link Kembali ke Login ---
               GestureDetector(
                 onTap: controller.backToLogin,
                 child: const Row(
@@ -148,15 +212,18 @@ class ForgotPasswordView extends GetView<ForgotPasswordController> {
                     Icon(Icons.arrow_left, color: secondaryColor),
                     Text(
                       "Kembali ke halaman masuk",
-                      style: TextStyle(color: secondaryColor, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: secondaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
-              // Footer Decoration
+
+              // --- Dekorasi Footer ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

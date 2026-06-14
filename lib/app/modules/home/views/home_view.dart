@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,7 +16,7 @@ class HomeView extends GetView<HomeController> {
       body: SafeArea(
         child: Stack(
           children: [
-            // 🔥 BUNGKUS DENGAN OBX: Memantau status loading pengecekan token SharedPreferences
+            // Memantau status loading
             Obx(() {
               if (controller.isLoading.value) {
                 return const Center(
@@ -25,28 +26,49 @@ class HomeView extends GetView<HomeController> {
                 );
               }
 
-              // Jika loading selesai, langsung tampilkan konten dashboard seutuhnya
+              // Jika loading selesai, tampilkan dashboard dengan animasi
               return SingleChildScrollView(
                 padding: const EdgeInsets.only(
-                  bottom: 120, // Memberikan ruang agar konten terbawah tidak terpotong oleh TabBar
+                  bottom: 120, // Ruang agar konten tidak terpotong TabBar
                 ),
                 child: Column(
                   children: [
-                    _buildHeader(),
-                    _buildHero(),
-                    _buildShortcuts(),
+                    FadeInSlide(
+                      delay: 0,
+                      child: _buildHeader(),
+                    ),
+                    FadeInSlide(
+                      delay: 150,
+                      child: _buildHero(),
+                    ),
+                    FadeInSlide(
+                      delay: 300,
+                      child: _buildShortcuts(),
+                    ),
                     const SizedBox(height: 32),
-                    _buildAIFeature(),
+                    FadeInSlide(
+                      delay: 450,
+                      child: _buildAIFeature(),
+                    ),
                     const SizedBox(height: 8),
-                    _buildActivities(),
+                    FadeInSlide(
+                      delay: 600,
+                      child: _buildActivities(),
+                    ),
                   ],
                 ),
               );
             }),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: AppTabBar(currentIndex: 0),
-            ),
+            
+            // Animasi TabBar dari bawah
+            Obx(() => AnimatedPositioned(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+              bottom: controller.isLoading.value ? -100 : 0, // Sembunyikan saat loading
+              left: 0,
+              right: 0,
+              child: const AppTabBar(currentIndex: 0),
+            )),
           ],
         ),
       ),
@@ -84,14 +106,13 @@ class HomeView extends GetView<HomeController> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔥 BUNGKUS OBX DI SINI: Menampilkan nama user dinamis hasil split email dari SharedPreferences bray!
                   Obx(() => Text(
-                    "Halo, Kak ${controller.usernameDisplay.value}!",
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.onSurfaceVariant,
-                    ),
-                  )),
+                        "Halo, Kak ${controller.usernameDisplay.value}!",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.onSurfaceVariant,
+                        ),
+                      )),
                   const SizedBox(height: 2),
                   const Text(
                     "Scoutify",
@@ -143,6 +164,8 @@ class HomeView extends GetView<HomeController> {
                 child: Image.network(
                   "https://lh3.googleusercontent.com/aida-public/AB6AXuCmvnNGiNaQb30r5rKcTEAzNDbTAM2bqXg1xtX-HX_iYdvqZjvFww6Z7MgHdC1axe0ALqcHJ6sFMTStTUlPEesq4Lxwakk-mxaAhE2p1VDmlL_Haq1fGE1U74fuCXD_WYhQNoW8S5L843iCfW5hU2478F1UpH-t284YXbn9ZQSjNBIPMse86j2ZWc-uGUk2SFL0zedSFNOwiQUUnxPrfthkWVfJ222pIP8PbAK7D7L9VSyqBkzv6zDJV7qCawt_TvqqVH1dE_iwQDo",
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => 
+                      Container(color: Colors.grey.shade300),
                 ),
               ),
               Positioned.fill(
@@ -210,65 +233,65 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildShortcuts() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: GridView.builder(
-        itemCount: controller.shortcuts.length,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          childAspectRatio: 0.72,
-          crossAxisSpacing: 14,
-        ),
-        itemBuilder: (context, index) {
-          final item = controller.shortcuts[index];
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: GridView.builder(
+      itemCount: controller.shortcuts.length,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        childAspectRatio: 0.72,
+        crossAxisSpacing: 14,
+      ),
+      itemBuilder: (context, index) {
+        final item = controller.shortcuts[index];
 
-          return Column(
-            children: [
-              Material(
-                color: Colors.white,
+        return Column(
+          children: [
+            Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                onTap: () => controller.onShortcutTap(
+                  item["id"].toString(),
+                ),
                 borderRadius: BorderRadius.circular(20),
-                child: InkWell(
-                  onTap: () => controller.onShortcutTap(
-                    item["id"].toString(),
-                  ), // Mengirimkan ID unik string ke controller bray
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppTheme.surfaceContainerHighest.withValues(
-                          alpha: 0.3,
-                        ),
+                child: Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppTheme.surfaceContainerHighest.withValues(
+                        alpha: 0.3,
                       ),
                     ),
-                    child: Icon(
-                      item["icon"] as IconData,
-                      color: AppTheme.secondary,
-                      size: 28,
-                    ),
+                  ),
+                  child: Icon(
+                    item["icon"] as IconData,
+                    color: AppTheme.secondary,
+                    size: 28,
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                item["title"].toString(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.onSurfaceVariant,
-                ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              item["title"].toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.onSurfaceVariant,
               ),
-            ],
-          );
-        },
-      ),
-    );
-  }
+            ),
+          ],
+        );
+      },
+    ),
+  );
+}
 
   Widget _buildAIFeature() {
     return Padding(
@@ -324,6 +347,8 @@ class HomeView extends GetView<HomeController> {
                       child: Image.network(
                         "https://lh3.googleusercontent.com/aida-public/AB6AXuDUIH3Kz3lCqoaGvQ7lTdtU0iaVNpP1H2JzSL6ZmecE8cFHO6m4RIK-Lw7AT86L-DQVeG0swfi6SjOcmoUMNU4RzLdZcJg1eOX1fL1B0lMtt6yQ4qXEc6TKFh2-wkNX3t3B039rXh4TUYEvbXc7piTzdK37sjvGS__4Xs1_owQ41ggogixv-Pm_SlqhTxuDIQ9ISqOHwjrfBA0_4gHlgNnnJmwqkRJN4ShA7WWpiPm2He3b5JWH0z4Fu61T-UnfjiVvdLi5oD3USH8",
                         fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(color: Colors.grey.shade300),
                       ),
                     ),
                     Positioned(
@@ -475,14 +500,14 @@ class HomeView extends GetView<HomeController> {
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   Container(
-                                    width: 68,
-                                    height: 68,
-                                    color: Colors.grey.shade200,
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
+                                width: 68,
+                                height: 68,
+                                color: Colors.grey.shade200,
+                                child: const Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -526,6 +551,77 @@ class HomeView extends GetView<HomeController> {
             },
           ),
         ],
+      ),
+    );
+  }
+} // <--- PENUTUP CLASS HomeView ADA DI SINI
+
+// ====================================================================
+// WIDGET CUSTOM: FADE IN SLIDE ANIMATION
+// Berada di luar class HomeView
+// ====================================================================
+class FadeInSlide extends StatefulWidget {
+  final Widget child;
+  final int delay;
+  final bool slideUp;
+
+  const FadeInSlide({
+    super.key,
+    required this.child,
+    required this.delay,
+    this.slideUp = true,
+  });
+
+  @override
+  State<FadeInSlide> createState() => _FadeInSlideState();
+}
+
+class _FadeInSlideState extends State<FadeInSlide> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<Offset> _offset;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _opacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    _offset = Tween<Offset>(
+      begin: widget.slideUp ? const Offset(0, 0.3) : const Offset(0, -0.3), 
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+
+    _timer = Timer(Duration(milliseconds: widget.delay), () {
+      if (mounted) {
+        _controller.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(
+        position: _offset,
+        child: widget.child,
       ),
     );
   }

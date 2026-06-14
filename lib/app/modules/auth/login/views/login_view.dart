@@ -17,7 +17,7 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
   // Setup Animasi
   late AnimationController _animationController;
   
-  // Header Animations (Fade, Slide, & Scale untuk efek pantulan Apple)
+  // Header Animations
   late Animation<double> _headerFadeAnimation;
   late Animation<Offset> _headerSlideAnimation;
   late Animation<double> _headerScaleAnimation;
@@ -32,14 +32,13 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
   void initState() {
     super.initState();
 
-    // Durasi total kita perpanjang menjadi 3.2 detik
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 3200),
     );
 
     // ==========================================
-    // 1. ANIMASI HEADER (Berjalan di 0 - 800ms)
+    // 1. ANIMASI HEADER 
     // ==========================================
     _headerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -53,7 +52,6 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
         curve: const Interval(0.0, 0.25, curve: Curves.easeOutCubic),
       ),
     );
-    // Tambahan efek zoom-in (membesar sedikit) yang elegan
     _headerScaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
@@ -61,11 +59,8 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
       ),
     );
 
-    // --- DI SINI ADA JEDA SEKITAR 1.5 - 2 DETIK ---
-    // (Dari 800ms hingga 2200ms, animasi diam menahan logo & welcome text)
-
     // ==========================================
-    // 2. ANIMASI FORM (Berjalan di 2240ms - 2880ms)
+    // 2. ANIMASI FORM
     // ==========================================
     _cardFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -81,7 +76,7 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
     );
 
     // ==========================================
-    // 3. ANIMASI FOOTER (Berjalan di 2560ms - 3200ms)
+    // 3. ANIMASI FOOTER
     // ==========================================
     _footerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -96,7 +91,6 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
       ),
     );
 
-    // Jalankan animasi secara otomatis
     _animationController.forward();
   }
 
@@ -120,7 +114,7 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
             child: Column(
               children: [
                 
-                // 1. TOP BRANDING (Muncul Duluan + Efek Zoom Halus)
+                // 1. TOP BRANDING
                 FadeTransition(
                   opacity: _headerFadeAnimation,
                   child: SlideTransition(
@@ -152,6 +146,8 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                                 fit: BoxFit.cover,
                                 color: Colors.brown.withOpacity(0.4),
                                 colorBlendMode: BlendMode.saturation,
+                                errorBuilder: (context, error, stackTrace) => 
+                                    const Icon(Icons.person, size: 80, color: Colors.grey),
                               ),
                             ),
                           ),
@@ -176,7 +172,7 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
 
                 const SizedBox(height: 40),
 
-                // 2. LOGIN CARD (Muncul setelah jeda ~2 detik)
+                // 2. LOGIN CARD 
                 FadeTransition(
                   opacity: _cardFadeAnimation,
                   child: SlideTransition(
@@ -220,7 +216,6 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                           ),
                           const SizedBox(height: 20),
                           
-                          // Password Header Row
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -241,7 +236,6 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                             ],
                           ),
                           
-                          // Password Input Field (Reaktif Obx untuk Visibility)
                           Obx(
                             () => TextField(
                               controller: controller.passwordController,
@@ -268,7 +262,6 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                           ),
                           const SizedBox(height: 32),
                           
-                          // Sign In Button dengan Status Loading Terintegrasi Obx
                           SizedBox(
                             width: double.infinity,
                             height: 56,
@@ -325,20 +318,46 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                             ],
                           ),
                           const SizedBox(height: 24),
-                          OutlinedButton(
-                            onPressed: () {},
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 56),
-                              side: const BorderSide(color: Color(0xFFD4C3BF)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                          
+                          // ==========================================
+                          // TOMBOL GOOGLE LOGIN (Telah Diperbarui)
+                          // ==========================================
+                          Obx(
+                            () => OutlinedButton.icon(
+                              onPressed: controller.isGoogleLoading.value
+                                  ? null
+                                  : controller.loginWithGoogle,
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 56),
+                                side: const BorderSide(
+                                  color: Color(0xFFD4C3BF),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
-                            ),
-                            child: const Text(
-                              "Google",
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontWeight: FontWeight.bold,
+                              icon: controller.isGoogleLoading.value
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: primaryColor,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.g_mobiledata,
+                                      size: 30,
+                                      color: Colors.red,
+                                    ),
+                              label: Text(
+                                controller.isGoogleLoading.value
+                                    ? "Loading..."
+                                    : "Continue with Google",
+                                style: const TextStyle(
+                                  color: primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
@@ -350,7 +369,7 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
 
                 const SizedBox(height: 32),
 
-                // 3. FOOTER (Menyusul sesaat setelah Form)
+                // 3. FOOTER
                 FadeTransition(
                   opacity: _footerFadeAnimation,
                   child: SlideTransition(

@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
-import 'package:scoutify/app/modules/auth/auth_middleware.dart';
 
+import '../modules/auth/auth_middleware.dart';
 import '../modules/auth/forgot_password/bindings/forgot_password_binding.dart';
 import '../modules/auth/forgot_password/views/forgot_password_view.dart';
 import '../modules/auth/login/bindings/login_binding.dart';
@@ -73,6 +73,8 @@ import '../modules/survival/sinyal_darurat/bindings/sinyal_darurat_binding.dart'
 import '../modules/survival/sinyal_darurat/views/sinyal_darurat_view.dart';
 import '../modules/survival/tali_temali/bindings/tali_temali_binding.dart';
 import '../modules/survival/tali_temali/views/tali_temali_view.dart';
+import '../modules/uji_sku/bindings/uji_sku_binding.dart';
+import '../modules/uji_sku/views/uji_sku_view.dart';
 
 part 'app_routes.dart';
 
@@ -352,6 +354,11 @@ class AppPages {
       binding: SejarahPramukaBinding(),
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 100),
+    ),
+    GetPage(
+      name: _Paths.UJI_SKU,
+      page: () => const UjiSkuView(),
+      binding: UjiSkuBinding(),
     ),
   ];
 }

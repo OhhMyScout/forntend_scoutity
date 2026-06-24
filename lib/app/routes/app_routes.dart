@@ -40,6 +40,7 @@ abstract class Routes {
   static const TABEL_BERITA_PALING_POPULER = _Paths.TABEL_BERITA_PALING_POPULER;
   static const SEJARAH_PRAMUKA = _Paths.SEJARAH_PRAMUKA;
   static const OTP_REGIST = _Paths.OTP_REGIST;
+  static const UJI_SKU = _Paths.UJI_SKU;
 }
 
 abstract class _Paths {
@@ -81,4 +82,5 @@ abstract class _Paths {
   static const TABEL_BERITA_PALING_POPULER = '/tabel-berita-paling-populer';
   static const SEJARAH_PRAMUKA = '/sejarah-pramuka';
   static const OTP_REGIST = '/otp-regist';
+  static const UJI_SKU = '/uji-sku';
 }

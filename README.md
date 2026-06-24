@@ -1,17 +1,75 @@
-# scoutify
+# Scoutify
 
-A new Flutter project.
+## Update Project ke GitHub
 
-## Getting Started
+### Cek Branch Aktif
 
-This project is a starting point for a Flutter application.
+```bash
+git branch
+```
 
-A few resources to get you started if this is your first Flutter project:
+### Ambil Update Terbaru dari Remote
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+git pull
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Simpan Perubahan
+
+```bash
+git add .
+git commit -m "Deskripsi perubahan"
+```
+
+### Push Perubahan
+
+```bash
+git push
+```
+
+## Membuat Branch Baru
+
+```bash
+git checkout -b nama-branch
+git push -u origin nama-branch
+```
+
+## Pindah Branch
+
+```bash
+git switch nama-branch
+```
+
+atau
+
+```bash
+git checkout nama-branch
+```
+
+## Cek Status Repository
+
+```bash
+git status
+```
+
+## Catatan
+
+Pastikan file berikut tidak ikut ter-push:
+
+```text
+.env
+build/
+.dart_tool/
+```
+
+Jika ada perubahan dari anggota tim lain, selalu lakukan:
+
+```bash
+git pull
+```
+
+sebelum melakukan:
+
+```bash
+git push
+```

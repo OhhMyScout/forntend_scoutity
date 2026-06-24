@@ -31,14 +31,16 @@ class SessionManager {
 
   static String get image => _box.read('image')?.toString() ?? '';
 
-  // PERBAIKAN: Getter points yang aman untuk tipe data int maupun String
+  // Getter points yang aman untuk tipe data int maupun String
   static int get points {
     final val = _box.read('points');
     if (val == null) return 0;
     if (val is int) return val;
-    // Jika tersimpan sebagai String, parsing secara aman
     return int.tryParse(val.toString()) ?? 0;
   }
+
+  // Helper untuk cek apakah user adalah Admin
+  static bool get isAdmin => role.toLowerCase() == 'admin';
 
   // ==========================================================
   // SAVE SESSION
@@ -68,7 +70,7 @@ class SessionManager {
   }
 
   // ==========================================================
-  // UPDATE PROFILE
+  // UPDATE DATA
   // ==========================================================
 
   static Future<void> updateProfile({
@@ -85,10 +87,6 @@ class SessionManager {
     if (image != null) await _box.write('image', image);
   }
 
-  // ==========================================================
-  // UPDATE POINTS
-  // ==========================================================
-
   static Future<void> updatePoints(int newPoints) async {
     await _box.write('points', newPoints);
   }
@@ -98,16 +96,12 @@ class SessionManager {
     await _box.write('points', currentPoints + point);
   }
 
-  // ==========================================================
-  // UPDATE TOKEN
-  // ==========================================================
-
   static Future<void> updateToken(String newToken) async {
     await _box.write('token', newToken);
   }
 
   // ==========================================================
-  // HELPERS
+  // HELPERS (Fungsi Bantuan)
   // ==========================================================
 
   static bool hasToken() {
@@ -116,6 +110,15 @@ class SessionManager {
 
   static String getToken() {
     return token ?? '';
+  }
+
+  // TAMBAHAN: Helper untuk Header API (Cegah 401 Unauthorized)
+  // Cara pakai: http.get(url, headers: SessionManager.apiHeader)
+  static Map<String, String> get apiHeader {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${getToken()}',
+    };
   }
 
   static Map<String, dynamic> get userData {
@@ -136,6 +139,17 @@ class SessionManager {
   // ==========================================================
 
   static Future<void> clear() async {
-    await _box.erase();
+    // PERBAIKAN: Hapus secara spesifik agar data seperti 'is_intro_seen'
+    // atau 'theme_mode' tidak ikut terhapus saat user logout.
+    await _box.remove('is_logged_in');
+    await _box.remove('token');
+    await _box.remove('user_id');
+    await _box.remove('username');
+    await _box.remove('fullname');
+    await _box.remove('email');
+    await _box.remove('role');
+    await _box.remove('province');
+    await _box.remove('points');
+    await _box.remove('image');
   }
 }

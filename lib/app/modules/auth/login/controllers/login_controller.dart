@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../../routes/app_pages.dart';
 import '../../../data/api_endpoint.dart';
@@ -22,51 +23,12 @@ class LoginController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-
     autoLoginCheck();
 
-    // Listener otomatis untuk menangkap callback redirect dari Google OAuth
-    supabase.auth.onAuthStateChange.listen((data) async {
-      final session = data.session;
-      final user = session?.user;
-
-      if (session == null || user == null) {
-        return;
-      }
-
-      final metadata = user.userMetadata ?? {};
-
-      final fullname =
-          metadata["full_name"] ??
-          metadata["name"] ??
-          "Scout";
-
-      final image =
-          metadata["avatar_url"] ??
-          metadata["picture"] ??
-          "";
-
-      final email = user.email ?? "";
-
-      final username = email.isNotEmpty
-          ? email.split("@")[0]
-          : "scout";
-
-      // Simpan data otomatis ke SessionManager
-      await SessionManager.saveSession(
-        token: session.accessToken,
-        userId: user.id,
-        username: username,
-        fullname: fullname,
-        email: email,
-        role: "user",
-        province: "",
-        image: image,
-        points: 0,
-      );
-
-      Get.offAllNamed(Routes.HOME);
-    });
+    // Catatan: Listener onAuthStateChange dari Supabase DIBUANG/DIHAPUS dari sini
+    // Karena kita tidak ingin aplikasi langsung pindah ke HOME sebelum
+    // Flutter berhasil mendapatkan Token JWT dari backend FastAPI kita.
+    // Logika navigasi dipindah ke dalam fungsi loginWithGoogle() di bawah.
   }
 
   // =========================
@@ -86,7 +48,7 @@ class LoginController extends GetxController {
   }
 
   // =========================
-  // LOGIN MANUAL
+  // 1. LOGIN MANUAL (API)
   // =========================
   Future<void> login() async {
     try {
@@ -145,7 +107,7 @@ class LoginController extends GetxController {
       } else {
         Get.snackbar(
           "Login Gagal",
-          result["message"] ?? "Kredensial tidak valid",
+          result["detail"]?["message"] ?? result["message"] ?? "Kredensial tidak valid",
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
@@ -165,7 +127,7 @@ class LoginController extends GetxController {
   }
 
   // ======================================================
-  // LOGIN GOOGLE VIA OAUTH SUPABASE
+  // 2. LOGIN GOOGLE (OAUTH SUPABASE + FASTAPI SYNC)
   // ======================================================
   Future<void> loginWithGoogle() async {
     try {
@@ -173,18 +135,100 @@ class LoginController extends GetxController {
 
       isGoogleLoading.value = true;
 
-      // Supabase akan membuka browser/webview untuk login Google
-      // dan mengembalikan token ke deep link 'io.supabase.flutter://login-callback'
-      await supabase.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutter://login-callback',
+      // Web Client ID kamu
+      const webClientId = '266565744405-sneglrbbh9aml1hin3qha2tq0nfnrvaf.apps.googleusercontent.com';
+
+      // 1. Munculkan Pop-up Akun Google
+      final GoogleSignIn googleSignIn = GoogleSignIn(serverClientId: webClientId);
+      final googleUser = await googleSignIn.signIn();
+      
+      // Jika user batal memilih akun
+      if (googleUser == null) {
+        return; 
+      }
+
+      // Ambil token dari Google
+      final googleAuth = await googleUser.authentication;
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
+
+      if (accessToken == null || idToken == null) {
+        throw 'Token Google tidak ditemukan. Silakan coba lagi.';
+      }
+
+      // 2. Kirim kredensial ke Supabase untuk divalidasi
+      final AuthResponse response = await supabase.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
       );
+
+      final user = response.user;
+      if (user == null) throw 'Gagal mendapatkan data user dari Supabase.';
+
+      // Ekstrak data dari profil Google user
+      final metadata = user.userMetadata ?? {};
+      final fullname = metadata["full_name"] ?? metadata["name"] ?? "Scout";
+      final image = metadata["avatar_url"] ?? metadata["picture"] ?? "";
+      final email = user.email ?? "";
+
+      // 3. LAPOR KE BACKEND FASTAPI (Untuk dapat JWT Token Custom)
+      // Pastikan kamu menambahkan `static const String googleLogin = "$baseUrl/api/google-login";`
+      // di file `ApiEndpoint.dart` kamu.
+      final backendResponse = await http.post(
+        Uri.parse(ApiEndpoint.googleLogin), // <-- Pastikan endpoint ini sudah diset
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "email": email,
+          "fullname": fullname,
+          "supabase_uid": user.id,
+          "image": image,
+        }),
+      );
+
+      final result = jsonDecode(backendResponse.body);
+
+      // Jika Backend berhasil merespons dan memberikan Token
+      if (backendResponse.statusCode == 200) {
+        final backendToken = result["token"] ?? "";
+        final backendUser = result["user"] ?? {};
+
+        // 4. SIMPAN SESI BERDASARKAN DATA DARI BACKEND
+        await SessionManager.saveSession(
+          token: backendToken, // Ini adalah token dari FastAPI!
+          userId: backendUser["id"]?.toString() ?? user.id,
+          username: backendUser["username"] ?? email.split("@")[0],
+          fullname: backendUser["fullname"] ?? fullname,
+          email: backendUser["email"] ?? email,
+          role: backendUser["role"] ?? "user",
+          province: backendUser["province"] ?? "",
+          image: backendUser["image"] ?? image,
+          points: backendUser["points"] ?? 0,
+        );
+
+        Get.snackbar(
+          "Berhasil", 
+          "Login Google berhasil", 
+          backgroundColor: Colors.green, 
+          colorText: Colors.white,
+        );
+        
+        // 5. PINDAH KE HOME SETELAH SEMUANYA SELESAI
+        Get.offAllNamed(Routes.HOME);
+
+      } else {
+        // Jika Backend FastAPI menolak
+        await supabase.auth.signOut();
+        await googleSignIn.signOut();
+        throw result["detail"]?["message"] ?? result["message"] ?? "Gagal sinkronisasi dengan server.";
+      }
+
     } catch (e) {
       debugPrint("GOOGLE LOGIN ERROR: $e");
 
       Get.snackbar(
         "Error",
-        "Login Google gagal",
+        "Login Google gagal: ${e.toString()}",
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -200,7 +244,12 @@ class LoginController extends GetxController {
     await SessionManager.clear();
 
     try {
+      // Logout dari Supabase
       await supabase.auth.signOut();
+      
+      // Logout dari GoogleSignIn agar saat login lagi muncul pilihan akun
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
     } catch (_) {}
 
     Get.offAllNamed(Routes.LOGIN);

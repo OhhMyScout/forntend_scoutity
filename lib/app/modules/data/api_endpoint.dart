@@ -3,7 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ApiEndpoint {
   // Mengambil Base URL dari .env
   // Jika .env belum ter-load, gunakan localhost sebagai backup
-  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? "https://haisen.my.id//api";
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? "http://192.168.57.176:5000/api";
 
   // ==========================================
   // Auth & Profile
@@ -13,12 +13,12 @@ class ApiEndpoint {
   static String get verifyOtp => "$baseUrl/verify-otp";
   static String get verifyForgotOtp => "$baseUrl/verify-otp-reset";
   static String get resendOtpRegister => "$baseUrl/resend-otp";
-  static String get resendOtpReset => "$baseUrl/resend-otp-reset";
+  static String get resendOtpReset => "$baseUrl/resend-otp-reset";  
   static String get profile => "$baseUrl/profile";
   static String get logout => "$baseUrl/logout";
   static String get forgotPassword => "$baseUrl/forgot-password";
   static String get resetPassword => "$baseUrl/reset-password";
-
+  static String get googleLogin => "$baseUrl/google-login";
   // ==========================================
   // Games & Leaderboard
   // ==========================================

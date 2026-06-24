@@ -90,7 +90,7 @@ class BerandaGameController extends GetxController {
           "title": "Sandi Kotak I",
           "description": "Menebak kata sandi kotak 1 dan dapatkan poin.",
           "image":
-              "https://images.unsplash.com/photo-1529070538774-1843cb3265df",
+              "assets/images/games/sandi_kotak1.jpg",
           "button": "Main Sekarang",
           "route": Routes.KOTAK1_CHALLENGE,
         },
@@ -98,7 +98,7 @@ class BerandaGameController extends GetxController {
           "title": "Sandi Kotak II",
           "description": "Level lanjutan sandi kotak.",
           "image":
-              "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
+              "assets/images/games/sandi_kotak2.jpg",
           "button": "Main Sekarang",
           "route": Routes.KOTAK2_CHALLENGE,
         },
@@ -106,7 +106,7 @@ class BerandaGameController extends GetxController {
           "title": "Sandi Morse",
           "description": "Latihan sandi morse interaktif.",
           "image":
-              "https://images.unsplash.com/photo-1518770660439-4636190af475",
+              "assets/images/games/sandi_morse.jpg",
           "button": "Main Sekarang",
           "route": Routes.MORSE_CHALLENGE,
         },

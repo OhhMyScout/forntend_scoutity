@@ -6,15 +6,18 @@ class SessionManager {
   static final GetStorage _box = GetStorage();
 
   // ==========================================================
-  // AUTH
+  // AUTH & SKU DATA
   // ==========================================================
 
   static String? get token => _box.read<String>('token');
-
+  
   static bool get isLoggedIn => _box.read<bool>('is_logged_in') ?? false;
 
+  // SKU LEVEL (Menyimpan ID level SKU yang sedang dikerjakan user)
+  static String get currentSkuLevelId => _box.read('current_sku_level_id')?.toString() ?? '';
+
   // ==========================================================
-  // USER
+  // USER DATA
   // ==========================================================
 
   static String get userId => _box.read('user_id')?.toString() ?? '';
@@ -43,7 +46,7 @@ class SessionManager {
   static bool get isAdmin => role.toLowerCase() == 'admin';
 
   // ==========================================================
-  // SAVE SESSION
+  // SAVE SESSION (Saat Login / Register)
   // ==========================================================
 
   static Future<void> saveSession({
@@ -56,6 +59,7 @@ class SessionManager {
     String province = '',
     int points = 0,
     String image = '',
+    String currentSkuLevelId = '', // Disiapkan untuk progres data SKU
   }) async {
     await _box.write('is_logged_in', true);
     await _box.write('token', token);
@@ -67,10 +71,11 @@ class SessionManager {
     await _box.write('province', province);
     await _box.write('points', points);
     await _box.write('image', image);
+    await _box.write('current_sku_level_id', currentSkuLevelId);
   }
 
   // ==========================================================
-  // UPDATE DATA
+  // UPDATE DATA (Saat User Edit Profil / Lulus Pelantikan SKU)
   // ==========================================================
 
   static Future<void> updateProfile({
@@ -79,12 +84,14 @@ class SessionManager {
     String? email,
     String? province,
     String? image,
+    String? currentSkuLevelId, // Tambahan untuk update level SKU
   }) async {
     if (username != null) await _box.write('username', username);
     if (fullname != null) await _box.write('fullname', fullname);
     if (email != null) await _box.write('email', email);
     if (province != null) await _box.write('province', province);
     if (image != null) await _box.write('image', image);
+    if (currentSkuLevelId != null) await _box.write('current_sku_level_id', currentSkuLevelId);
   }
 
   static Future<void> updatePoints(int newPoints) async {
@@ -112,7 +119,7 @@ class SessionManager {
     return token ?? '';
   }
 
-  // TAMBAHAN: Helper untuk Header API (Cegah 401 Unauthorized)
+  // Helper untuk Header API (Cegah 401 Unauthorized secara otomatis)
   // Cara pakai: http.get(url, headers: SessionManager.apiHeader)
   static Map<String, String> get apiHeader {
     return {
@@ -131,25 +138,33 @@ class SessionManager {
       'province': province,
       'points': points,
       'image': image,
+      'current_sku_level_id': currentSkuLevelId,
     };
   }
 
   // ==========================================================
-  // LOGOUT
+  // LOGOUT (Pembersihan Selektif)
   // ==========================================================
 
   static Future<void> clear() async {
-    // PERBAIKAN: Hapus secara spesifik agar data seperti 'is_intro_seen'
-    // atau 'theme_mode' tidak ikut terhapus saat user logout.
-    await _box.remove('is_logged_in');
-    await _box.remove('token');
-    await _box.remove('user_id');
-    await _box.remove('username');
-    await _box.remove('fullname');
-    await _box.remove('email');
-    await _box.remove('role');
-    await _box.remove('province');
-    await _box.remove('points');
-    await _box.remove('image');
+    // Hapus spesifik kunci milik user agar data settingan lokal 
+    // seperti 'is_intro_seen' atau 'theme_mode' tidak ikut terhapus.
+    final keysToRemove = [
+      'is_logged_in',
+      'token',
+      'user_id',
+      'username',
+      'fullname',
+      'email',
+      'role',
+      'province',
+      'points',
+      'image',
+      'current_sku_level_id'
+    ];
+
+    for (var key in keysToRemove) {
+      await _box.remove(key);
+    }
   }
 }

@@ -151,7 +151,7 @@ class FeedbackView extends GetView<FeedbackController> {
                         BorderRadius.circular(18),
 
                     child: Image.network(
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuCssN2hhTPEC1KFUysrixxnDSzmrorcl5712Z4vDI1O7WST10MiVCNU90TQbFFm8eIL4mGfMjCGm9ilZRhe3GSfgrHG1-HPsoPFytkggpwiqVCPN3CSJt6Ffdgd9J17myPITXwEtnsI61qIS5y_Oyu0ZXAuGrzDRX1Re-lyJOeHYjnZupyBwiK4CyNdYWDuWr_tSk00Nxe12L0iVaVSdhCZk_TZcXczMDWrQR40TKtJzUw6agycjhL8e21fgeDA2QxY3u2t0q1CujM',
+                      'https://sipjkdlfjzmxptldxgxa.supabase.co/storage/v1/object/public/images/intro.png',
                       height: 180,
                       width: double.infinity,
                       fit: BoxFit.cover,
@@ -290,7 +290,7 @@ class FeedbackView extends GetView<FeedbackController> {
                 children: [
 
                   const Text(
-                    'Kepuasan Aplikasi',
+                    'Nilai',
                     style: TextStyle(
                       color: primaryColor,
                       fontWeight: FontWeight.bold,
@@ -329,7 +329,7 @@ class FeedbackView extends GetView<FeedbackController> {
               ),
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 18),
 
             /// BUTTON
             SizedBox(
@@ -396,7 +396,7 @@ class FeedbackView extends GetView<FeedbackController> {
               title: 'Butuh Bantuan Cepat?',
 
               subtitle:
-                  'Jika mengalami kendala mendesak, hubungi support kami di help@scoutify.id',
+                  'Jika mengalami kendala mendesak, hubungi support kami di scoutify.trycenter.my.id',
             ),
 
             const SizedBox(height: 18),

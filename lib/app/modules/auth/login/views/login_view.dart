@@ -345,10 +345,10 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
                                         color: primaryColor,
                                       ),
                                     )
-                                  : const Icon(
-                                      Icons.g_mobiledata,
-                                      size: 30,
-                                      color: Colors.red,
+                                  : Image.asset(
+                                      "assets/images/assets/google_logo.png",
+                                      width: 30,
+                                      height: 30,
                                     ),
                               label: Text(
                                 controller.isGoogleLoading.value

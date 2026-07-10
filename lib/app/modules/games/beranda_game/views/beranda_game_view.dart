@@ -95,7 +95,7 @@ class BerandaGameView extends GetView<BerandaGameController> {
           IconButton(
             onPressed: controller.openNotification,
             icon: const Icon(
-              Icons.notifications_none,
+              Icons.settings,
               color: AppTheme.primary,
             ),
           ),
@@ -125,7 +125,7 @@ class BerandaGameView extends GetView<BerandaGameController> {
           children: [
             Positioned.fill(
               child: Image.network(
-                "https://sipjkdlfjzmxptldxgxa.supabase.co/storage/v1/object/public/images/Gemini_Generated_Image_n4kc8nn4kc8nn4kc.png", 
+                "https://sipjkdlfjzmxptldxgxa.supabase.co/storage/v1/object/public/images/kompress_squere.jpg", 
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(color: const Color(0xFF4E342E));
@@ -368,14 +368,14 @@ class BerandaGameView extends GetView<BerandaGameController> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
+                    child: Image.asset(
                       item["image"].toString(),
                       height: 100, // Diperkecil karena layarnya dibagi 2
                       width: double.infinity,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          height: 100,
+                          height: 10,
                           color: Colors.grey.shade200,
                           child: const Icon(Icons.broken_image, color: Colors.grey),
                         );
@@ -404,7 +404,8 @@ class BerandaGameView extends GetView<BerandaGameController> {
                       height: 1.4,
                     ),
                   ),
-                  const Spacer(),
+                  // const Spacer(),
+                  const SizedBox(height: 15),
                   
                   // ==========================================
                   // 1. TOMBOL LEADERBOARD

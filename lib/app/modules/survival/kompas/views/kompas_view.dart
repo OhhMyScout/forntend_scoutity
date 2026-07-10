@@ -2,8 +2,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/kompas_controller.dart';
+import '../../beranda_survival/data/multibahasa.dart';
 
 class KompasView extends GetView<KompasController> {
+
   const KompasView({super.key});
 
   static const _primary = Color(0xFF361F1A);
@@ -262,8 +264,6 @@ class KompasView extends GetView<KompasController> {
               style: const TextStyle(color: _muted, fontSize: 12.5),
             ),
           ),
-          const SizedBox(height: 18),
-          _smallPill('Coba Mode Demo', controller.startDemo),
         ],
       ),
     );
@@ -271,7 +271,7 @@ class KompasView extends GetView<KompasController> {
 
   Widget _smallPill(String text, VoidCallback onTap) {
     return Material(
-      color: Colors.transparent,
+      color: Colors.transparent,  
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
@@ -428,15 +428,6 @@ class KompasView extends GetView<KompasController> {
                   icon: Icons.refresh_rounded,
                   label: 'Kalibrasi',
                   onTap: controller.calibrate,
-                  active: false,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _actionBtn(
-                  icon: Icons.videogame_asset_rounded,
-                  label: 'Mode Demo',
-                  onTap: controller.startDemo,
                   active: false,
                 ),
               ),
@@ -775,90 +766,41 @@ class _CompassGuideScreenState extends State<_CompassGuideScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
-  // ── Data mata angin: setiap field sudah punya 3 bahasa ──
-  static const _directions = [
-    {'deg': '0°', 'en': 'North', 'id': 'Utara', 'jv': 'Lor', 'abbr': 'N', 'color': Color(0xFFBA1A1A)},
-    {'deg': '45°', 'en': 'Northeast', 'id': 'Timur Laut', 'jv': 'Wetan Lor', 'abbr': 'NE', 'color': Color(0xFF7D562D)},
-    {'deg': '90°', 'en': 'East', 'id': 'Timur', 'jv': 'Wetan', 'abbr': 'E', 'color': Color(0xFF361F1A)},
-    {'deg': '135°', 'en': 'Southeast', 'id': 'Tenggara', 'jv': 'Kidul Wetan', 'abbr': 'SE', 'color': Color(0xFF7D562D)},
-    {'deg': '180°', 'en': 'South', 'id': 'Selatan', 'jv': 'Kidul', 'abbr': 'S', 'color': Color(0xFF361F1A)},
-    {'deg': '225°', 'en': 'Southwest', 'id': 'Barat Daya', 'jv': 'Kidul Kulon', 'abbr': 'SW', 'color': Color(0xFF7D562D)},
-    {'deg': '270°', 'en': 'West', 'id': 'Barat', 'jv': 'Kulon', 'abbr': 'W', 'color': Color(0xFF361F1A)},
-    {'deg': '315°', 'en': 'Northwest', 'id': 'Barat Laut', 'jv': 'Kulon Lor', 'abbr': 'NW', 'color': Color(0xFF7D562D)},
-  ];
+  // Data multibahasa dipisahkan ke:
+  // lib/app/modules/survival/beranda_survival/data/multibahasa.dart
 
-  // ── Data langkah: title & desc masing-masing punya 3 bahasa ──
-  static const _steps = [
-    {
-      'icon': Icons.phone_android_rounded,
-      'title': {'en': 'Hold Phone Upright', 'id': 'Pegang HP Tegak', 'jv': 'Tengeri HP Nenggak'},
-      'desc': {
-        'en': 'Hold your phone vertically with the screen facing you. The compass works best when the phone is flat relative to the ground.',
-        'id': 'Pegang ponsel secara tegak dengan layar menghadap ke arah Anda. Kompas bekerja paling akurat saat posisi ponsel sejajar dengan permukaan datar.',
-        'jv': 'Tengeri hp nenggak mburi, layar ngadhepi sira. Kompas bakal luwih pas yen posisine rata karo lemah.',
-      },
-    },
-    {
-      'icon': Icons.rotate_right_rounded,
-      'title': {'en': 'Rotate Slowly', 'id': 'Putar Perlahan', 'jv': 'Puter Pelan-Pelan'},
-      'desc': {
-        'en': 'Slowly rotate your body or the phone to find a direction. The dial rotates so that the red needle always points to magnetic North.',
-        'id': 'Putar tubuh atau ponsel secara perlahan untuk menemukan arah. Dial berputar sehingga jarum merah selalu menunjuk ke arah Utara magnetik.',
-        'jv': 'Puter awak utawa hp pelan-pelan nganti nemu arah. Dial bakal muter supaya jarum abang tansah nunjuk marang Lor.',
-      },
-    },
-    {
-      'icon': Icons.redo_rounded,
-      'title': {'en': 'Read the Direction', 'id': 'Baca Arah', 'jv': 'Woco Arahé'},
-      'desc': {
-        'en': 'The red triangle indicator at the top shows the direction you are currently facing. The degree and direction name are displayed below.',
-        'id': 'Segitiga merah di atas kompas menunjukkan arah yang sedang Anda hadapi. Derajat dan nama arah ditampilkan di bawah kompas.',
-        'jv': 'Segitiga abang neng dhuwur kompas nunjukake arah sing sira hadepi saiki. Derajat lan jeneng arah ana neng ngisor kompas.',
-      },
-    },
-    {
-      'icon': Icons.settings_suggest_rounded,
-      'title': {'en': 'Calibrate if Needed', 'id': 'Kalibrasi Jika Perlu', 'jv': 'Kalibrasi Yen Perlu'},
-      'desc': {
-        'en': 'If the reading seems inaccurate, tap "Kalibrasi" and move the phone in a figure-8 pattern to recalibrate the magnetometer.',
-        'id': 'Jika pembacaan terasa tidak akurat, tap "Kalibrasi" lalu gerakkan ponsel membentuk pola angka 8 untuk mengkalibrasi ulang sensor.',
-        'jv': 'Yen bacane krasa salah, klik "Kalibrasi" terus gerakke hp gawé pola angka 8 kanggo ngreset sensor.',
-      },
-    },
-  ];
-
-  // ── Tips per bahasa ──
-  static const _tips = {
-    'tip1': {
-      'en': 'Keep away from metal objects, magnets, and electronic devices that can interfere with the magnetometer sensor.',
-      'id': 'Jauhkan dari benda logam, magnet, dan perangkat elektronik yang dapat mengganggu sensor magnetometer.',
-      'jv': 'Adohna saka barang wesi, magnet, lan piranti elektronik sing bisa ngganggu sensor magnetometer.',
-    },
-    'tip2': {
-      'en': 'For best results, calibrate the compass by moving your phone in a figure-8 pattern before first use.',
-      'id': 'Untuk hasil terbaik, kalibrasi kompas dengan menggerakkan ponsel membentuk pola angka 8 sebelum pertama kali digunakan.',
-      'jv': 'Supaya hasilne apik, kalibrasi kompas karo gerakke hp gawé pola angka 8 sadurungé dinggo kapisan.',
-    },
-    'tip3': {
-      'en': 'The compass shows magnetic North, not true North. The difference (magnetic declination) varies by location.',
-      'id': 'Kompas menunjukkan Utara magnetik, bukan Utara sejati. Perbedaannya (deklinasi magnetik) bervariasi tiap lokasi.',
-      'jv': 'Kompas nunjukake Lor magnetik, dudu Lor bener. Bédané (deklinasi magnetik) béda-béda tergantung panggonan.',
-    },
-  };
-
-  // ── Section labels per bahasa ──
-  static const _sectionLabels = {
-    'howToUse': {'en': 'How to Use', 'id': 'Cara Menggunakan', 'jv': 'Cara Nggunakake'},
-    'directionTable': {'en': 'Cardinal Directions', 'id': 'Tabel Mata Angin', 'jv': 'Tabel Mata Angin'},
+  // Local static data for guide (table headers, directions, tips)
+  static const Map<String, Map<String, String>> _sectionLabels = {
+    'directionTable': {'en': 'Direction Table', 'id': 'Tabel Mata Angin', 'jv': 'Tabel Mata Angin'},
     'tips': {'en': 'Tips', 'id': 'Tips', 'jv': 'Tips'},
   };
 
-  // ── Table headers per bahasa ──
-  static const _tableHeaders = {
-    'en': ['Degree', 'Abbr.', 'Direction'],
-    'id': ['Derajat', 'Singk.', 'Nama Arah'],
-    'jv': ['Derajat', 'Singk.', 'Jeneng Arah'],
+  static const Map<String, List<String>> _tableHeaders = {
+    'en': ['Deg', 'Abbr', 'Direction'],
+    'id': ['Derajat', 'Singkatan', 'Arah'],
+    'jv': ['Derajat', 'Singkatan', 'Arah'],
   };
+
+  static final List<Map<String, dynamic>> _directions = [
+    {'deg': '0°', 'abbr': 'N', 'en': 'North', 'id': 'Utara', 'jv': 'Lor', 'color': const Color(0xFFBA1A1A)},
+    {'deg': '45°', 'abbr': 'NE', 'en': 'Northeast', 'id': 'Timur Laut', 'jv': 'Timur Lor', 'color': const Color(0xFF7D562D)},
+    {'deg': '90°', 'abbr': 'E', 'en': 'East', 'id': 'Timur', 'jv': 'Wétan', 'color': const Color(0xFF7D562D)},
+    {'deg': '135°', 'abbr': 'SE', 'en': 'Southeast', 'id': 'Tenggara', 'jv': 'Kidul Wétan', 'color': const Color(0xFF7D562D)},
+    {'deg': '180°', 'abbr': 'S', 'en': 'South', 'id': 'Selatan', 'jv': 'Kidul', 'color': const Color(0xFF361F1A)},
+    {'deg': '225°', 'abbr': 'SW', 'en': 'Southwest', 'id': 'Barat Daya', 'jv': 'Kidul Kulon', 'color': const Color(0xFF7D562D)},
+    {'deg': '270°', 'abbr': 'W', 'en': 'West', 'id': 'Barat', 'jv': 'Kulon', 'color': const Color(0xFF7D562D)},
+    {'deg': '315°', 'abbr': 'NW', 'en': 'Northwest', 'id': 'Barat Laut', 'jv': 'Lor Kulon', 'color': const Color(0xFF7D562D)},
+  ];
+
+  static const Map<String, Map<String, String>> _tips = {
+    'tip1': {'en': 'Keep away from magnetic sources.', 'id': 'Jauhkan dari sumber magnet.', 'jv': 'Aja cedhak sumber magnet.'},
+    'tip2': {'en': 'Hold level for accurate reading.', 'id': 'Pegang datar untuk pembacaan akurat.', 'jv': 'Genggem rata kanggo maca sing akurat.'},
+    'tip3': {'en': 'Calibrate if readings are unstable.', 'id': 'Kalibrasi jika pembacaan tidak stabil.', 'jv': 'Kalibrasi yen pembacaan ora stabil.'},
+  };
+
+
+
+
 
   @override
   void initState() {
@@ -997,9 +939,9 @@ class _CompassGuideScreenState extends State<_CompassGuideScreen>
         labelPadding: EdgeInsets.zero,
         padding: EdgeInsets.zero,
         tabs: const [
-          Tab(text: '🇬🇧  English'),
-          Tab(text: '🇮🇩  Indonesia'),
-          Tab(text: '🇯🇵  Jawa'),
+          Tab(text: 'English'),
+          Tab(text: 'Indonesia'),
+          Tab(text: 'Jawa'),
         ],
       ),
     );
@@ -1014,11 +956,11 @@ class _CompassGuideScreenState extends State<_CompassGuideScreen>
         children: [
           // Section: Cara Menggunakan
           _sectionTitle(
-              _sectionLabels['howToUse']![lang]!, Icons.play_circle_rounded),
+              MultibahasaKompasData.sectionLabels['howToUse']![lang]!, Icons.play_circle_rounded),
           const SizedBox(height: 14),
-          ...List.generate(_steps.length, (i) {
-            final step = _steps[i] as Map<String, dynamic>;
-            final isLast = i == _steps.length - 1;
+          ...List.generate(MultibahasaKompasData.steps.length, (i) {
+            final step = MultibahasaKompasData.steps[i] as Map<String, dynamic>;
+            final isLast = i == MultibahasaKompasData.steps.length - 1;
             return _buildStepCard(
               index: i + 1,
               icon: step['icon'] as IconData,

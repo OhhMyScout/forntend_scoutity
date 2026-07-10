@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:torch_light/torch_light.dart';
+import 'package:audioplayers/audioplayers.dart'; // Tambahkan import audioplayers
 
 class SinyalDaruratController extends GetxController {
   // Observables State
@@ -11,7 +12,9 @@ class SinyalDaruratController extends GetxController {
   var activeAccordionIndex = (-1).obs;
 
   Timer? _flashlightTimer;
-  Timer? _audioTimer;
+  
+  // Inisialisasi AudioPlayer untuk sirine
+  final AudioPlayer audioPlayer = AudioPlayer(); 
 
   // Pola Durasi Morse SOS (... --- ...) dalam milidetik
   // Dot (.) = 200ms, Dash (-) = 600ms, Jeda antar simbol = 200ms, Jeda antar huruf = 600ms
@@ -111,54 +114,37 @@ class SinyalDaruratController extends GetxController {
   }
 
   // =========================================================
-  // LOGIKA SUARA BIP AUDIO SOS
+  // LOGIKA SUARA ALARM SOS MP3
   // =========================================================
-  void toggleAudioSos() {
+  void toggleAudioSos() async {
+    isAudioSosActive.value = !isAudioSosActive.value;
+
     if (isAudioSosActive.value) {
-      _stopAudioSos();
+      // Memicu getaran (haptic) saat tombol ditekan agar terasa lebih interaktif
+      HapticFeedback.heavyImpact(); 
+      
+      // Atur audio untuk berulang terus (loop) dan putar filenya
+      await audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await audioPlayer.play(AssetSource('sounds/morse_beep.mp3'));
     } else {
-      _startAudioSos();
+      // Hentikan pemutaran audio
+      await audioPlayer.stop();
     }
   }
 
-  void _startAudioSos() {
-    isAudioSosActive.value = true;
-    int patternIndex = 0;
-
-    void executeAudioPattern() {
-      if (!isAudioSosActive.value) return;
-
-      bool shouldBeep = patternIndex % 2 == 0;
-      int duration = sosPattern[patternIndex];
-
-      if (shouldBeep) {
-        // Memicu haptic feedback berat sebagai representasi bunyi bip internal jika audio belum disiapkan
-        HapticFeedback.heavyImpact();
-        SystemSound.play(SystemSoundType.click); 
-      }
-
-      patternIndex = (patternIndex + 1) % sosPattern.length;
-      _audioTimer = Timer(Duration(milliseconds: duration), executeAudioPattern);
-    }
-
-    executeAudioPattern();
-  }
-
-  void _stopAudioSos() {
-    isAudioSosActive.value = false;
-    _audioTimer?.cancel();
-  }
-
+  // Fungsi untuk mematikan semua sinyal saat tombol back di-klik
   void onBack() {
     _stopFlashlightSos();
-    _stopAudioSos();
+    audioPlayer.stop(); // Pastikan audio mati
     Get.back();
   }
 
+  // Membersihkan memory saat controller dihancurkan (keluar halaman)
   @override
   void onClose() {
     _stopFlashlightSos();
-    _stopAudioSos();
+    audioPlayer.stop();
+    audioPlayer.dispose(); // Bebaskan resource audio
     super.onClose();
   }
 }

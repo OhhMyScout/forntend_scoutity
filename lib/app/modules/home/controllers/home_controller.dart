@@ -1,12 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../routes/app_pages.dart';
+import '../../data/api_endpoint.dart';
 import '../../data/session_manager.dart';
 
 class HomeController extends GetxController {
-
-
 
   // ======================================================
   // OBSERVABLE STATES
@@ -55,62 +57,45 @@ class HomeController extends GetxController {
     },
   ];
 
-
-
-
-
   // ======================================================
-  // DUMMY ACTIVITY
+  // BERITA & AKTIVITAS (LOGS)
   // ======================================================
-  final List<Map<String, String>> activities = [
-    {
-      "category": "TIPS & TRIK",
-      "title": "5 Cara Mengikat Tali yang Benar untuk Tenda",
-      "time": "2 jam yang lalu",
-      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuBgIfiIbXaJ-J6kfn_RKdsVq2Ifg3W-__UCZuBmLx39tOfDRQzKUPbtfP-fcvWG-bcdUMvS6Gj4xZdWNrNMTcY4fzH9_J_EcXYXmQKUYgMfZ9zMbuL4yweFT9tTndAHx-wKEhFvhKptWmzDMuGcI1WkNB1LVYgcY790Nj0rsnrr-o2IE0PQCqhhj-LrTI1Om9KHw-US2D0ZN5wTnSWkikS9K79tY3QxxeV18LalsbgGEeQol8iHAZfT_oHKI-mLoOJXOxC5Npt6TsA",
-    },
-    {
-      "category": "PRESTASI",
-      "title": "Lencana Penjelajah Rimba Kini Tersedia",
-      "time": "Kemarin",
-      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuA52WSpB4LbWkmmrtfiX0jVNqxj14ga6ILQj63YgtlZ4oj32QcJMVMmb_hyf44C-Jg3n2PqpdOBLmNSROs-ei4v3ZSmRZ8NHyLDOLBgEiOXqCxV4i09UwppatZkaPWNTcuNLq4pQ98UqU0rJh0g5DWZqE0rT7jxAEhvKke8l11T4Xv5N-SHzAgVwISUwEv6rrFgKGqxVQqg3CI8WGyCU1tRq5y-CmxlhRBpiD8x80IuIbMONe42uJ_aW7fni8HbZnlfuHFI02sc0iw",
-    },
-  ];
+  final RxList<Map<String, String>> topNews = <Map<String, String>>[].obs;
+  final RxList<Map<String, String>> recentLogs = <Map<String, String>>[].obs;
+
+  // KPI untuk tampilan Home
+  final RxInt totalTopNews = 0.obs;
+  final RxInt totalRecentLogs = 0.obs;
 
   // ======================================================
   // LIFECYCLE METHOD
   // ======================================================
-
   @override
   void onInit() {
     super.onInit();
     loadCurrentUser();
+    fetchTopActivities();
   }
 
   @override
   void onReady() {
     super.onReady();
-    // onReady dipanggil tepat setelah frame UI selesai dirender,
-    // tempat paling aman untuk memunculkan Snackbar, Dialog, atau BottomSheet.
     _showWelcomeSnackbarIfNeeded();
   }
 
   // ======================================================
   // CORE FUNCTIONS
   // ======================================================
-
   Future<void> loadCurrentUser() async {
     try {
       isLoading.value = true;
 
-      // Logika Pengecekan Sesi
       if (!SessionManager.isLoggedIn || !SessionManager.hasToken()) {
         debugPrint("SESSION TIDAK DITEMUKAN - Redirecting to Login");
         Get.offAllNamed(Routes.LOGIN);
         return;
       }
 
-      // Parsing data aman dari SessionManager
       userId.value = SessionManager.userId;
       username.value = SessionManager.username;
       fullname.value = SessionManager.fullname;
@@ -120,7 +105,6 @@ class HomeController extends GetxController {
       image.value = SessionManager.image;
       points.value = SessionManager.points;
 
-      // Logika Penentuan Nama Tampilan (Fallback)
       if (fullname.value.isNotEmpty) {
         usernameDisplay.value = fullname.value;
       } else if (username.value.isNotEmpty) {
@@ -143,13 +127,11 @@ class HomeController extends GetxController {
     }
   }
 
-  // Dipisah agar loadCurrentUser tetap bersih dan fokus pada pengolahan data
   void _showWelcomeSnackbarIfNeeded() {
-    // Memastikan data nama sudah ada dan welcome belum pernah ditampilkan
     if (!hasShownWelcome && usernameDisplay.value != "Kak!") {
-      hasShownWelcome = true; // Kunci agar tidak muncul lagi
+      hasShownWelcome = true;
 
-      Get.closeAllSnackbars(); // Tutup snackbar lain yang mungkin sedang aktif
+      Get.closeAllSnackbars();
 
       Get.snackbar(
         "Selamat Datang",
@@ -172,17 +154,140 @@ class HomeController extends GetxController {
   }
 
   Future<void> logout() async {
-    // Reset flag agar saat user login dengan akun lain, pesan welcome muncul lagi
     hasShownWelcome = false;
-    
     await SessionManager.clear();
     Get.offAllNamed(Routes.LOGIN);
   }
 
   // ======================================================
+  // TOP ACTIVITIES (BERITA PROVINSI + INFO LOGS)
+  // ======================================================
+  Future<void> fetchTopActivities() async {
+    try {
+      final token = SessionManager.getToken();
+      if (token.isEmpty) return;
+
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+
+      // Fetch secara paralel
+      final responses = await Future.wait([
+        http.get(Uri.parse(ApiEndpoint.beritaProvinsiTop10), headers: headers),
+        http.get(Uri.parse(ApiEndpoint.infoLogs), headers: headers),
+      ]);
+
+      final beritaRes = responses[0];
+      final infoLogsRes = responses[1];
+
+      // Helper untuk parsing tanggal
+      DateTime? tryParseDate(dynamic v) {
+        if (v == null) return null;
+        try {
+          if (v is int) {
+            final ms = v > 10000000000 ? v : v * 1000;
+            return DateTime.fromMillisecondsSinceEpoch(ms);
+          }
+          return DateTime.parse(v.toString()).toLocal();
+        } catch (_) {
+          return null;
+        }
+      }
+
+      // Helper untuk format waktu
+      String toTimeAgo(DateTime dt) {
+        final diff = DateTime.now().difference(dt);
+        if (diff.inMinutes < 60) return '${diff.inMinutes} menit yang lalu';
+        if (diff.inHours < 24) return '${diff.inHours} jam yang lalu';
+        if (diff.inDays < 7) return '${diff.inDays} hari yang lalu';
+        return '${dt.day}/${dt.month}/${dt.year}';
+      }
+
+      // 1. PROSES BERITA TOP (Ambil 3 saja)
+      if (beritaRes.statusCode == 200) {
+        final body = jsonDecode(beritaRes.body);
+        final list = body['data'] ?? body['berita'] ?? [];
+        if (list is List) {
+          var rawBerita = list.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+          
+          final mappedBerita = rawBerita.map((item) {
+            final dt = tryParseDate(item['created_at'] ?? item['createdAt'] ?? item['waktu'] ?? item['time'] ?? item['tanggal']);
+            return {
+              'category': (item['category'] ?? item['kategori'] ?? 'BERITA').toString().toUpperCase(),
+              'title': (item['title'] ?? item['judul'] ?? '').toString(),
+              'image': (item['image'] ?? item['gambar'] ?? item['thumbnail'] ?? '').toString(),
+              'createdAt': dt,
+            };
+          }).toList();
+
+          // Sorting terbaru
+          mappedBerita.sort((a, b) {
+            final ad = a['createdAt'] as DateTime?;
+            final bd = b['createdAt'] as DateTime?;
+            if (ad == null && bd == null) return 0;
+            if (ad == null) return 1;
+            if (bd == null) return -1;
+            return bd.compareTo(ad);
+          });
+
+          // Ambil 3 berita saja
+          topNews.assignAll(mappedBerita.take(3).map((e) => <String, String>{
+            'category': e['category'] as String,
+            'title': e['title'] as String,
+            'image': e['image'] as String,
+            'time': e['createdAt'] != null ? toTimeAgo(e['createdAt'] as DateTime) : 'Baru saja',
+          }));
+          totalTopNews.value = topNews.length;
+        }
+      }
+
+      // 2. PROSES LOG TERBARU
+      if (infoLogsRes.statusCode == 200) {
+        final body = jsonDecode(infoLogsRes.body);
+        final list = body['data'] ?? body['logs'] ?? [];
+        if (list is List) {
+          var rawLogs = list.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+
+          final mappedLogs = rawLogs.map((item) {
+            final dt = tryParseDate(item['created_at'] ?? item['createdAt'] ?? item['waktu'] ?? item['time'] ?? item['tanggal']);
+            return {
+              'category': (item['category'] ?? item['jenis'] ?? 'LOG SISTEM').toString().toUpperCase(),
+              'title': (item['title'] ?? item['name'] ?? item['heading'] ?? item['pesan'] ?? '').toString(),
+              'image': (item['image'] ?? item['icon'] ?? '').toString(),
+              'createdAt': dt,
+            };
+          }).toList();
+
+          // Sorting terbaru
+          mappedLogs.sort((a, b) {
+            final ad = a['createdAt'] as DateTime?;
+            final bd = b['createdAt'] as DateTime?;
+            if (ad == null && bd == null) return 0;
+            if (ad == null) return 1;
+            if (bd == null) return -1;
+            return bd.compareTo(ad);
+          });
+
+          // Ambil log secukupnya (misal 5 log terbaru)
+          recentLogs.assignAll(mappedLogs.take(5).map((e) => <String, String>{
+            'category': e['category'] as String,
+            'title': e['title'] as String,
+            'image': e['image'] as String,
+            'time': e['createdAt'] != null ? toTimeAgo(e['createdAt'] as DateTime) : 'Baru saja',
+          }));
+          totalRecentLogs.value = recentLogs.length;
+        }
+      }
+
+    } catch (e) {
+      debugPrint('HOME fetchTopActivities ERROR: $e');
+    }
+  }
+
+  // ======================================================
   // ROUTING & ACTIONS
   // ======================================================
-
   void onNotificationTap() {
     Get.toNamed(Routes.SETTINGS);
   }
@@ -215,14 +320,17 @@ class HomeController extends GetxController {
     Get.toNamed(Routes.SEMAPHORE_DETECT);
   }
 
-  void onSeeAll() {
+  void onSeeAllNews() {
     Get.toNamed(Routes.BERANDA_BERITA);
   }
 
-  void onActivityTap(Map<String, String> activity) {
+
+
+
+  void onActivityTap(Map<String, String> item) {
     Get.snackbar(
-      activity["category"] ?? "Aktivitas",
-      activity["title"] ?? "",
+      item["category"] ?? "Info",
+      item["title"] ?? "",
       backgroundColor: Colors.white,
       colorText: const Color(0xFF361F1A),
       boxShadows: [

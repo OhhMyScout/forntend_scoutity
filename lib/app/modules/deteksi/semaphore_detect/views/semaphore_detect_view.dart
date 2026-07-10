@@ -18,7 +18,7 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
       body: Stack(
         children: [
           /// =========================================
-          /// CAMERA PREVIEW
+          /// 1. CAMERA PREVIEW
           /// =========================================
           Positioned.fill(
             child: Obx(() {
@@ -58,7 +58,7 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
           ),
 
           /// =========================================
-          /// OVERLAY
+          /// 2. OVERLAY
           /// =========================================
           Positioned.fill(
             child: Container(
@@ -67,7 +67,7 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
           ),
 
           /// =========================================
-          /// VIEW FINDER
+          /// 3. VIEW FINDER
           /// =========================================
           Center(
             child: Container(
@@ -84,7 +84,7 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
           ),
 
           /// =========================================
-          /// APP BAR
+          /// 4. APP BAR & CAMERA CONTROLS (KANAN ATAS)
           /// =========================================
           SafeArea(
             child: Padding(
@@ -93,30 +93,74 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
                 vertical: 12,
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InkWell(
-                    onTap: Get.back,
-                    child: Container(
-                      width: 42,
-                      height: 42,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back,
-                        color: primaryColor,
-                      ),
+                  /// BACK BUTTON & TITLE
+                  Expanded(
+                    child: Row(
+                      children: [
+                        InkWell(
+                          onTap: Get.back,
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back,
+                              color: primaryColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          "Deteksi Semaphore",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  const Text(
-                    "Deteksi Semaphore",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
+
+                  /// FLIP CAMERA & FLASH CONTROLS
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Obx(() => IconButton.filledTonal(
+                        onPressed: controller.isCameraInitialized.value
+                            ? controller.flipCamera
+                            : null,
+                        icon: const Icon(Icons.flip_camera_android_rounded),
+                        tooltip: 'Flip camera',
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withOpacity(0.8),
+                          foregroundColor: primaryColor,
+                        ),
+                      )),
+                      const SizedBox(height: 8),
+                      Obx(() => IconButton.filledTonal(
+                        onPressed: controller.isCameraInitialized.value
+                            ? controller.toggleFlash
+                            : null,
+                        icon: Icon(
+                          controller.isFlashOn.value
+                              ? Icons.flash_on_rounded
+                              : Icons.flash_off_rounded,
+                        ),
+                        tooltip: controller.isFlashOn.value
+                            ? 'Matikan flash'
+                            : 'Nyalakan flash',
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withOpacity(0.8),
+                          foregroundColor: primaryColor,
+                        ),
+                      )),
+                    ],
                   ),
                 ],
               ),
@@ -124,7 +168,7 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
           ),
 
           /// =========================================
-          /// BOTTOM CONTENT
+          /// 5. BOTTOM CONTENT
           /// =========================================
           Align(
             alignment: Alignment.bottomCenter,
@@ -205,7 +249,9 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
                           child: controller.isAnalyzing.value
                               ? const Padding(
                                   padding: EdgeInsets.all(22),
-                                  child: CircularProgressIndicator(),
+                                  child: CircularProgressIndicator(
+                                    color: primaryColor,
+                                  ),
                                 )
                               : const Icon(
                                   Icons.camera_alt_rounded,
@@ -240,13 +286,11 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
                             width: 90,
                             height: 90,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF4E342E),
-                              borderRadius:
-                                  BorderRadius.circular(18),
+                              color: secondaryColor, // Diubah agar sesuai tema
+                              borderRadius: BorderRadius.circular(18),
                             ),
                             child: Column(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
                                   controller.detectedLetter.value,
@@ -270,65 +314,41 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
 
                           const SizedBox(width: 20),
 
+                          /// PROGRESS CONFIDENCE
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   mainAxisAlignment:
-                                      MainAxisAlignment
-                                          .spaceBetween,
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text(
                                       "Confidence",
                                       style: TextStyle(
                                         color: primaryColor,
-                                        fontWeight:
-                                            FontWeight.bold,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     Text(
                                       "${controller.confidence.value.toStringAsFixed(1)}%",
                                       style: const TextStyle(
                                         color: secondaryColor,
-                                        fontWeight:
-                                            FontWeight.bold,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ],
                                 ),
-
                                 const SizedBox(height: 12),
-
                                 ClipRRect(
-                                  borderRadius:
-                                      BorderRadius.circular(
-                                    100,
-                                  ),
-                                  child:
-                                      LinearProgressIndicator(
-                                    value: controller
-                                            .confidence.value /
-                                        100,
+                                  borderRadius: BorderRadius.circular(100),
+                                  child: LinearProgressIndicator(
+                                    value: controller.confidence.value / 100,
                                     minHeight: 10,
+                                    backgroundColor: backgroundColor,
+                                    color: primaryColor,
                                   ),
                                 ),
-
-                                const SizedBox(height: 12),
-
-                                if (controller
-                                    .errorMessage
-                                    .value
-                                    .isNotEmpty)
-                                  Text(
-                                    controller
-                                        .errorMessage.value,
-                                    style: const TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 12,
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
@@ -336,12 +356,75 @@ class SemaphoreDetectView extends GetView<SemaphoreDetectController> {
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
+
+          /// =========================================
+          /// 6. CUSTOM ANIMATED POP-UP (ERROR NOTIFICATION)
+          /// =========================================
+          Obx(() => AnimatedPositioned(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOutCubic,
+                top: controller.errorMessage.value.isNotEmpty ? 100 : -100,
+                left: 20,
+                right: 20,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: controller.errorMessage.value.isNotEmpty ? 1.0 : 0.0,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: primaryColor, // Sesuai warna tema
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
+                          )
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              controller.errorMessage.value,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              // Menutup pop-up ketika tombol X ditekan
+                              controller.errorMessage.value = '';
+                            },
+                            child: const Icon(
+                              Icons.close_rounded,
+                              color: Colors.white70,
+                              size: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )),
         ],
       ),
     );

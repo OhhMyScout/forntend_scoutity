@@ -40,7 +40,17 @@ abstract class Routes {
   static const TABEL_BERITA_PALING_POPULER = _Paths.TABEL_BERITA_PALING_POPULER;
   static const SEJARAH_PRAMUKA = _Paths.SEJARAH_PRAMUKA;
   static const OTP_REGIST = _Paths.OTP_REGIST;
-  static const UJI_SKU = _Paths.UJI_SKU;
+  static const INFO_LOGS = _Paths.INFO_LOGS;
+  static const BERANDA_SKU = _Paths.BERANDA_SKU;
+  static const BERANDA_SKU_USER = _Paths.BERANDA_SKU_USER;
+  static const BERANDA_SKU_PEMBINA = _Paths.BERANDA_SKU_PEMBINA;
+  static const BERANDA_SKU_ADMIN = _Paths.BERANDA_SKU_ADMIN;
+  static const DETAIL_SKU_USER = _Paths.DETAIL_SKU_USER;
+  static const FORM_PENGAJUAN_PAGE = _Paths.FORM_PENGAJUAN_PAGE;
+  static const DAFTAR_ANTRIAN_VALIDASI = _Paths.DAFTAR_ANTRIAN_VALIDASI;
+  static const FROM_PELANTIKAN = _Paths.FROM_PELANTIKAN;
+  static const DAFTAR_PEMBINA = _Paths.DAFTAR_PEMBINA;
+  static const FORM_PEMBINA = _Paths.FORM_PEMBINA;
 }
 
 abstract class _Paths {
@@ -82,5 +92,15 @@ abstract class _Paths {
   static const TABEL_BERITA_PALING_POPULER = '/tabel-berita-paling-populer';
   static const SEJARAH_PRAMUKA = '/sejarah-pramuka';
   static const OTP_REGIST = '/otp-regist';
-  static const UJI_SKU = '/uji-sku';
+  static const INFO_LOGS = '/info-logs';
+  static const BERANDA_SKU = '/beranda-sku';
+  static const BERANDA_SKU_USER = '/beranda-sku-user';
+  static const BERANDA_SKU_PEMBINA = '/beranda-sku-pembina';
+  static const BERANDA_SKU_ADMIN = '/beranda-sku-admin';
+  static const DETAIL_SKU_USER = '/detail-sku-user';
+  static const FORM_PENGAJUAN_PAGE = '/form-pengajuan-page';
+  static const DAFTAR_ANTRIAN_VALIDASI = '/daftar-antrian-validasi';
+  static const FROM_PELANTIKAN = '/from-pelantikan';
+  static const DAFTAR_PEMBINA = '/daftar-pembina';
+  static const FORM_PEMBINA = '/form-pembina';
 }

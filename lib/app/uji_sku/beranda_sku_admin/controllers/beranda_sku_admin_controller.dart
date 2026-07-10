@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 
-class UjiSkuController extends GetxController {
-  //TODO: Implement UjiSkuController
+class BerandaSkuAdminController extends GetxController {
+  //TODO: Implement BerandaSkuAdminController
 
   final count = 0.obs;
   @override

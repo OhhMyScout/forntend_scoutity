@@ -4,9 +4,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 class BerandaSurvivalController extends GetxController {
   
-  // Data untuk Grid Menu Survival Utama
-  // Menggunakan icon string yang sudah kamu daftarkan di switch-case View
+  // Data untuk Horizontal Menu Survival Utama
   final List<Map<String, String>> survivalMenus = [
+    {
+      "title": "Sinyal Darurat",
+      "icon": "settings_input_antenna",
+      "route": "/sinyal-darurat", 
+    },
     {
       "title": "Bertahan Hidup",
       "icon": "terrain",
@@ -22,32 +26,8 @@ class BerandaSurvivalController extends GetxController {
       "icon": "join_inner",
       "route": "/tali-temali",
     },
-    {
-      "title": "Sinyal Darurat",
-      "icon": "settings_input_antenna",
-      "route": "/sinyal-darurat", // Kosongkan atau isi rute jika ada
-    },
-  ];
 
-  // // Data sub-menu P3K untuk ditampilkan di dalam Card P3K
-  // final List<Map<String, String>> p3kMenus = [
-  //   {
-  //     "title": "Luka", 
-  //     "icon": "healing"
-  //   },
-  //   {
-  //     "title": "Cedera", 
-  //     "icon": "personal_injury"
-  //   },
-  //   {
-  //     "title": "Gigitan", 
-  //     "icon": "pest_control_rodent"
-  //   },
-  //   {
-  //     "title": "Obat", 
-  //     "icon": "medical_information"
-  //   },
-  // ];
+  ];
 
   // Fungsi untuk kembali ke halaman sebelumnya
   void onBack() {
@@ -66,7 +46,6 @@ class BerandaSurvivalController extends GetxController {
       return;
     }
 
-    // Mencari rute dari list survivalMenus berdasarkan title
     final menu = survivalMenus.firstWhere(
       (item) => item["title"] == title,
       orElse: () => {"route": ""},
@@ -77,21 +56,23 @@ class BerandaSurvivalController extends GetxController {
     if (route != null && route.isNotEmpty) {
       Get.toNamed(route);
     } else {
-      // Jika rute belum tersedia
+      // Snackbar dengan gaya bahasa petualang
       Get.snackbar(
-        "Segera Hadir",
-        "Materi untuk $title sedang dalam tahap pengembangan.",
-        backgroundColor: Colors.orange.shade100,
-        colorText: Colors.orange.shade900,
+        "Wah, Jalur Belum Terbuka!",
+        "Materi untuk $title sedang disiapkan oleh tim penjelajah kami.",
+        backgroundColor: const Color(0xFFFFF8E1), // Kuning gading
+        colorText: const Color(0xFFFF8F00), // Kuning amber gelap
+        icon: const Icon(Icons.construction, color: Color(0xFFFF8F00)),
         snackPosition: SnackPosition.BOTTOM,
         margin: const EdgeInsets.all(16),
+        borderRadius: 16,
       );
     }
   }
 
   // Fungsi untuk melakukan panggilan darurat otomatis
   Future<void> callEmergency(String number) async {
-    // Jika nomor memiliki format opsi seperti "118/119", kita ambil nomor utamanya saja (119)
+    // Memilah format seperti "118/119" mengambil nomor utama
     String cleanNumber = number.split('/').last.trim();
     
     final Uri url = Uri(scheme: 'tel', path: cleanNumber);
@@ -101,12 +82,14 @@ class BerandaSurvivalController extends GetxController {
         await launchUrl(url);
       } else {
         Get.snackbar(
-          "Panggilan Gagal",
-          "Perangkat kamu tidak mendukung panggilan langsung ke $cleanNumber.",
-          backgroundColor: Colors.red.shade100,
-          colorText: Colors.red.shade900,
+          "Gagal Memanggil Bantuan",
+          "Perangkat kamu tidak dapat menyambungkan panggilan ke $cleanNumber.",
+          backgroundColor: const Color(0xFFFFEBEE),
+          colorText: const Color(0xFFB71C1C),
+          icon: const Icon(Icons.error_outline, color: Color(0xFFB71C1C)),
           snackPosition: SnackPosition.BOTTOM,
           margin: const EdgeInsets.all(16),
+          borderRadius: 16,
         );
       }
     } catch (e) {

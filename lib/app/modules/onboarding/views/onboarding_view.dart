@@ -217,7 +217,7 @@ class _OnboardingViewState extends State<OnboardingView> with SingleTickerProvid
           Text(
             item['desc']!,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16, color: Colors.black54, height: 1.5),
+            style: const TextStyle(fontSize: 12, color: Colors.black54, height: 1.5),
           ),
         ],
       ),

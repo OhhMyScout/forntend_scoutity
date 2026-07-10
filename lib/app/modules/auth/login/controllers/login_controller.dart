@@ -1,5 +1,5 @@
 import 'dart:convert';
-//DART: lib/app/modules/auth/login/controllers/login_controller.dart
+// DART: lib/app/modules/auth/login/controllers/login_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -168,15 +168,18 @@ class LoginController extends GetxController {
 
       // Ekstrak data dari profil Google user
       final metadata = user.userMetadata ?? {};
-      final fullname = metadata["full_name"] ?? metadata["name"] ?? "Scout";
-      final image = metadata["avatar_url"] ?? metadata["picture"] ?? "";
       final email = user.email ?? "";
+      
+      // Nama default: Ambil nama dari email (contoh: "budi@gmail.com" -> "budi")
+      final nameFromEmail = email.isNotEmpty ? email.split('@')[0] : "Scout";
+      
+      // Ambil Fullname dari Google, jika kosong pakai nama dari email
+      final fullname = metadata["full_name"] ?? metadata["name"] ?? nameFromEmail;
+      final image = metadata["avatar_url"] ?? metadata["picture"] ?? "";
 
       // 3. LAPOR KE BACKEND FASTAPI (Untuk dapat JWT Token Custom)
-      // Pastikan kamu menambahkan `static const String googleLogin = "$baseUrl/api/google-login";`
-      // di file `ApiEndpoint.dart` kamu.
       final backendResponse = await http.post(
-        Uri.parse(ApiEndpoint.googleLogin), // <-- Pastikan endpoint ini sudah diset
+        Uri.parse(ApiEndpoint.googleLogin),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "email": email,
@@ -188,16 +191,19 @@ class LoginController extends GetxController {
 
       final result = jsonDecode(backendResponse.body);
 
-      // Jika Backend berhasil merespons dan memberikan Token
+      // Jika Backend berhasil merespons
       if (backendResponse.statusCode == 200) {
         final backendToken = result["token"] ?? "";
         final backendUser = result["user"] ?? {};
+        
+        // Cek apakah ini akun baru yang dibuat otomatis (indikator dari backend)
+        final bool isNewAccount = result["requires_password_setup"] ?? false;
 
         // 4. SIMPAN SESI BERDASARKAN DATA DARI BACKEND
         await SessionManager.saveSession(
           token: backendToken, // Ini adalah token dari FastAPI!
           userId: backendUser["id"]?.toString() ?? user.id,
-          username: backendUser["username"] ?? email.split("@")[0],
+          username: backendUser["username"] ?? nameFromEmail, // Username pakai prefix email
           fullname: backendUser["fullname"] ?? fullname,
           email: backendUser["email"] ?? email,
           role: backendUser["role"] ?? "user",
@@ -206,14 +212,30 @@ class LoginController extends GetxController {
           points: backendUser["points"] ?? 0,
         );
 
-        Get.snackbar(
-          "Berhasil", 
-          "Login Google berhasil", 
-          backgroundColor: Colors.green, 
-          colorText: Colors.white,
-        );
+        // 5. MUNCULKAN NOTIFIKASI BERDASARKAN STATUS AKUN
+        if (isNewAccount) {
+          // Notifikasi untuk pembuatan password
+          Get.snackbar(
+            "Akun Berhasil Dibuat! 🎉", 
+            "Halo ${backendUser["username"]}! Jangan lupa buka menu Profil untuk membuat password akun agar lebih aman ya.", 
+            backgroundColor: Colors.orange.shade600, 
+            colorText: Colors.white,
+            duration: const Duration(seconds: 6), // Dibuat lama agar sempat dibaca
+            snackPosition: SnackPosition.TOP,
+            icon: const Icon(Icons.shield_rounded, color: Colors.white),
+          );
+        } else {
+          // Notifikasi Login Google Biasa
+          Get.snackbar(
+            "Berhasil", 
+            "Login Google berhasil", 
+            backgroundColor: Colors.green, 
+            colorText: Colors.white,
+          );
+        }
         
-        // 5. PINDAH KE HOME SETELAH SEMUANYA SELESAI
+        // 6. PINDAH KE HOME SETELAH SEMUANYA SELESAI
+        // Pastikan navigasi hanya terjadi jika widget masih mounted/logika tidak error.
         Get.offAllNamed(Routes.HOME);
 
       } else {
@@ -261,4 +283,4 @@ class LoginController extends GetxController {
     passwordController.dispose();
     super.onClose();
   }
-} 
+}

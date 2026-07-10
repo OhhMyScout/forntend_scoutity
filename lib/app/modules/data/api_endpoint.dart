@@ -2,11 +2,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiEndpoint {
   // Mengambil Base URL dari .env
-  // Jika .env belum ter-load, gunakan localhost sebagai backup
-  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? "http://192.168.57.176:5000/api";
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? "http://10.154.4.153:5000/api";
 
   // ==========================================
-  // Auth & Profile
+  // Auth & Profiles
   // ==========================================
   static String get register => "$baseUrl/register";
   static String get login => "$baseUrl/login";
@@ -19,6 +18,9 @@ class ApiEndpoint {
   static String get forgotPassword => "$baseUrl/forgot-password";
   static String get resetPassword => "$baseUrl/reset-password";
   static String get googleLogin => "$baseUrl/google-login";
+  static String get infoLogs => "$baseUrl/info-logs";
+  static String get linkGoogle => "$baseUrl/link-google";
+
   // ==========================================
   // Games & Leaderboard
   // ==========================================
@@ -46,4 +48,17 @@ class ApiEndpoint {
   // Deteksi Semaphore
   // ==========================================
   static String get semaphoreDetect => "$baseUrl/deteksi/semaphore";
+
+  // ==========================================
+  // Uji SKU (BARU)
+  // ==========================================
+  // Master SKU (CRUD)
+  static String get skuMaster => "$baseUrl/uji-sku/master"; // POST & GET
+  static String skuMasterById(String id) => "$baseUrl/uji-sku/master/$id"; // PUT & DELETE
+
+  // Operasional Ujian (User & Pembina)
+  static String get skuAjukan => "$baseUrl/uji-sku/ajukan";
+  static String skuValidasi(String progressId) => "$baseUrl/uji-sku/validasi/$progressId";
+  static String skuProgress(String userId, String levelId) => "$baseUrl/uji-sku/progress/$userId/$levelId";
+  static String get skuPelantikan => "$baseUrl/uji-sku/pelantikan";
 }

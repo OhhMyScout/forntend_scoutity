@@ -19,6 +19,8 @@ import '../modules/berita/tabel_berita_paling_populer/bindings/tabel_berita_pali
 import '../modules/berita/tabel_berita_paling_populer/views/tabel_berita_paling_populer_view.dart';
 import '../modules/berita/tabel_berita_provinsi/bindings/tabel_berita_provinsi_binding.dart';
 import '../modules/berita/tabel_berita_provinsi/views/tabel_berita_provinsi_view.dart';
+import '../modules/reg-pembina/daftar_pembina/bindings/daftar_pembina_binding.dart';
+import '../modules/reg-pembina/daftar_pembina/views/daftar_pembina_view.dart';
 import '../modules/deteksi/alfabet_semaphore/bindings/alfabet_semaphore_binding.dart';
 import '../modules/deteksi/alfabet_semaphore/views/alfabet_semaphore_view.dart';
 import '../modules/deteksi/semaphore_detect/bindings/semaphore_detect_binding.dart';
@@ -31,6 +33,8 @@ import '../modules/edukasi/detail_morse/bindings/detail_morse_binding.dart';
 import '../modules/edukasi/detail_morse/views/detail_morse_view.dart';
 import '../modules/edukasi/sejarah_pramuka/bindings/sejarah_pramuka_binding.dart';
 import '../modules/edukasi/sejarah_pramuka/views/sejarah_pramuka_view.dart';
+import '../modules/reg-pembina/form_pembina/bindings/form_pembina_binding.dart';
+import '../modules/reg-pembina/form_pembina/views/form_pembina_view.dart';
 import '../modules/games/beranda_game/bindings/beranda_game_binding.dart';
 import '../modules/games/beranda_game/views/beranda_game_view.dart';
 import '../modules/games/kotak1_challenge/bindings/kotak1_challenge_binding.dart';
@@ -43,6 +47,8 @@ import '../modules/games/morse_challenge/bindings/morse_challenge_binding.dart';
 import '../modules/games/morse_challenge/views/morse_challenge_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
+import '../modules/info_logs/bindings/info_logs_binding.dart';
+import '../modules/info_logs/views/info_logs_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
 import '../modules/profile/beranda_profile/bindings/beranda_profile_binding.dart';
@@ -73,8 +79,22 @@ import '../modules/survival/sinyal_darurat/bindings/sinyal_darurat_binding.dart'
 import '../modules/survival/sinyal_darurat/views/sinyal_darurat_view.dart';
 import '../modules/survival/tali_temali/bindings/tali_temali_binding.dart';
 import '../modules/survival/tali_temali/views/tali_temali_view.dart';
-import '../modules/uji_sku/bindings/uji_sku_binding.dart';
-import '../modules/uji_sku/views/uji_sku_view.dart';
+import '../uji_sku/beranda_sku/bindings/beranda_sku_binding.dart';
+import '../uji_sku/beranda_sku/views/beranda_sku_view.dart';
+import '../uji_sku/beranda_sku_admin/bindings/beranda_sku_admin_binding.dart';
+import '../uji_sku/beranda_sku_admin/views/beranda_sku_admin_view.dart';
+import '../uji_sku/pembina/beranda_sku_pembina/bindings/beranda_sku_pembina_binding.dart';
+import '../uji_sku/pembina/beranda_sku_pembina/views/beranda_sku_pembina_view.dart';
+import '../uji_sku/pembina/daftar_antrian_validasi/bindings/daftar_antrian_validasi_binding.dart';
+import '../uji_sku/pembina/daftar_antrian_validasi/views/daftar_antrian_validasi_view.dart';
+import '../uji_sku/pembina/from_pelantikan/bindings/from_pelantikan_binding.dart';
+import '../uji_sku/pembina/from_pelantikan/views/from_pelantikan_view.dart';
+import '../uji_sku/user/beranda_sku_user/bindings/beranda_sku_user_binding.dart';
+import '../uji_sku/user/beranda_sku_user/views/beranda_sku_user_view.dart';
+import '../uji_sku/user/detail_sku_user/bindings/detail_sku_user_binding.dart';
+import '../uji_sku/user/detail_sku_user/views/detail_sku_user_view.dart';
+import '../uji_sku/user/form_pengajuan_page/bindings/form_pengajuan_page_binding.dart';
+import '../uji_sku/user/form_pengajuan_page/views/form_pengajuan_page_view.dart';
 
 part 'app_routes.dart';
 
@@ -356,9 +376,59 @@ class AppPages {
       transitionDuration: const Duration(milliseconds: 100),
     ),
     GetPage(
-      name: _Paths.UJI_SKU,
-      page: () => const UjiSkuView(),
-      binding: UjiSkuBinding(),
+      name: _Paths.INFO_LOGS,
+      page: () => const InfoLogsView(),
+      binding: InfoLogsBinding(),
+    ),
+    GetPage(
+      name: _Paths.BERANDA_SKU,
+      page: () => const BerandaSkuView(),
+      binding: BerandaSkuBinding(),
+    ),
+    GetPage(
+      name: _Paths.BERANDA_SKU_USER,
+      page: () => const BerandaSkuUserView(),
+      binding: BerandaSkuUserBinding(),
+    ),
+    GetPage(
+      name: _Paths.BERANDA_SKU_PEMBINA,
+      page: () => const BerandaSkuPembinaView(),
+      binding: BerandaSkuPembinaBinding(),
+    ),
+    GetPage(
+      name: _Paths.BERANDA_SKU_ADMIN,
+      page: () => const BerandaSkuAdminView(),
+      binding: BerandaSkuAdminBinding(),
+    ),
+    GetPage(
+      name: _Paths.DETAIL_SKU_USER,
+      page: () => const DetailSkuUserView(),
+      binding: DetailSkuUserBinding(),
+    ),
+    GetPage(
+      name: _Paths.FORM_PENGAJUAN_PAGE,
+      page: () => const FormPengajuanView(),
+      binding: FormPengajuanBinding(),
+    ),
+    GetPage(
+      name: _Paths.DAFTAR_ANTRIAN_VALIDASI,
+      page: () => const DaftarAntrianValidasiView(),
+      binding: DaftarAntrianValidasiBinding(),
+    ),
+    GetPage(
+      name: _Paths.FROM_PELANTIKAN,
+      page: () => const FromPelantikanView(),
+      binding: FromPelantikanBinding(),
+    ),
+    GetPage(
+      name: _Paths.DAFTAR_PEMBINA,
+      page: () => const DaftarPembinaView(),
+      binding: DaftarPembinaBinding(),
+    ),
+    GetPage(
+      name: _Paths.FORM_PEMBINA,
+      page: () => const FormPembinaView(),
+      binding: FormPembinaBinding(),
     ),
   ];
 }

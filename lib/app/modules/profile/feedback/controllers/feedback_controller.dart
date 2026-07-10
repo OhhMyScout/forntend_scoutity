@@ -8,7 +8,7 @@ class FeedbackController extends GetxController {
       TextEditingController();
 
   /// Rating
-  final rating = 4.obs;
+  final rating = 0.obs;
 
   /// Selected Category
   final selectedCategory = 'bug'.obs;
@@ -52,7 +52,7 @@ class FeedbackController extends GetxController {
 
     /// Reset
     messageController.clear();
-    rating.value = 4;
+    rating.value = 0;
     selectedCategory.value = 'bug';
   }
 

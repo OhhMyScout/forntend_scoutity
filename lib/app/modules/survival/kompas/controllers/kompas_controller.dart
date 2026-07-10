@@ -20,7 +20,7 @@ class KompasController extends GetxController {
   double _smoothFactor  = 0.08;
   String _lastDirShort  = '';
   StreamSubscription<MagnetometerEvent>? _sub;
-  Timer? _demoTimer;
+  // Timer? _demoTimer;
 
   @override
   void onInit() {
@@ -31,7 +31,7 @@ class KompasController extends GetxController {
   @override
   void onClose() {
     _sub?.cancel();
-    _demoTimer?.cancel();
+    // _demoTimer?.cancel();
     super.onClose();
   }
 
@@ -113,7 +113,7 @@ class KompasController extends GetxController {
       accuracyLabel.value = 'Akurasi Sedang';
     } else if (mag > 0) {
       accuracyLevel.value = 1;
-      accuracyLabel.value = 'Sinyal Lemah – gerakkan HP membentuk angka 8';
+      accuracyLabel.value = 'Sinyal Lemah - gerakkan HP membentuk angka 8';
     }
   }
 
@@ -151,22 +151,4 @@ class KompasController extends GetxController {
     });
   }
 
-  /// Mode demo untuk emulator / device tanpa magnetometer
-  void startDemo() {
-    _sub?.cancel();
-    _demoTimer?.cancel();
-    hasError.value   = false;
-    isDemoMode.value = true;
-    accuracyLabel.value = 'Mode Demo';
-    accuracyLevel.value = 3;
-
-    double a = 0;
-    _demoTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
-      if (isLocked.value || isCalibrating.value) return;
-      // Simulasi gerakan natural dengan sine wave
-      a = (a + 0.3 + math.sin(a * 0.02) * 0.5) % 360;
-      heading.value = a;
-      _filtered    = a;
-    });
-  }
 }

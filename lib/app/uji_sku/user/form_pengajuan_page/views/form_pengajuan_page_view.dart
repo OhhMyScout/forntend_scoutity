@@ -6,250 +6,269 @@ import '../../../../modules/theme/theme.dart';
 class FormPengajuanView extends GetView<FormPengajuanController> {
   const FormPengajuanView({super.key});
 
+  // Fungsi utilitas merubah Link Sharing Drive Biasa menjadi format Stream Preview
+  String _convertDriveUrlToPreview(String url) {
+    if (!url.contains("drive.google.com")) return "";
+    try {
+      if (url.contains("/view?usp=sharing") || url.contains("/view")) {
+        final regExp = RegExp(r'/d/([^/]+)');
+        final match = regExp.firstMatch(url);
+        if (match != null && match.group(1) != null) {
+          String fileId = match.group(1)!;
+          return "https://drive.google.com/file/d/$fileId/preview";
+        }
+      }
+    } catch (_) {}
+    return url;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text(
-          'Form Pengajuan SKU', 
-          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white)
+    return Obx(() {
+      // Jika Gudep kosong, blok layar dengan layar kosong transparan/loading selagi dialihkan
+      if (!controller.isGudepValid.value) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppTheme.primary)));
+      }
+
+      return Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(
+          title: const Text(
+            'Form Pengajuan SKU', 
+            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white)
+          ),
+          backgroundColor: AppTheme.primary, 
+          elevation: 0, 
+          centerTitle: true, 
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
-        backgroundColor: AppTheme.primary, 
-        elevation: 0, 
-        centerTitle: true, 
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: controller.formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _AnimatedInput(
-                  delay: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryContainer.withValues(alpha: 0.15), 
-                      borderRadius: BorderRadius.circular(16), 
-                      border: Border.all(color: AppTheme.secondaryContainer)
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.assignment_turned_in_rounded, color: AppTheme.onSecondaryContainer),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            "Lengkapi formulir di bawah ini dengan menyertakan bukti autentik fisik untuk divalidasi oleh Tim Pembina Gugus Depan.", 
-                            style: TextStyle(fontFamily: 'Urbanist', fontSize: 13, color: AppTheme.onSecondaryContainer, height: 1.4)
-                          )
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                
-                // --- FIELD NAMA LENGKAP ---
-                _AnimatedInput(delay: 50, child: _buildLabel("Nama Lengkap")),
-                _AnimatedInput(
-                  delay: 100,
-                  child: TextFormField(
-                    controller: controller.namaController,
-                    validator: (val) => val == null || val.isEmpty ? "Nama wajib diisi" : null,
-                    decoration: _inputStyle("Masukkan nama lengkap...", Icons.person_rounded),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // --- FIELD GOLONGAN & TINGKAT ---
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _AnimatedInput(
+                    delay: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondaryContainer.withOpacity(0.15), 
+                        borderRadius: BorderRadius.circular(16), 
+                        border: Border.all(color: AppTheme.secondaryContainer)
+                      ),
+                      child: const Row(
                         children: [
-                          _AnimatedInput(delay: 150, child: _buildLabel("Golongan")),
-                          _AnimatedInput(
-                            delay: 200,
-                            child: Obx(() => DropdownButtonFormField<String>(
-                              value: controller.selectedGolongan.value,
-                              decoration: _inputStyle("", Icons.group_rounded),
-                              items: controller.golonganList.map((String val) {
-                                return DropdownMenuItem(value: val, child: Text(val, style: const TextStyle(fontSize: 10)));
-                              }).toList(),
-                              onChanged: (val) {
-                                if (val != null) controller.selectedGolongan.value = val;
-                              },
-                            )),
+                          Icon(Icons.assignment_turned_in_rounded, color: AppTheme.onSecondaryContainer),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              "Lengkapi formulir di bawah ini. Pengajuan akan diteruskan ke Pembina yang memiliki nomor Gugus Depan sama dengan Anda.", 
+                              style: TextStyle(fontFamily: 'Urbanist', fontSize: 13, color: AppTheme.onSecondaryContainer, height: 1.4)
+                            )
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _AnimatedInput(delay: 150, child: _buildLabel("Tingkat")),
-                          _AnimatedInput(
-                            delay: 200,
-                            child: Obx(() => DropdownButtonFormField<String>(
-                              value: controller.selectedTingkat.value,
-                              decoration: _inputStyle("", Icons.military_tech_rounded),
-                              items: controller.tingkatList.map((String val) {
-                                return DropdownMenuItem(value: val, child: Text(val, style: const TextStyle(fontSize: 10)));
-                              }).toList(),
-                              onChanged: (val) {
-                                if (val != null) controller.selectedTingkat.value = val;
-                              },
-                            )),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // --- FIELD PROVINSI (DISABLED / READ ONLY) ---
-                _AnimatedInput(delay: 250, child: _buildLabel("Provinsi")),
-                _AnimatedInput(
-                  delay: 300,
-                  child: TextFormField(
-                    controller: controller.provinsiController,
-                    enabled: false, // Mematikan interaksi modifikasi input
-                    style: const TextStyle(color: AppTheme.onSurfaceVariant, fontWeight: FontWeight.bold),
-                    decoration: _inputStyle("Provinsi asal...", Icons.location_on_rounded).copyWith(
-                      fillColor: AppTheme.surfaceContainerHighest, // Memberikan visual abu-abu tanda terkunci
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // --- FIELD NAMA LENGKAP ---
+                  _AnimatedInput(delay: 50, child: _buildLabel("Nama Lengkap")),
+                  _AnimatedInput(
+                    delay: 100,
+                    child: TextFormField(
+                      controller: controller.namaController,
+                      validator: (val) => val == null || val.isEmpty ? "Nama wajib diisi" : null,
+                      decoration: _inputStyle("Masukkan nama lengkap...", Icons.person_rounded),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // --- FIELD PILIH PEMBINA ---
-                _AnimatedInput(delay: 350, child: _buildLabel("Pilih Nama Pembina (Penguji)")),
-                _AnimatedInput(
-                  delay: 400,
-                  child: Obx(() => DropdownButtonFormField<String>(
-                    value: controller.selectedPembina.value,
-                    decoration: _inputStyle("Pilih Pembina...", Icons.assignment_ind_rounded),
-                    items: controller.pembinaList.map((String val) {
-                      return DropdownMenuItem(value: val, child: Text(val, style: const TextStyle(fontSize: 14)));
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) controller.selectedPembina.value = val;
-                    },
-                  )),
-                ),
-                const SizedBox(height: 24),
-
-                // --- INDIKATOR PERINGATAN FOTO DIRI IKON (!) ---
-                _AnimatedInput(
-                  delay: 450,
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.errorColor.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.3)),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.error_outline_rounded, color: AppTheme.errorColor, size: 22),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            "PENTING: Foto harus tegak, menggunakan seragam Pramuka lengkap, wajah terlihat jelas tanpa penutup, dan pencahayaan terang.",
-                            style: TextStyle(fontFamily: 'Nunito', fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.errorColor, height: 1.3),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // --- STRUKTUR VISUAL CONTOH FOTO DIRI ---
-                _AnimatedInput(
-                  delay: 480,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  // --- FIELD GOLONGAN & TINGKAT ---
+                  Row(
                     children: [
-                      const Text("Contoh Standar Foto Diri Laporan:", style: TextStyle(fontFamily: 'Nunito', fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.primary)),
-                      const SizedBox(height: 8),
-                      Container(
-                        height: 150,
-                        width: 110,
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceContainerHigh,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppTheme.outlineVariantColor),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)]
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _AnimatedInput(delay: 150, child: _buildLabel("Golongan")),
+                            _AnimatedInput(
+                              delay: 200,
+                              child: Obx(() => DropdownButtonFormField<String>(
+                                value: controller.selectedGolongan.value,
+                                decoration: _inputStyle("", Icons.group_rounded),
+                                items: controller.golonganList.map((String val) {
+                                  return DropdownMenuItem(value: val, child: Text(val, style: const TextStyle(fontSize: 12)));
+                                }).toList(),
+                                onChanged: (val) {
+                                  if (val != null) controller.selectedGolongan.value = val;
+                                },
+                              )),
+                            ),
+                          ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(11),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Ilustrasi siluet postur tubuh pasfoto resmi kepramukaan
-                              const Icon(Icons.account_box_rounded, size: 100, color: AppTheme.outlineColor),
-                              Positioned(
-                                bottom: 6,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(4)),
-                                  child: const Text("PASFOTO 3X4", style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
-                                ),
-                              )
-                            ],
-                          ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _AnimatedInput(delay: 150, child: _buildLabel("Tingkat")),
+                            _AnimatedInput(
+                              delay: 200,
+                              child: Obx(() => DropdownButtonFormField<String>(
+                                value: controller.selectedTingkat.value,
+                                decoration: _inputStyle("", Icons.military_tech_rounded),
+                                items: controller.tingkatList.map((String val) {
+                                  return DropdownMenuItem(value: val, child: Text(val, style: const TextStyle(fontSize: 12)));
+                                }).toList(),
+                                onChanged: (val) {
+                                  if (val != null) controller.selectedTingkat.value = val;
+                                },
+                              )),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // --- FIELD LINK BUKTI GOOGLE DRIVE ---
-                _AnimatedInput(delay: 500, child: _buildLabel("Link Bukti Foto Diri (Google Drive)")),
-                _AnimatedInput(
-                  delay: 530,
-                  child: TextFormField(
-                    controller: controller.buktiUrlController,
-                    validator: (val) => val == null || val.isEmpty ? "Tautan Google Drive mutlak diperlukan sebagai arsip bukti" : null,
-                    decoration: _inputStyle("https://drive.google.com/...", Icons.add_link_rounded),
-                  ),
-                ),
-                const SizedBox(height: 40),
-
-                // --- TOMBOL SUBMIT ---
-                _AnimatedInput(
-                  delay: 560,
-                  child: SizedBox(
-                    width: double.infinity, height: 55,
-                    child: ElevatedButton(
-                      onPressed: () => controller.submitPengajuan(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primary, 
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
-                      ),
-                      child: const Text(
-                        "Kirim Laporan Ujian", 
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)
+                  // --- FIELD PROVINSI ---
+                  _AnimatedInput(delay: 250, child: _buildLabel("Provinsi")),
+                  _AnimatedInput(
+                    delay: 300,
+                    child: TextFormField(
+                      controller: controller.provinsiController,
+                      enabled: false, 
+                      style: const TextStyle(color: AppTheme.onSurfaceVariant, fontWeight: FontWeight.bold),
+                      decoration: _inputStyle("Provinsi asal...", Icons.location_on_rounded).copyWith(
+                        fillColor: AppTheme.surfaceContainerHighest, 
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+
+                  // --- FIELD PILIH PEMBINA (DINAMIS BERDASARKAN GUDEP) ---
+                  _AnimatedInput(delay: 350, child: _buildLabel("Pembina Penguji (Satu Gudep)")),
+                  _AnimatedInput(
+                    delay: 400,
+                    child: Obx(() {
+                      if (controller.isLoadingPembina.value) {
+                        return const Center(child: LinearProgressIndicator(color: AppTheme.secondary));
+                      }
+                      
+                      if (controller.pembinaDinamisList.isEmpty) {
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(12)),
+                          child: const Text("Tidak ditemukan Pembina terdaftar di Gudep Anda.", style: TextStyle(color: Colors.red, fontSize: 13)),
+                        );
+                      }
+
+                      return DropdownButtonFormField<String>(
+                        value: controller.selectedPembinaId.value.isEmpty ? null : controller.selectedPembinaId.value,
+                        decoration: _inputStyle("Pilih Pembina Penguji...", Icons.assignment_ind_rounded),
+                        items: controller.pembinaDinamisList.map((dynamic pembina) {
+                          return DropdownMenuItem<String>(
+                            value: pembina['id'].toString(),
+                            child: Text(pembina['fullname'] ?? 'Tanpa Nama', style: const TextStyle(fontSize: 14)),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) controller.selectedPembinaId.value = val;
+                        },
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // --- FIELD LINK BUKTI GOOGLE DRIVE ---
+                  _AnimatedInput(delay: 450, child: _buildLabel("Link Bukti Foto Fisik (Google Drive)")),
+                  _AnimatedInput(
+                    delay: 480,
+                    child: TextFormField(
+                      controller: controller.buktiUrlController,
+                      onChanged: (value) => controller.buktiUrlController.text = value, // Pemicu render reaktif UI
+                      validator: (val) => val == null || val.isEmpty ? "Tautan Google Drive mutlak diperlukan" : null,
+                      decoration: _inputStyle("Masukkan Link Sharing Google Drive...", Icons.add_link_rounded),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // --- INSTANT LIVE PREVIEW BUKTI LINK DRIVE ---
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: controller.buktiUrlController,
+                    builder: (context, value, child) {
+                      String previewUrl = _convertDriveUrlToPreview(value.text.trim());
+                      if (previewUrl.isEmpty) return const SizedBox.shrink();
+                      
+                      return Container(
+                        margin: const EdgeInsets.only(top: 8, bottom: 16),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppTheme.outlineVariantColor),
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.white
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Pratinjau Dokumen Drive:", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                            const SizedBox(height: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                height: 200,
+                                width: double.infinity,
+                                color: Colors.grey.shade100,
+                                child: const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.insert_drive_file_outlined, size: 40, color: AppTheme.secondary),
+                                      SizedBox(height: 8),
+                                      Text("Tautan Terdeteksi. File siap di-upload & diarsip.", style: TextStyle(fontSize: 11, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // --- TOMBOL SUBMIT ---
+                  _AnimatedInput(
+                    delay: 520,
+                    child: SizedBox(
+                      width: double.infinity, height: 55,
+                      child: ElevatedButton(
+                        onPressed: () => controller.submitPengajuan(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary, 
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
+                        ),
+                        child: const Text(
+                          "Kirim Pengajuan SKU", 
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildLabel(String text) {

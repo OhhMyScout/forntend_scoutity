@@ -51,6 +51,7 @@ abstract class Routes {
   static const FROM_PELANTIKAN = _Paths.FROM_PELANTIKAN;
   static const DAFTAR_PEMBINA = _Paths.DAFTAR_PEMBINA;
   static const FORM_PEMBINA = _Paths.FORM_PEMBINA;
+  static const PENILAIAN_SKU = _Paths.PENILAIAN_SKU;
 }
 
 abstract class _Paths {
@@ -103,4 +104,5 @@ abstract class _Paths {
   static const FROM_PELANTIKAN = '/from-pelantikan';
   static const DAFTAR_PEMBINA = '/daftar-pembina';
   static const FORM_PEMBINA = '/form-pembina';
+  static const PENILAIAN_SKU = '/penilaian-sku';
 }

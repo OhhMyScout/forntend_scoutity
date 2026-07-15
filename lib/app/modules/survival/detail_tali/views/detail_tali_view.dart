@@ -5,7 +5,6 @@ import '../controllers/detail_tali_controller.dart';
 class DetailTaliView extends GetView<DetailTaliController> {
   const DetailTaliView({super.key});
 
-  // Konfigurasi Warna
   static const Color primary = Color(0xFF361F1A);
   static const Color background = Color(0xFFFCF9F4);
   static const Color secondary = Color(0xFF7D562D);
@@ -16,7 +15,6 @@ class DetailTaliView extends GetView<DetailTaliController> {
 
   @override
   Widget build(BuildContext context) {
-    // Jika tidak menggunakan bindings di routing, inisialisasi controller langsung:
     Get.put(DetailTaliController());
 
     return Scaffold(
@@ -60,7 +58,7 @@ class DetailTaliView extends GetView<DetailTaliController> {
       ),
       body: Obx(() {
         if (controller.steps.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator(color: primary));
         }
 
         final currentStepData = controller.steps[controller.currentStepIndex.value];
@@ -75,7 +73,6 @@ class DetailTaliView extends GetView<DetailTaliController> {
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                 child: Column(
                   children: [
-                    // Gambar dengan transisi animasi Fade
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -93,22 +90,19 @@ class DetailTaliView extends GetView<DetailTaliController> {
                         child: AspectRatio(
                           aspectRatio: 4 / 3,
                           child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 600),
+                            duration: const Duration(milliseconds: 400),
                             switchInCurve: Curves.easeIn,
                             switchOutCurve: Curves.easeOut,
                             transitionBuilder: (Widget child, Animation<double> animation) {
                               return FadeTransition(opacity: animation, child: child);
                             },
-                            child: Image.network(
+                            // Menggunakan Image.asset untuk membaca file lokal
+                            child: Image.asset(
                               currentStepData['image']!,
-                              key: ValueKey<int>(controller.currentStepIndex.value), // Key wajib untuk memicu transisi
+                              key: ValueKey<int>(controller.currentStepIndex.value),
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return const Center(child: CircularProgressIndicator());
-                              },
                               errorBuilder: (context, error, stackTrace) => Container(
                                 color: surfaceContainerLow,
                                 child: const Icon(Icons.broken_image, size: 50, color: outline),
@@ -118,14 +112,12 @@ class DetailTaliView extends GetView<DetailTaliController> {
                         ),
                       ),
                     ),
-                    
                     const SizedBox(height: 24),
 
-                    // KONTROL SLIDER (Play, Prev, Next, Dots)
+                    // KONTROL SLIDER (Prev, Dots, Next)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Tombol Previous
                         IconButton(
                           onPressed: controller.prevStep,
                           icon: const Icon(Icons.arrow_back_ios_rounded, color: primary),
@@ -135,33 +127,32 @@ class DetailTaliView extends GetView<DetailTaliController> {
                             shadowColor: primary.withValues(alpha: 0.2),
                           ),
                         ),
-
-                        // Indikator Titik (Dots)
                         Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              controller.steps.length,
-                              (index) => GestureDetector(
-                                onTap: () => controller.goToStep(index),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                                  height: 8,
-                                  width: controller.currentStepIndex.value == index ? 24 : 8,
-                                  decoration: BoxDecoration(
-                                    color: controller.currentStepIndex.value == index
-                                        ? primary
-                                        : outline.withValues(alpha: 0.3),
-                                    borderRadius: BorderRadius.circular(4),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                controller.steps.length,
+                                (index) => GestureDetector(
+                                  onTap: () => controller.goToStep(index),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                                    height: 8,
+                                    width: controller.currentStepIndex.value == index ? 24 : 8,
+                                    decoration: BoxDecoration(
+                                      color: controller.currentStepIndex.value == index
+                                          ? primary
+                                          : outline.withValues(alpha: 0.3),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-
-                        // Tombol Next
                         IconButton(
                           onPressed: controller.nextStep,
                           icon: const Icon(Icons.arrow_forward_ios_rounded, color: primary),
@@ -173,7 +164,6 @@ class DetailTaliView extends GetView<DetailTaliController> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 16),
 
                     // Tombol Play / Pause Otomatis
@@ -215,7 +205,6 @@ class DetailTaliView extends GetView<DetailTaliController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Deskripsi Umum Tali
                     const Text(
                       "Kegunaan Simpul",
                       style: TextStyle(
@@ -235,10 +224,9 @@ class DetailTaliView extends GetView<DetailTaliController> {
                         height: 1.5,
                       ),
                     ),
-                    
                     const SizedBox(height: 24),
-                    
-                    // Instruksi Langkah Saat Ini (Dinamis berubah sesuai gambar)
+
+                    // Instruksi Langkah Saat Ini
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -269,7 +257,7 @@ class DetailTaliView extends GetView<DetailTaliController> {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                "Langkah ${controller.currentStepIndex.value + 1}",
+                                "Langkah ${controller.currentStepIndex.value + 1} dari ${controller.steps.length}",
                                 style: const TextStyle(
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.bold,
@@ -280,9 +268,8 @@ class DetailTaliView extends GetView<DetailTaliController> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          // Transisi Teks agar tidak kaku
                           AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 400),
+                            duration: const Duration(milliseconds: 300),
                             transitionBuilder: (Widget child, Animation<double> animation) {
                               return FadeTransition(opacity: animation, child: child);
                             },

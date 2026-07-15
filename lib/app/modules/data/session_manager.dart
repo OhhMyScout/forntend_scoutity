@@ -10,11 +10,12 @@ class SessionManager {
   // ==========================================================
 
   static String? get token => _box.read<String>('token');
-  
+
   static bool get isLoggedIn => _box.read<bool>('is_logged_in') ?? false;
 
   // SKU LEVEL (Menyimpan ID level SKU yang sedang dikerjakan user)
-  static String get currentSkuLevelId => _box.read('current_sku_level_id')?.toString() ?? '';
+  static String get currentSkuLevelId =>
+      _box.read('current_sku_level_id')?.toString() ?? '';
 
   // ==========================================================
   // USER DATA
@@ -33,6 +34,8 @@ class SessionManager {
   static String get province => _box.read('province')?.toString() ?? '';
 
   static String get image => _box.read('image')?.toString() ?? '';
+
+  static String get gudep => _box.read('gudep')?.toString() ?? '';
 
   // Getter points yang aman untuk tipe data int maupun String
   static int get points {
@@ -57,6 +60,7 @@ class SessionManager {
     required String email,
     required String role,
     String province = '',
+    String gudep = '',
     int points = 0,
     String image = '',
     String currentSkuLevelId = '', // Disiapkan untuk progres data SKU
@@ -69,6 +73,7 @@ class SessionManager {
     await _box.write('email', email);
     await _box.write('role', role);
     await _box.write('province', province);
+    await _box.write('gudep', gudep);
     await _box.write('points', points);
     await _box.write('image', image);
     await _box.write('current_sku_level_id', currentSkuLevelId);
@@ -83,6 +88,7 @@ class SessionManager {
     String? fullname,
     String? email,
     String? province,
+    String? gudep,
     String? image,
     String? currentSkuLevelId, // Tambahan untuk update level SKU
   }) async {
@@ -90,8 +96,10 @@ class SessionManager {
     if (fullname != null) await _box.write('fullname', fullname);
     if (email != null) await _box.write('email', email);
     if (province != null) await _box.write('province', province);
+    if (gudep != null) await _box.write('gudep', gudep);
     if (image != null) await _box.write('image', image);
-    if (currentSkuLevelId != null) await _box.write('current_sku_level_id', currentSkuLevelId);
+    if (currentSkuLevelId != null)
+      await _box.write('current_sku_level_id', currentSkuLevelId);
   }
 
   static Future<void> updatePoints(int newPoints) async {
@@ -136,6 +144,7 @@ class SessionManager {
       'email': email,
       'role': role,
       'province': province,
+      'gudep': gudep,
       'points': points,
       'image': image,
       'current_sku_level_id': currentSkuLevelId,
@@ -147,7 +156,7 @@ class SessionManager {
   // ==========================================================
 
   static Future<void> clear() async {
-    // Hapus spesifik kunci milik user agar data settingan lokal 
+    // Hapus spesifik kunci milik user agar data settingan lokal
     // seperti 'is_intro_seen' atau 'theme_mode' tidak ikut terhapus.
     final keysToRemove = [
       'is_logged_in',
@@ -158,9 +167,10 @@ class SessionManager {
       'email',
       'role',
       'province',
+      'gudep',
       'points',
       'image',
-      'current_sku_level_id'
+      'current_sku_level_id',
     ];
 
     for (var key in keysToRemove) {

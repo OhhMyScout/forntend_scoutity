@@ -5,7 +5,6 @@ import '../controllers/tali_temali_controller.dart';
 class TaliTemaliView extends GetView<TaliTemaliController> {
   const TaliTemaliView({super.key});
 
-  // Konfigurasi Palet Warna dari Tailwind Design
   static const Color primary = Color(0xFF361F1A);
   static const Color background = Color(0xFFFCF9F4);
   static const Color onSurfaceVariant = Color(0xFF504442);
@@ -46,7 +45,7 @@ class TaliTemaliView extends GetView<TaliTemaliController> {
     return Container(
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: background,
       ),
       child: Row(
@@ -71,7 +70,6 @@ class TaliTemaliView extends GetView<TaliTemaliController> {
               ),
             ],
           ),
-          // Navigasi Top Menu bisa diletakkan di sini jika diperlukan
         ],
       ),
     );
@@ -106,28 +104,39 @@ class TaliTemaliView extends GetView<TaliTemaliController> {
   }
 
   Widget _buildKnotsGrid() {
-    // Memecah list simpul menjadi per baris (2 simpul tiap baris) untuk mengatasi overflow tinggi konten
-    List<Widget> rows = [];
-    for (int i = 0; i < controller.listSimpul.length; i += 2) {
-      rows.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: 20),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: _buildKnotCard(controller.listSimpul[i])),
-              const SizedBox(width: 16),
-              if (i + 1 < controller.listSimpul.length)
-                Expanded(child: _buildKnotCard(controller.listSimpul[i + 1]))
-              else
-                Expanded(child: Container()), 
-            ],
+    // Dibungkus Obx agar UI reaktif terhadap perubahan data saat manifest dipindai
+    return Obx(() {
+      if (controller.listSimpul.isEmpty) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(32.0),
+            child: CircularProgressIndicator(color: primary),
           ),
-        ),
-      );
-    }
+        );
+      }
 
-    return Column(children: rows);
+      List<Widget> rows = [];
+      for (int i = 0; i < controller.listSimpul.length; i += 2) {
+        rows.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _buildKnotCard(controller.listSimpul[i])),
+                const SizedBox(width: 16),
+                if (i + 1 < controller.listSimpul.length)
+                  Expanded(child: _buildKnotCard(controller.listSimpul[i + 1]))
+                else
+                  Expanded(child: Container()), 
+              ],
+            ),
+          ),
+        );
+      }
+
+      return Column(children: rows);
+    });
   }
 
   Widget _buildKnotCard(Map<String, dynamic> knot) {
@@ -153,7 +162,8 @@ class TaliTemaliView extends GetView<TaliTemaliController> {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: AspectRatio(
                 aspectRatio: 4 / 3,
-                child: Image.network(
+                // Menggunakan Image.asset karena gambar diambil dari penyimpanan lokal
+                child: Image.asset(
                   knot['image'],
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(

@@ -2,7 +2,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiEndpoint {
   // Mengambil Base URL dari .env
-  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? "http://10.154.4.153:5000/api";
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? "http://10.132.139.109:5000/api";
 
   // ==========================================
   // Auth & Profiles
@@ -56,9 +56,26 @@ class ApiEndpoint {
   static String get skuMaster => "$baseUrl/uji-sku/master"; // POST & GET
   static String skuMasterById(String id) => "$baseUrl/uji-sku/master/$id"; // PUT & DELETE
 
+  // ==========================================
+  // Pengajuan Pembina (BARU)
+  // ==========================================
+  static String get daftarPembina => "$baseUrl/pengajuan/pembina/daftar";
+  static String get adminCekPengajuan => "$baseUrl/pengajuan/admin/pengajuan-pembina";
+
+// ==========================================
+  // Pengajuan SKU 
+  // ==========================================
+  static String get skuAjukan => "$baseUrl/uji-sku/ajukan"; // Digunakan saat siswa submit form pengajuan
+  static String skuStatus(String userId) => "$baseUrl/sku/status/$userId"; // Cek status pending dashboard
+  static String skuPembinaGudep(String gudep) => "$baseUrl/sku/pembina-gudep/$gudep"; // Cari pembina berdasarkan gudep
+
+  static String skuAntrianPembina(String pembinaId) => "$baseUrl/sku/pembina/antrian/$pembinaId";
+  static String skuProsesValidasi(String pengajuanId) => "$baseUrl/sku/pembina/validasi/$pengajuanId";
+
   // Operasional Ujian (User & Pembina)
-  static String get skuAjukan => "$baseUrl/uji-sku/ajukan";
   static String skuValidasi(String progressId) => "$baseUrl/uji-sku/validasi/$progressId";
   static String skuProgress(String userId, String levelId) => "$baseUrl/uji-sku/progress/$userId/$levelId";
-  static String get skuPelantikan => "$baseUrl/uji-sku/pelantikan";
+
+  static String pembinaAntrianSiswa(String pembinaId) => "$baseUrl/uji-sku/pembina/antrian-siswa/$pembinaId";
+  static String pembinaDetailProgress(String userId, String levelId) => "$baseUrl/uji-sku/pembina/detail-progress/$userId/$levelId";
 }

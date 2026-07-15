@@ -1,49 +1,123 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class TaliTemaliController extends GetxController {
-  // Data daftar simpul yang akan dirender di View
-  final List<Map<String, dynamic>> listSimpul = [
-    {
-      "title": "Simpul Mati",
-      "level": "Dasar",
-      "levelColor": const Color(0xFFF0EDE9),
-      "levelTextColor": const Color(0xFF504442),
-      "desc":
-          "Berguna untuk menyambung dua utas tali yang sama besarnya dan dalam keadaan kering.",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuArecqG3wrwE6LAtktUDpJ6VKpzpvPwU2v4oxhRM-_M570Cf79EgCSklPnQI14R8ne2urLsP7lvRpgbZdUSU9Gcljg--4eBy0bo762M_nG2cnU3M2VvcMgNh9L5X1t__R1X20-7swLnHgpvsV09agA3YYtIco4dFRL7MQpxIPNz3uBkmof8bxp2fxYZY-7OJHU_e1G--uyi5KAOU2jxzYiIWGXx6sBY8md8IpSUj-iBMTfmZWZkm4Rxm0TZGSm-zKO18i8fnzmouQI",
-    },
-    {
-      "title": "Simpul Pangkal",
-      "level": "Dasar",
-      "levelColor": const Color(0xFFF0EDE9),
-      "levelTextColor": const Color(0xFF504442),
-      "desc": "Simpul awal untuk memulai ikatan pada tiang atau kayu.",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuCLbkSbbooR2OGwnPXRAHMbuPdunwof2tjQhasgw5gBk0bch2W5w2SsZTJ-IH29EIHMISWNq2RdYHXgT_J5qHY7QeHNwzfDrnTNiMG4oE9b68-iDTSZSVMcreXY9jvNzIvUV9-l-U4gpsjGEQah92DZjaANYBu8q2pR9OyYOhgbBE1wAswWAPp4OEjRXp6a5A59H0VYknkwL1PfxgADaCad8v8Z0OP1SzyUh4LYHj9huReqs52z-7tmm7iuO3Gz4hphW4-pE9DPUCc",
-    },
-    {
-      "title": "Simpul Jangkar",
-      "level": "Dasar",
-      "levelColor": const Color(0xFFF0EDE9),
-      "levelTextColor": const Color(0xFF504442),
-      "desc":
-          "Digunakan untuk membuat tandu darurat atau mengikat ember/tali timba.",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuDmq4cfWSccqV6ZGPKzojNdcnNfZJ4DXhUF5qugddy-gT69isj5H07yW1JF-1RgKU9EqNhwheaJebWqX1ZjGwZqOkfgpoj45n-RHRe3O1d8sjI71WHMQedeQrsHXWts9qDDLqKw6ePGQLa8FEqJI1mQpvMrZbsyTZ0qMhEUVRH1dsr_TEfEtfyUCDuozRzgJfgcx2YQ4iUHLR5MaCP_ZiHUwq0rLXyfh4RAa2v78Mxc9ozu8ruT5LZ4rZHkxG2Z8xK7yXtxPr_RkcY",
-    },
-    {
-      "title": "Simpul Anyam",
-      "level": "Menengah",
-      "levelColor": const Color(0xFFFFCA98),
-      "levelTextColor": const Color(0xFF7A532A),
-      "desc":
-          "Untuk menyambung dua utas tali yang tidak sama besarnya dan dalam keadaan kering.",
-      "image":
-          "https://lh3.googleusercontent.com/aida-public/AB6AXuCLEnHJGx23MyYHIowr_8W4-UFJCTMFDVi91xEByATEBEGJoj2Ishi5BnfCa5ltnC_M_e-YRFV17QI7Paz8TAgELZsK-3oH3O7WfUqnmIuBLlDNtk7wjNshymv7A2OeFYGVkVoeeB_2P6wJvFZ0yNAjb1rlOFCQyQ5tlmICKGM87xow1mcQOsNh92soayDfciK-y3ZHzmMHpZvGtXpdrYiUHwZFTSix4GUusuHdFzpSXIE28OC8eQmSnjE_2fk9hnHHy2ui9yzmZfw",
-    },
-  ];
+  // Menggunakan RxList agar UI otomatis diperbarui setelah aset selesai dipindai
+  final RxList<Map<String, dynamic>> listSimpul = <Map<String, dynamic>>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadSimpulFromAssets();
+  }
+
+  Future<void> loadSimpulFromAssets() async {
+    try {
+      // 1. Memuat AssetManifest untuk memindai semua file di bundle aplikasi
+      final AssetManifest manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+      final List<String> allAssets = manifest.listAssets();
+
+      // 2. Menyaring file yang berada di dalam direktori assets/tali/
+      final Iterable<String> taliAssets = allAssets.where((path) => path.startsWith('assets/tali/'));
+
+      // 3. Mengelompokkan file berdasarkan nama folder tali (misal: assets/tali/mati/image1.jpg -> 'mati')
+      final Map<String, List<String>> folderMap = {};
+      for (String path in taliAssets) {
+        final parts = path.split('/');
+        // Format path standar: assets/tali/<nama_tali>/<nama_file>
+        if (parts.length >= 4) {
+          final folderName = parts[2];
+          folderMap.putIfAbsent(folderName, () => []).add(path);
+        }
+      }
+
+      final List<Map<String, dynamic>> loadedList = [];
+
+      folderMap.forEach((folderName, images) {
+        // 4. Mengurutkan gambar secara natural (agar image1, image2, image10 berurutan dari awal sampai akhir)
+        images.sort((a, b) => _naturalCompare(a, b));
+
+        // 5. Mencari gambar sampul yang memiliki angka '1' pada nama filenya (misal: image1.jpg, 1.png)
+        String coverImage = images.firstWhere(
+          (path) {
+            final fileName = path.split('/').last.toLowerCase();
+            return RegExp(r'1\.(jpg|jpeg|png)$').hasMatch(fileName) || fileName.contains('1');
+          },
+          orElse: () => images.isNotEmpty ? images.first : '',
+        );
+
+        // 6. Menentukan nama tali berdasarkan nama folder
+        String formattedTitle = _capitalize(folderName);
+
+        loadedList.add({
+          "title": formattedTitle,
+          "folderName": folderName,
+          "level": _getLevel(folderName),
+          "levelColor": _getLevelColor(folderName),
+          "levelTextColor": _getLevelTextColor(folderName),
+          "desc": _getDesc(folderName),
+          "image": coverImage,       // Gambar sampul dengan angka 1
+          "allImages": images,       // Seluruh gambar langkah-langkah (image1 - image12)
+        });
+      });
+
+      // Memasukkan hasil pemindai ke dalam RxList
+      listSimpul.assignAll(loadedList);
+    } catch (e) {
+      debugPrint("Gagal memuat aset tali: $e");
+    }
+  }
+
+  // Fungsi pengurutan agar angka dalam teks diurutkan secara numerik (image2 sebelum image10)
+  int _naturalCompare(String a, String b) {
+    final RegExp regExp = RegExp(r'\d+');
+    final matchA = regExp.firstMatch(a);
+    final matchB = regExp.firstMatch(b);
+
+    if (matchA != null && matchB != null) {
+      final int numA = int.parse(matchA.group(0)!);
+      final int numB = int.parse(matchB.group(0)!);
+      if (numA != numB) return numA.compareTo(numB);
+    }
+    return a.compareTo(b);
+  }
+
+  String _capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+
+  // Helper metadata tambahan agar desain kartu tetap rapi sesuai estetika Tailwind
+  String _getLevel(String folder) {
+    if (folder.toLowerCase() == 'anyam') return 'Menengah';
+    return 'Dasar';
+  }
+
+  Color _getLevelColor(String folder) {
+    if (folder.toLowerCase() == 'anyam') return const Color(0xFFFFCA98);
+    return const Color(0xFFF0EDE9);
+  }
+
+  Color _getLevelTextColor(String folder) {
+    if (folder.toLowerCase() == 'anyam') return const Color(0xFF7A532A);
+    return const Color(0xFF504442);
+  }
+
+  String _getDesc(String folder) {
+    switch (folder.toLowerCase()) {
+      case 'mati':
+        return "Berguna untuk menyambung dua utas tali yang sama besarnya dan dalam keadaan kering.";
+      case 'pangkal':
+        return "Simpul awal untuk memulai ikatan pada tiang atau kayu.";
+      case 'jangkar':
+        return "Digunakan untuk membuat tandu darurat atau mengikat ember/tali timba.";
+      case 'anyam':
+        return "Untuk menyambung dua utas tali yang tidak sama besarnya dan dalam keadaan kering.";
+      default:
+        return "Panduan langkah demi langkah pembuatan simpul $folder untuk kegiatan kepramukaan.";
+    }
+  }
 
   void onBack() {
     Get.back();
@@ -54,7 +128,6 @@ class TaliTemaliController extends GetxController {
   }
 
   void openTipsMerawatTali() {
-    // Fungsi untuk tombol Pelajari Lebih Lanjut
     Get.snackbar(
       "Segera Hadir",
       "Tips lanjutan sedang dalam pengembangan.",

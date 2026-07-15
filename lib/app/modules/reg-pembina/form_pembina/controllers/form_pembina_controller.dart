@@ -1,9 +1,16 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
+import '../../../data/api_endpoint.dart';
+import '../../../data/session_manager.dart'; // Pastikan path SessionManager Anda benar
 
 class FormPembinaController extends GetxController {
   final formKey = GlobalKey<FormState>();
-  
+
   final namaController = TextEditingController();
   final emailController = TextEditingController();
   final sekolahController = TextEditingController();
@@ -11,49 +18,140 @@ class FormPembinaController extends GetxController {
   final gudepPaController = TextEditingController();
   final gudepPiController = TextEditingController();
 
-  // State untuk file dan persetujuan
-  RxString fotoPath = ''.obs;
-  RxString dokumenPath = ''.obs;
+  // Menyimpan file foto lokal secara reaktif agar UI otomatis ter-update saat dipilih
+  Rx<File?> fotoFile = Rx<File?>(null);
   RxBool isTermsAccepted = false.obs;
+  RxBool isLoading = false.obs;
 
-  void pickFoto() {
-    // Simulasi ambil foto (Gunakan package image_picker di implementasi asli)
-    fotoPath.value = 'foto_profil_pramuka.jpg';
-    Get.snackbar('Foto Dipilih', 'Pastikan background sesuai dengan asal sekolah.');
+  final ImagePicker _picker = ImagePicker();
+  final supabase = Supabase.instance.client;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Otomatis mengisi text controller menggunakan data dari SessionManager
+    namaController.text = SessionManager.fullname;
+    emailController.text = SessionManager.email;
   }
 
-  void pickDokumen() {
-    // Simulasi ambil dokumen (Gunakan package file_picker di implementasi asli)
-    dokumenPath.value = 'berkas_pendukung.pdf';
-    Get.snackbar('Dokumen Dipilih', 'Dokumen pendukung berhasil dilampirkan.');
+  // Fungsi mengambil FOTO dari Kamera / Galeri HP
+  Future<void> pickFoto() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 75, // Kompresi untuk menghemat kuota upload storage
+    );
+
+    if (pickedFile != null) {
+      fotoFile.value = File(pickedFile.path);
+      Get.snackbar('Foto Dipilih', 'Foto berhasil dimuat.');
+    }
   }
 
   void toggleTerms(bool? value) {
     if (value != null) isTermsAccepted.value = value;
   }
 
-  void submitForm() {
-    if (formKey.currentState!.validate()) {
-      if (fotoPath.value.isEmpty) {
-        Get.snackbar('Peringatan', 'Harap unggah foto dengan pakaian Pramuka lengkap.', backgroundColor: Colors.orange, colorText: Colors.white);
-        return;
-      }
-      if (!isTermsAccepted.value) {
-        Get.snackbar('Peringatan', 'Anda harus menyetujui syarat dan ketentuan.', backgroundColor: Colors.orange, colorText: Colors.white);
-        return;
-      }
+  // Fungsi Submit Form ke Backend FastAPI
+  Future<void> submitForm() async {
+    if (!formKey.currentState!.validate()) return;
 
-      // Proses data form di sini
+    if (fotoFile.value == null) {
       Get.snackbar(
-        'Berhasil',
-        'Pendaftaran Pembina Scoutify atas nama ${namaController.text} sedang diproses!',
-        backgroundColor: Colors.green,
+        'Peringatan',
+        'Harap unggah foto dengan pakaian Pramuka lengkap.',
+        backgroundColor: Colors.orange,
         colorText: Colors.white,
       );
-      
-      Future.delayed(const Duration(seconds: 2), () {
-        Get.back();
-      });
+      return;
+    }
+    if (!isTermsAccepted.value) {
+      Get.snackbar(
+        'Peringatan',
+        'Anda harus menyetujui syarat dan ketentuan.',
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      String currentUserId =
+          SessionManager.userId; // Mengambil user_id dari session
+
+      // 1. UPLOAD FOTO KE SUPABASE STORAGE
+      String fileExt = fotoFile.value!.path.split('.').last;
+      String fileName =
+          'foto_${currentUserId}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+
+      await supabase.storage
+          .from('pembina')
+          .upload(
+            fileName,
+            fotoFile.value!,
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
+          );
+
+      // Dapatkan URL publik file
+      final String fotoPublicUrl = supabase.storage
+          .from('pembina')
+          .getPublicUrl(fileName);
+
+      // 2. SEND DATA KE FASTAPI BACKEND
+      final Map<String, dynamic> bodyData = {
+        "user_id": currentUserId,
+        "sekolah": sekolahController.text,
+        "gudep_pa": gudepPaController.text.isNotEmpty
+            ? gudepPaController.text
+            : null,
+        "gudep_pi": gudepPiController.text.isNotEmpty
+            ? gudepPiController.text
+            : null,
+        "foto_pramuka": fotoPublicUrl,
+        "dokumen_pendukung": null, // Dokumen pendukung dihapus, dikirim null
+      };
+
+      final response = await http.post(
+        Uri.parse(ApiEndpoint.daftarPembina),
+        headers: SessionManager
+            .apiHeader, // Memanfaatkan token auth otomatis dari helper session Anda
+        body: jsonEncode(bodyData),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        Get.snackbar(
+          'Berhasil',
+          responseData['message'] ?? 'Pengajuan berhasil dikirim.',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+
+        Future.delayed(const Duration(seconds: 2), () {
+          // Kembali ke halaman Settings dengan aman, menghapus halaman form,
+          // dan memicu pemanggilan ulang route settings agar controller-nya refresh secara natural.
+          Get.offNamedUntil('/settings', (route) => route.isFirst);
+        });
+      } else {
+        String errMsg =
+            responseData['detail']?['message'] ?? 'Terjadi kesalahan.';
+        Get.snackbar(
+          'Gagal',
+          errMsg,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Terjadi kesalahan: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
     }
   }
 

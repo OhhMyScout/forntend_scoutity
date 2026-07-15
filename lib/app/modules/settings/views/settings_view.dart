@@ -141,29 +141,97 @@ class SettingsView extends GetView<SettingsController> {
             const SizedBox(height: 32),
 
             /// TOMBOL DAFTAR PEMBINA (Timbul)
-            GestureDetector(
-              onTap: controller.goToFormPembina,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: _embossedDecoration(backgroundColor),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.assignment_ind, color: secondaryColor),
-                    SizedBox(width: 12),
-                    Text(
-                      'Daftar Sebagai Pembina',
-                      style: TextStyle(
-                        color: secondaryColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+            Obx(() {
+              // Tampilkan loading kecil jika status sedang dimuat dari backend
+              if (controller.isLoadingStatus.value) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(color: secondaryColor),
+                  ),
+                );
+              }
+
+              // Kondisi 1: Jika berstatus 'pending' (Menunggu Verifikasi) -> Tombol Dinonaktifkan (Disabled)
+              if (controller.statusPembina.value == 'pending') {
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300, // Warna abu-abu mati menandakan disabled
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.hourglass_empty, color: Colors.black45),
+                      SizedBox(width: 12),
+                      Text(
+                        'Menunggu Verifikasi Pembina',
+                        style: TextStyle(
+                          color: Colors.black45,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                );
+              }
+
+              // Kondisi 2: Jika sudah di-approve (Bisa disembunyikan tombolnya atau ganti keterangan)
+              if (controller.statusPembina.value == 'approved') {
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.green),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.check_circle, color: Colors.green),
+                      SizedBox(width: 12),
+                      Text(
+                        'Anda Adalah Pembina',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // Kondisi Default: Jika belum mendaftar ('none' atau '') -> Tombol Aktif
+              return GestureDetector(
+                onTap: controller.goToFormPembina,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: _embossedDecoration(backgroundColor),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.assignment_ind, color: secondaryColor),
+                      SizedBox(width: 12),
+                      Text(
+                        'Daftar Sebagai Pembina',
+                        style: TextStyle(
+                          color: secondaryColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            }),
 
             const SizedBox(height: 32),
 

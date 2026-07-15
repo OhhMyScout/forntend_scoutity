@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class DetailTaliController extends GetxController {
@@ -20,49 +22,106 @@ class DetailTaliController extends GetxController {
     _loadData();
   }
 
-  void _loadData() {
-    // Menerima data dari halaman sebelumnya (TaliTemaliView)
-    // Jika tidak ada data yang dikirim, gunakan data dummy (fallback)
+  Future<void> _loadData() async {
     final args = Get.arguments as Map<String, dynamic>?;
 
     if (args != null) {
       title.value = args['title'] ?? 'Nama Simpul';
       level.value = args['level'] ?? 'Dasar';
-      description.value = args['desc'] ?? 'Deskripsi simpul.';
-      
-      // Misalkan data steps dikirim lewat arguments
-      if (args['steps'] != null) {
-        steps.value = List<Map<String, String>>.from(args['steps']);
+      description.value = args['desc'] ?? 'Panduan langkah demi langkah pembuatan simpul.';
+
+      List<String> images = [];
+
+      // 1. Ambil daftar gambar dari arguments jika sudah dipindai di halaman sebelumnya
+      if (args['allImages'] != null && (args['allImages'] as List).isNotEmpty) {
+        images = List<String>.from(args['allImages']);
+      } 
+      // 2. Jika tidak ada, pindai langsung berdasarkan nama folder (misal: alpinebutterflyR, cowR, dll)
+      else if (args['folderName'] != null) {
+        images = await _fetchImagesFromManifest(args['folderName']);
+      }
+
+      if (images.isNotEmpty) {
+        // Urutkan gambar dari angka 1 sampai akhir secara natural (1, 2, ... 10, 11)
+        images.sort((a, b) => _naturalCompare(a, b));
+        _generateStepsFromImages(images, title.value);
       } else {
-        _generateDummySteps(title.value);
+        _generateFallbackSteps(title.value);
       }
     } else {
-      title.value = "Simpul Mati";
-      level.value = "Dasar";
-      description.value = "Berguna untuk menyambung dua utas tali yang sama besarnya dan dalam keadaan kering.";
-      _generateDummySteps("Simpul Mati");
+      // Fallback default jika halaman dibuka tanpa arguments
+      title.value = "Alpine Butterfly";
+      level.value = "Menengah";
+      description.value = "Simpul yang membentuk loop tetap di tengah tali, sangat kuat untuk beban dua arah.";
+      
+      final defaultImages = await _fetchImagesFromManifest('alpinebutterflyR');
+      if (defaultImages.isNotEmpty) {
+        defaultImages.sort((a, b) => _naturalCompare(a, b));
+        _generateStepsFromImages(defaultImages, title.value);
+      } else {
+        _generateFallbackSteps(title.value);
+      }
     }
   }
 
-  void _generateDummySteps(String knotName) {
-    // Dummy langkah-langkah jika data spesifik belum ditambahkan di database
+  // Fungsi pengurutan natural agar angka dalam string diurutkan secara numerik
+  int _naturalCompare(String a, String b) {
+    final RegExp regExp = RegExp(r'\d+');
+    final matchA = regExp.firstMatch(a);
+    final matchB = regExp.firstMatch(b);
+
+    if (matchA != null && matchB != null) {
+      final int numA = int.parse(matchA.group(0)!);
+      final int numB = int.parse(matchB.group(0)!);
+      if (numA != numB) return numA.compareTo(numB);
+    }
+    return a.compareTo(b);
+  }
+
+  // Memindai folder aset tertentu jika data allImages belum ada
+  Future<List<String>> _fetchImagesFromManifest(String folderName) async {
+    try {
+      final AssetManifest manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+      return manifest
+          .listAssets()
+          .where((path) => path.toLowerCase().contains('assets/tali/${folderName.toLowerCase()}'))
+          .toList();
+    } catch (e) {
+      debugPrint("Gagal memuat manifest di detail: $e");
+      return [];
+    }
+  }
+
+  // Mengubah daftar jalur file gambar menjadi daftar langkah (steps)
+  void _generateStepsFromImages(List<String> images, String knotName) {
+    final List<Map<String, String>> loadedSteps = [];
+    for (int i = 0; i < images.length; i++) {
+      int stepNum = i + 1;
+      loadedSteps.add({
+        "image": images[i],
+        "instruction": _getInstructionForStep(knotName, stepNum, images.length),
+      });
+    }
+    steps.assignAll(loadedSteps);
+  }
+
+  // Menghasilkan teks instruksi otomatis sesuai urutan langkah
+  String _getInstructionForStep(String knotName, int step, int totalSteps) {
+    if (step == 1) {
+      return "Langkah 1: Siapkan tali dan posisikan alur bentukan awal sesuai gambar untuk memulai pembuatan $knotName.";
+    } else if (step == totalSteps) {
+      return "Langkah $step: Tarik semua ujung tali secara perlahan dan simetris hingga simpul $knotName terkunci dengan rapi dan kuat.";
+    } else {
+      return "Langkah $step: Ikuti alur lipatan atau silangan tali seperti yang ditunjukkan pada gambar ke-$step. Pastikan posisi tali atas dan bawah tidak terbalik.";
+    }
+  }
+
+  void _generateFallbackSteps(String knotName) {
     steps.value = [
       {
-        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuArecqG3wrwE6LAtktUDpJ6VKpzpvPwU2v4oxhRM-_M570Cf79EgCSklPnQI14R8ne2urLsP7lvRpgbZdUSU9Gcljg--4eBy0bo762M_nG2cnU3M2VvcMgNh9L5X1t__R1X20-7swLnHgpvsV09agA3YYtIco4dFRL7MQpxIPNz3uBkmof8bxp2fxYZY-7OJHU_e1G--uyi5KAOU2jxzYiIWGXx6sBY8md8IpSUj-iBMTfmZWZkm4Rxm0TZGSm-zKO18i8fnzmouQI",
-        "instruction": "Langkah 1: Siapkan dua ujung tali yang ingin disambung. Pegang ujung kiri di tangan kiri dan ujung kanan di tangan kanan."
-      },
-      {
-        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuArecqG3wrwE6LAtktUDpJ6VKpzpvPwU2v4oxhRM-_M570Cf79EgCSklPnQI14R8ne2urLsP7lvRpgbZdUSU9Gcljg--4eBy0bo762M_nG2cnU3M2VvcMgNh9L5X1t__R1X20-7swLnHgpvsV09agA3YYtIco4dFRL7MQpxIPNz3uBkmof8bxp2fxYZY-7OJHU_e1G--uyi5KAOU2jxzYiIWGXx6sBY8md8IpSUj-iBMTfmZWZkm4Rxm0TZGSm-zKO18i8fnzmouQI",
-        "instruction": "Langkah 2: Silangkan ujung tali kanan di atas ujung tali kiri, lalu putar ke bawahnya hingga mengikat satu putaran dasar."
-      },
-      {
-        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuArecqG3wrwE6LAtktUDpJ6VKpzpvPwU2v4oxhRM-_M570Cf79EgCSklPnQI14R8ne2urLsP7lvRpgbZdUSU9Gcljg--4eBy0bo762M_nG2cnU3M2VvcMgNh9L5X1t__R1X20-7swLnHgpvsV09agA3YYtIco4dFRL7MQpxIPNz3uBkmof8bxp2fxYZY-7OJHU_e1G--uyi5KAOU2jxzYiIWGXx6sBY8md8IpSUj-iBMTfmZWZkm4Rxm0TZGSm-zKO18i8fnzmouQI",
-        "instruction": "Langkah 3: Sekarang ambil ujung tali yang baru, silangkan kembali. Pastikan alurnya sejajar dengan ikatan di bawahnya."
-      },
-      {
-        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuArecqG3wrwE6LAtktUDpJ6VKpzpvPwU2v4oxhRM-_M570Cf79EgCSklPnQI14R8ne2urLsP7lvRpgbZdUSU9Gcljg--4eBy0bo762M_nG2cnU3M2VvcMgNh9L5X1t__R1X20-7swLnHgpvsV09agA3YYtIco4dFRL7MQpxIPNz3uBkmof8bxp2fxYZY-7OJHU_e1G--uyi5KAOU2jxzYiIWGXx6sBY8md8IpSUj-iBMTfmZWZkm4Rxm0TZGSm-zKO18i8fnzmouQI",
-        "instruction": "Langkah 4: Tarik kedua ujung tali secara bersamaan dengan kuat. Pastikan bentuknya simetris agar simpul terkunci dengan aman."
-      },
+        "image": "assets/tali/alpinebutterflyR/1.png", // Contoh fallback aset lokal
+        "instruction": "Langkah 1: Siapkan tali untuk membuat $knotName."
+      }
     ];
   }
 
@@ -70,8 +129,7 @@ class DetailTaliController extends GetxController {
     if (currentStepIndex.value < steps.length - 1) {
       currentStepIndex.value++;
     } else {
-      // Kembali ke awal jika sudah di akhir (Loop)
-      currentStepIndex.value = 0;
+      currentStepIndex.value = 0; // Loop kembali ke awal
     }
   }
 
@@ -79,26 +137,22 @@ class DetailTaliController extends GetxController {
     if (currentStepIndex.value > 0) {
       currentStepIndex.value--;
     } else {
-      // Ke akhir jika di posisi awal
-      currentStepIndex.value = steps.length - 1;
+      currentStepIndex.value = steps.length - 1; // Ke akhir jika di awal
     }
   }
 
   void goToStep(int index) {
     currentStepIndex.value = index;
-    // Jika sedang play, biarkan play. Jika manual, biarkan manual.
   }
 
   void togglePlay() {
     isPlaying.value = !isPlaying.value;
 
     if (isPlaying.value) {
-      // Memulai auto-slide setiap 2.5 detik
       _autoPlayTimer = Timer.periodic(const Duration(milliseconds: 2500), (timer) {
         nextStep();
       });
     } else {
-      // Menghentikan auto-slide
       _autoPlayTimer?.cancel();
     }
   }

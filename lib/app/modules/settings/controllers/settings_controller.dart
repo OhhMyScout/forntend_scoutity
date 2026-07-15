@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -5,12 +6,49 @@ import '../../profile/beranda_profile/controllers/beranda_profile_controller.dar
 import '../../profile/feedback/views/feedback_view.dart';
 import '../../privacy_policy/views/privacy_policy_view.dart';
 import '../../profile/edit_profile/views/edit_profile_view.dart';
+import 'package:http/http.dart' as http;
+import '../../data/session_manager.dart';
+import '../../data/api_endpoint.dart';
 // Sesuaikan path import dengan struktur folder Anda
 import '../../reg-pembina/form_pembina/views/form_pembina_view.dart';
 
-
 class SettingsController extends GetxController {
   RxBool isNotificationActive = false.obs;
+
+  // Mengamati status pendaftaran pembina secara reaktif
+  // Nilai default awal bisa kosong '', 'pending', 'approved', atau 'none'
+  RxString statusPembina = ''.obs;
+  RxBool isLoadingStatus = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchStatusPembina(); // Ambil status pembina saat halaman settings dibuka
+  }
+
+  // Fungsi untuk mengambil status pengajuan pembina dari backend FastAPI
+  Future<void> fetchStatusPembina() async {
+    try {
+      isLoadingStatus.value = true;
+
+      // Sesuaikan endpoint ini dengan route check status di FastAPI Anda
+      // Contoh: /api/pengajuan/pembina/status/{user_id}
+      final response = await http.get(
+        Uri.parse('${ApiEndpoint.baseUrl}/pengajuan/pembina/status/${SessionManager.userId}'),
+        headers: SessionManager.apiHeader,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Misalkan backend mengembalikan field 'status': 'pending' / 'approved' / 'none'
+        statusPembina.value = data['status'] ?? 'none';
+      }
+    } catch (e) {
+      print("Error fetching pembina status: $e");
+    } finally {
+      isLoadingStatus.value = false;
+    }
+  }
 
   void toggleNotification(bool value) {
     isNotificationActive.value = value;
@@ -23,35 +61,25 @@ class SettingsController extends GetxController {
     );
   }
 
-// Pastikan Anda mengimpor file halamannya di bagian atas
-// Contoh:
-// import '../../profile/views/edit_profile_view.dart';
-// import '../../privacy/views/privacy_policy_view.dart';
-// import '../../feedback/views/feedback_view.dart';
-
   void changeProfile() {
-    // Navigasi ke halaman Ubah Profil
-    Get.to(() => const EditProfileView()); 
-    
-    // Catatan: Jika Anda menggunakan named routes di GetMaterialApp, 
-    // Anda bisa menggunakan kode ini:
-    // Get.toNamed('/edit-profile');
+    Get.to(() => const EditProfileView());
   }
 
   void openPrivacyPolicy() {
-    // Navigasi ke halaman Kebijakan & Privasi (pakai named route agar binding controller aktif)
-Get.toNamed('/privacy-policy');
+    Get.toNamed('/privacy-policy');
   }
 
   void sendFeedback() {
-    // Navigasi ke halaman Formulir Umpan Balik (pakai named route agar binding controller aktif)
     Get.toNamed('/feedback');
   }
 
-
-
-  void goToFormPembina() {
-    Get.to(() => const FormPembinaView());
+  void goToFormPembina() async {
+    // HARUS pakai Get.to agar halaman settings tidak dihancurkan
+    final result = await Get.to(() => const FormPembinaView());
+    
+    if (result == true) {
+      fetchStatusPembina();
+    }
   }
 
   Future<void> openScoutifyWebsite() async {
@@ -99,11 +127,7 @@ Get.toNamed('/privacy-policy');
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.explore,
-            size: 60,
-            color: secondaryColor.withOpacity(0.8),
-          ),
+          Icon(Icons.explore, size: 60, color: secondaryColor.withOpacity(0.8)),
           const SizedBox(height: 16),
           const Text(
             'Versi 1.0.0',
@@ -136,7 +160,10 @@ Get.toNamed('/privacy-policy');
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
         ),
         onPressed: () => Get.back(),
-        child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
+        child: const Text(
+          'Tutup',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

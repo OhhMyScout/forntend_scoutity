@@ -18,26 +18,75 @@ class BerandaSkuUserView extends GetView<BerandaSkuUserController> {
         if (controller.isLoading.value) return const Center(child: CircularProgressIndicator(color: AppTheme.secondary));
         return RefreshIndicator(
           color: AppTheme.secondary, backgroundColor: Colors.white,
-          onRefresh: () async => controller.fetchUserSkuProgress(),
+          onRefresh: () => controller.refreshDataDashboard(),
           child: ListView(
             padding: const EdgeInsets.all(20.0),
+            physics: const AlwaysScrollableScrollPhysics(),
             children: [
               // 1. DATA RINGKAS USER
               _AnimatedComponent(delay: 0, child: _buildCompactProfile()),
               const SizedBox(height: 24),
 
-              // 2. TOMBOL AKSI CEPAT (Lanjut Ujian & Form)
+              // 2. TOMBOL AKSI CEPAT (TERINTEGRASI DISABLE & PENDING STATE)
               _AnimatedComponent(delay: 100, child: _buildActionButtons()),
               const SizedBox(height: 32),
 
-              // 3. DAFTAR KARTU LEVEL
-              _AnimatedComponent(delay: 200, child: const Text("Peta Perjalanan Kecakapan", style: TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary))),
+               // 3. DAFTAR KARTU LEVEL
+              _AnimatedComponent(
+                delay: 200, 
+                child: const Text(
+                  "Peta Perjalanan Kecakapan", 
+                  style: TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary)
+                )
+              ),
               const SizedBox(height: 16),
-              _AnimatedComponent(delay: 300, child: _buildLevelCard("Penggalang Ramu", controller.idRamu, controller.progressRamu.value, true)),
-              const SizedBox(height: 16),
-              _AnimatedComponent(delay: 400, child: _buildLevelCard("Penggalang Rakit", controller.idRakit, controller.progressRakit.value, controller.isRakitUnlocked.value)),
-              const SizedBox(height: 16),
-              _AnimatedComponent(delay: 500, child: _buildLevelCard("Penggalang Terap", controller.idTerap, controller.progressTerap.value, controller.isTerapUnlocked.value)),
+
+              Obx(() {
+                // Cek apakah berkas pendaftaran SKU sudah resmi di-approve oleh Pembina
+                final bool isBerkasApproved = controller.statusPengajuanSku.value == "approved";
+
+                return Column(
+                  children: [
+                    // KARTU 1: RAMU
+                    // Hanya terbuka jika berkas administrasi pengajuan SKU sudah di-ACC Pembina
+                    _AnimatedComponent(
+                      delay: 300, 
+                      child: _buildLevelCard(
+                        "Penggalang Ramu", 
+                        controller.idRamu, 
+                        controller.progressRamu.value, 
+                        isBerkasApproved // Mengikuti status ACC berkas
+                      )
+                    ),
+                    const SizedBox(height: 16),
+
+                    // KARTU 2: RAKIT
+                    // Terbuka jika berkas di-ACC DAN progres Ramu sudah lulus (100% / >= 1.0)
+                    _AnimatedComponent(
+                      delay: 400, 
+                      child: _buildLevelCard(
+                        "Penggalang Rakit", 
+                        controller.idRakit, 
+                        controller.progressRakit.value, 
+                        isBerkasApproved && controller.isRakitUnlocked.value
+                      )
+                    ),
+                    const SizedBox(height: 16),
+
+                    // KARTU 3: TERAP
+                    // Terbuka jika berkas di-ACC DAN progres Rakit sudah lulus (100% / >= 1.0)
+                    _AnimatedComponent(
+                      delay: 500, 
+                      child: _buildLevelCard(
+                        "Penggalang Terap", 
+                        controller.idTerap, 
+                        controller.progressTerap.value, 
+                        isBerkasApproved && controller.isTerapUnlocked.value
+                      )
+                    ),
+                  ],
+                );
+              }),
             ],
           ),
         );
@@ -48,7 +97,7 @@ class BerandaSkuUserView extends GetView<BerandaSkuUserController> {
   Widget _buildCompactProfile() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5))]),
+      decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))]),
       child: Row(
         children: [
           CircleAvatar(
@@ -80,33 +129,57 @@ class BerandaSkuUserView extends GetView<BerandaSkuUserController> {
   }
 
   Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: controller.goToFormPengajuan,
-            icon: const Icon(Icons.edit_document), label: const Text("Form Pengajuan"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white, foregroundColor: AppTheme.secondary,
-              elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppTheme.secondary, width: 1.5)),
+    return Obx(() {
+      // KONDISI PENDING: Pengajuan Sedang Menunggu Validasi Verifikasi Pembina
+      if (controller.statusPengajuanSku.value == "pending") {
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade400, width: 1.5)
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 18, width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                "Menunggu Verifikasi SKU (${controller.tingkatPengajuanSku.value})",
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      // KONDISI DEFAULT ACTIVE: Jika Status Pendaftaran Belum Ada ('none') / Ditolak ('rejected')
+      return Row(
+        children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: controller.goToFormPengajuan,
+              icon: const Icon(Icons.edit_document), 
+              label: const Text("Form Pengajuan SKU", style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white, foregroundColor: AppTheme.secondary,
+                elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppTheme.secondary, width: 1.5)),
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: controller.lanjutUjian,
-            icon: const Icon(Icons.play_arrow_rounded), label: const Text("Lanjut Ujian"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.secondary, foregroundColor: Colors.white,
-              elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-          ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   Widget _buildLevelCard(String title, String levelId, double progress, bool isUnlocked) {

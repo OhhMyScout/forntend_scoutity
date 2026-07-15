@@ -19,8 +19,6 @@ import '../modules/berita/tabel_berita_paling_populer/bindings/tabel_berita_pali
 import '../modules/berita/tabel_berita_paling_populer/views/tabel_berita_paling_populer_view.dart';
 import '../modules/berita/tabel_berita_provinsi/bindings/tabel_berita_provinsi_binding.dart';
 import '../modules/berita/tabel_berita_provinsi/views/tabel_berita_provinsi_view.dart';
-import '../modules/reg-pembina/daftar_pembina/bindings/daftar_pembina_binding.dart';
-import '../modules/reg-pembina/daftar_pembina/views/daftar_pembina_view.dart';
 import '../modules/deteksi/alfabet_semaphore/bindings/alfabet_semaphore_binding.dart';
 import '../modules/deteksi/alfabet_semaphore/views/alfabet_semaphore_view.dart';
 import '../modules/deteksi/semaphore_detect/bindings/semaphore_detect_binding.dart';
@@ -33,8 +31,6 @@ import '../modules/edukasi/detail_morse/bindings/detail_morse_binding.dart';
 import '../modules/edukasi/detail_morse/views/detail_morse_view.dart';
 import '../modules/edukasi/sejarah_pramuka/bindings/sejarah_pramuka_binding.dart';
 import '../modules/edukasi/sejarah_pramuka/views/sejarah_pramuka_view.dart';
-import '../modules/reg-pembina/form_pembina/bindings/form_pembina_binding.dart';
-import '../modules/reg-pembina/form_pembina/views/form_pembina_view.dart';
 import '../modules/games/beranda_game/bindings/beranda_game_binding.dart';
 import '../modules/games/beranda_game/views/beranda_game_view.dart';
 import '../modules/games/kotak1_challenge/bindings/kotak1_challenge_binding.dart';
@@ -51,12 +47,18 @@ import '../modules/info_logs/bindings/info_logs_binding.dart';
 import '../modules/info_logs/views/info_logs_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
+import '../uji_sku/pembina/penilaian_sku/bindings/penilaian_sku_binding.dart';
+import '../uji_sku/pembina/penilaian_sku/views/penilaian_sku_view.dart';
 import '../modules/profile/beranda_profile/bindings/beranda_profile_binding.dart';
 import '../modules/profile/beranda_profile/views/beranda_profile_view.dart';
 import '../modules/profile/edit_profile/bindings/edit_profile_binding.dart';
 import '../modules/profile/edit_profile/views/edit_profile_view.dart';
 import '../modules/profile/feedback/bindings/feedback_binding.dart';
 import '../modules/profile/feedback/views/feedback_view.dart';
+import '../modules/reg-pembina/daftar_pembina/bindings/daftar_pembina_binding.dart';
+import '../modules/reg-pembina/daftar_pembina/views/daftar_pembina_view.dart';
+import '../modules/reg-pembina/form_pembina/bindings/form_pembina_binding.dart';
+import '../modules/reg-pembina/form_pembina/views/form_pembina_view.dart';
 import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/settings_view.dart';
 import '../modules/survival/beranda_survival/bindings/beranda_survival_binding.dart';
@@ -429,6 +431,11 @@ class AppPages {
       name: _Paths.FORM_PEMBINA,
       page: () => const FormPembinaView(),
       binding: FormPembinaBinding(),
+    ),
+    GetPage(
+      name: _Paths.PENILAIAN_SKU,
+      page: () => const PenilaianSkuView(),
+      binding: PenilaianSkuBinding(),
     ),
   ];
 }

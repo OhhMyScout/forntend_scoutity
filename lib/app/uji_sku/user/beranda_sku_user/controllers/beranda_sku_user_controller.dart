@@ -8,6 +8,7 @@ import '../../../../modules/data/api_endpoint.dart';
 
 class BerandaSkuUserController extends GetxController {
   var isLoading = true.obs;
+  var isLoadingStatus = false.obs;
 
   // Data User
   var userName = "".obs;
@@ -22,6 +23,10 @@ class BerandaSkuUserController extends GetxController {
   var isRakitUnlocked = false.obs;
   var isTerapUnlocked = false.obs;
 
+  // Mengamati Status Pengajuan SKU dari Server ('pending', 'approved', 'rejected', atau 'none')
+  var statusPengajuanSku = "none".obs;
+  var tingkatPengajuanSku = "".obs;
+
   final String idRamu = "11111111-1111-1111-1111-111111111111";
   final String idRakit = "22222222-2222-2222-2222-222222222222";
   final String idTerap = "33333333-3333-3333-3333-333333333333";
@@ -30,13 +35,43 @@ class BerandaSkuUserController extends GetxController {
   void onInit() {
     super.onInit();
     _loadUserData();
-    fetchUserSkuProgress();
+    refreshDataDashboard();
   }
 
   void _loadUserData() {
     userName.value = SessionManager.fullname.isNotEmpty ? SessionManager.fullname : SessionManager.username;
     userImage.value = SessionManager.image;
     userPoints.value = SessionManager.points;
+  }
+
+  // Fungsi wrapper untuk memuat seluruh data secara simultan
+  Future<void> refreshDataDashboard() async {
+    await Future.wait([
+      fetchUserSkuProgress(),
+      fetchStatusPengajuanSku(),
+    ]);
+  }
+
+  Future<void> fetchStatusPengajuanSku() async {
+    try {
+      isLoadingStatus(true);
+      
+      // PERBAIKAN: Menggunakan ApiEndpoint.skuStatus secara rapi tanpa hardcoded string
+      final response = await http.get(
+        Uri.parse(ApiEndpoint.skuStatus(SessionManager.userId)),
+        headers: SessionManager.apiHeader,
+      );
+
+      if (response.statusCode == 200) {
+        final resData = json.decode(response.body);
+        statusPengajuanSku.value = resData['status'] ?? 'none';
+        tingkatPengajuanSku.value = resData['tingkat'] ?? '';
+      }
+    } catch (e) {
+      print("Error fetchStatusPengajuanSku: $e");
+    } finally {
+      isLoadingStatus(false);
+    }
   }
 
   Future<void> fetchUserSkuProgress() async {
@@ -46,7 +81,7 @@ class BerandaSkuUserController extends GetxController {
       var results = await Future.wait([
         http.get(Uri.parse(ApiEndpoint.skuProgress(userId, idRamu)), headers: SessionManager.apiHeader),
         http.get(Uri.parse(ApiEndpoint.skuProgress(userId, idRakit)), headers: SessionManager.apiHeader),
-        http.get(Uri.parse(ApiEndpoint.skuProgress(userId, idTerap)), headers: SessionManager.apiHeader),
+        http.get(Uri.parse(ApiEndpoint.skuProgress(userId, idTerap)), headers: SessionManager.apiHeader), // Memperbaiki struktur pembungkusan Uri
       ]);
 
       if (results[0].statusCode == 200) progressRamu.value = (json.decode(results[0].body)['total_diselesaikan'] ?? 0) / 30.0;
@@ -56,29 +91,21 @@ class BerandaSkuUserController extends GetxController {
       if (progressRamu.value >= 1.0) isRakitUnlocked.value = true;
       if (progressRakit.value >= 1.0) isTerapUnlocked.value = true;
     } catch (e) {
-      Get.snackbar("Gangguan", "Gagal memuat progress ujian.", backgroundColor: const Color(0xFFBA1A1A).withValues(alpha: 0.9), colorText: Colors.white);
+      Get.snackbar("Gangguan", "Gagal memuat progress ujian.", backgroundColor: const Color(0xFFBA1A1A).withOpacity(0.9), colorText: Colors.white);
     } finally {
       isLoading(false);
     }
   }
 
-  void goToFormPengajuan() {
-    Get.toNamed('/form-pengajuan-page'); // Pastikan rute ini didaftarkan!
-  }
-
-  void lanjutUjian() {
-    // Logika cerdas: Lanjut ke level yang sedang aktif
-    String targetId = idRamu;
-    String targetTitle = "Penggalang Ramu";
-
-    if (progressRamu.value >= 1.0 && progressRakit.value < 1.0) {
-      targetId = idRakit;
-      targetTitle = "Penggalang Rakit";
-    } else if (progressRakit.value >= 1.0) {
-      targetId = idTerap;
-      targetTitle = "Penggalang Terap";
+  // Mengubah navigasi agar menunggu feedback dari Form saat user sukses submit
+  void goToFormPengajuan() async {
+    // Membuka form menggunakan named route
+    final result = await Get.toNamed('/form-pengajuan-page');
+    
+    // Jika FormPengajuan sukses mengembalikan data true, refresh dashboard otomatis
+    if (result == true) {
+      refreshDataDashboard();
     }
-
-    Get.toNamed('/detail-sku-user', arguments: {'level_id': targetId, 'title': targetTitle});
   }
+
 }

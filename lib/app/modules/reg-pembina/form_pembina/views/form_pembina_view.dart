@@ -45,198 +45,194 @@ class FormPembinaView extends StatelessWidget {
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        physics: const BouncingScrollPhysics(),
-        child: Form(
-          key: controller.formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _AnimatedFormItem(
-                delay: 0,
-                child: const Text(
-                  'Lengkapi Data Diri',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor),
-                ),
-              ),
-              _AnimatedFormItem(
-                delay: 100,
-                child: const Padding(
-                  padding: EdgeInsets.only(top: 8, bottom: 32),
-                  child: Text(
-                    'Mari bergabung menjadi pembina. Pastikan data yang dimasukkan valid.',
-                    style: TextStyle(color: Color(0xFF504442)),
-                  ),
-                ),
-              ),
-
-              /// DATA PRIBADI
-              _AnimatedFormItem(
-                delay: 200,
-                child: _buildInputField(
-                  controller: controller.namaController,
-                  label: 'Nama Lengkap & Gelar',
-                  icon: Icons.person,
-                  backgroundColor: backgroundColor,
-                  validator: (value) => value!.isEmpty ? 'Wajib diisi' : null,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              _AnimatedFormItem(
-                delay: 300,
-                child: _buildInputField(
-                  controller: controller.emailController,
-                  label: 'Alamat Email',
-                  icon: Icons.email,
-                  backgroundColor: backgroundColor,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) => !GetUtils.isEmail(value ?? '') ? 'Email tidak valid' : null,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              _AnimatedFormItem(
-                delay: 400,
-                child: _buildInputField(
-                  controller: controller.noHpController,
-                  label: 'Nomor Handphone / WA',
-                  icon: Icons.phone,
-                  backgroundColor: backgroundColor,
-                  keyboardType: TextInputType.phone,
-                  validator: (value) => value!.isEmpty ? 'Wajib diisi' : null,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              /// DATA SEKOLAH & GUDEP
-              _AnimatedFormItem(
-                delay: 500,
-                child: _buildInputField(
-                  controller: controller.sekolahController,
-                  label: 'Asal Sekolah (Pangkalan)',
-                  icon: Icons.school,
-                  backgroundColor: backgroundColor,
-                  validator: (value) => value!.isEmpty ? 'Wajib diisi' : null,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              _AnimatedFormItem(
-                delay: 600,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildInputField(
-                        controller: controller.gudepPaController,
-                        label: 'Gudep Putra',
-                        icon: Icons.boy,
-                        backgroundColor: backgroundColor,
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildInputField(
-                        controller: controller.gudepPiController,
-                        label: 'Gudep Putri',
-                        icon: Icons.girl,
-                        backgroundColor: backgroundColor,
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              /// UPLOAD FOTO
-              _AnimatedFormItem(
-                delay: 700,
-                child: _buildUploadBox(
-                  title: 'Unggah Foto Pramuka Lengkap',
-                  subtitle: '*Gunakan background asal sekolah',
-                  icon: Icons.camera_alt,
-                  backgroundColor: backgroundColor,
-                  onTap: controller.pickFoto,
-                  fileNameWatcher: controller.fotoPath,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              /// UPLOAD DOKUMEN
-              _AnimatedFormItem(
-                delay: 800,
-                child: _buildUploadBox(
-                  title: 'Dokumen Pendukung',
-                  subtitle: '*Format PDF/JPG maksimal 5MB',
-                  icon: Icons.upload_file,
-                  backgroundColor: backgroundColor,
-                  onTap: controller.pickDokumen,
-                  fileNameWatcher: controller.dokumenPath,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              /// SYARAT & KETENTUAN
-              _AnimatedFormItem(
-                delay: 900,
-                child: Row(
+      body: Obx(() => Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              physics: const BouncingScrollPhysics(),
+              child: Form(
+                key: controller.formKey,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Obx(
-                      () => Checkbox(
-                        value: controller.isTermsAccepted.value,
-                        onChanged: controller.toggleTerms,
-                        activeColor: secondaryColor,
+                    const _AnimatedFormItem(
+                      delay: 0,
+                      child: Text(
+                        'Lengkapi Data Diri',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor),
                       ),
                     ),
-                    const Expanded(
+                    const _AnimatedFormItem(
+                      delay: 100,
                       child: Padding(
-                        padding: EdgeInsets.only(top: 10.0),
+                        padding: EdgeInsets.only(top: 8, bottom: 32),
                         child: Text(
-                          'Saya menyatakan bahwa data yang diisi adalah benar dan menyetujui seluruh syarat & ketentuan yang berlaku.',
-                          style: TextStyle(color: primaryColor, fontSize: 13),
+                          'Mari bergabung menjadi pembina. Pastikan data yang dimasukkan valid.',
+                          style: TextStyle(color: Color(0xFF504442)),
                         ),
                       ),
                     ),
+
+                    /// DATA PRIBADI (Readonly/Disabled karena otomatis dari Session)
+                    _AnimatedFormItem(
+                      delay: 200,
+                      child: _buildInputField(
+                        controller: controller.namaController,
+                        label: 'Nama Lengkap & Gelar',
+                        icon: Icons.person,
+                        backgroundColor: backgroundColor,
+                        enabled: false, // Dikunci karena bawaan akun
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    _AnimatedFormItem(
+                      delay: 300,
+                      child: _buildInputField(
+                        controller: controller.emailController,
+                        label: 'Alamat Email',
+                        icon: Icons.email,
+                        backgroundColor: backgroundColor,
+                        enabled: false, // Dikunci karena bawaan akun
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    _AnimatedFormItem(
+                      delay: 400,
+                      child: _buildInputField(
+                        controller: controller.noHpController,
+                        label: 'Nomor Handphone / WA',
+                        icon: Icons.phone,
+                        backgroundColor: backgroundColor,
+                        keyboardType: TextInputType.phone,
+                        validator: (value) => value!.isEmpty ? 'Wajib diisi' : null,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    /// DATA SEKOLAH & GUDEP
+                    _AnimatedFormItem(
+                      delay: 500,
+                      child: _buildInputField(
+                        controller: controller.sekolahController,
+                        label: 'Asal Sekolah (Pangkalan)',
+                        icon: Icons.school,
+                        backgroundColor: backgroundColor,
+                        validator: (value) => value!.isEmpty ? 'Wajib diisi' : null,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    _AnimatedFormItem(
+                      delay: 600,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildInputField(
+                              controller: controller.gudepPaController,
+                              label: 'Gudep Putra',
+                              icon: Icons.boy,
+                              backgroundColor: backgroundColor,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildInputField(
+                              controller: controller.gudepPiController,
+                              label: 'Gudep Putri',
+                              icon: Icons.girl,
+                              backgroundColor: backgroundColor,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    /// UPLOAD FOTO DENGAN PREVIEW
+                    _AnimatedFormItem(
+                      delay: 700,
+                      child: _buildUploadBox(
+                        title: 'Unggah Foto Pramuka Lengkap',
+                        subtitle: '*Gunakan background asal sekolah',
+                        icon: Icons.camera_alt,
+                        backgroundColor: backgroundColor,
+                        onTap: controller.pickFoto,
+                        controller: controller,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    /// SYARAT & KETENTUAN
+                    _AnimatedFormItem(
+                      delay: 800,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Checkbox(
+                            value: controller.isTermsAccepted.value,
+                            onChanged: controller.toggleTerms,
+                            activeColor: secondaryColor,
+                          ),
+                          const Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(top: 10.0),
+                              child: Text(
+                                'Saya menyatakan bahwa data yang diisi adalah benar dan menyetujui seluruh syarat & ketentuan yang berlaku.',
+                                style: TextStyle(color: primaryColor, fontSize: 13),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+
+                    /// TOMBOL SUBMIT
+                    _AnimatedFormItem(
+                      delay: 900,
+                      child: GestureDetector(
+                        onTap: controller.isLoading.value ? null : controller.submitForm,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: _embossedDecoration(backgroundColor),
+                          child: Center(
+                            child: Text(
+                              controller.isLoading.value ? 'Mengirim...' : 'Kirim Pendaftaran',
+                              style: const TextStyle(
+                                color: secondaryColor,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
-              const SizedBox(height: 40),
-
-              /// TOMBOL SUBMIT
-              _AnimatedFormItem(
-                delay: 1000,
-                child: GestureDetector(
-                  onTap: controller.submitForm,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: _embossedDecoration(backgroundColor),
-                    child: const Center(
-                      child: Text(
-                        'Kirim Pendaftaran',
-                        style: TextStyle(
-                          color: secondaryColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
+            ),
+            
+            // Indikator Loading Overlay
+            if (controller.isLoading.value)
+              Container(
+                color: Colors.black26,
+                child: const Center(
+                  child: CircularProgressIndicator(color: secondaryColor),
                 ),
-              ),
-              const SizedBox(height: 40),
-            ],
-          ),
+              )
+          ],
         ),
       ),
     );
   }
 
-  // Helper widget untuk input form bergaya timbul
   Widget _buildInputField({
     required TextEditingController controller,
     required String label,
@@ -244,6 +240,7 @@ class FormPembinaView extends StatelessWidget {
     required Color backgroundColor,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
+    bool enabled = true,
   }) {
     return Container(
       decoration: _embossedDecoration(backgroundColor),
@@ -251,9 +248,12 @@ class FormPembinaView extends StatelessWidget {
         controller: controller,
         keyboardType: keyboardType,
         validator: validator,
+        enabled: enabled,
+        style: TextStyle(color: enabled ? Colors.black87 : Colors.black45),
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: const Color(0xFF7D562D)),
+          labelStyle: TextStyle(color: enabled ? const Color(0xFF7D562D) : Colors.black45),
+          prefixIcon: Icon(icon, color: enabled ? const Color(0xFF7D562D) : Colors.black45),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
@@ -261,14 +261,14 @@ class FormPembinaView extends StatelessWidget {
     );
   }
 
-  // Helper widget untuk kotak upload file/foto
+  // Widget Upload Box yang mendukung Preview File Lokal
   Widget _buildUploadBox({
     required String title,
     required String subtitle,
     required IconData icon,
     required Color backgroundColor,
     required VoidCallback onTap,
-    required RxString fileNameWatcher,
+    required FormPembinaController controller,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -278,20 +278,36 @@ class FormPembinaView extends StatelessWidget {
         decoration: _embossedDecoration(backgroundColor),
         child: Column(
           children: [
-            Icon(icon, size: 40, color: const Color(0xFF7D562D)),
-            const SizedBox(height: 12),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF361F1A))),
-            Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF504442))),
-            const SizedBox(height: 8),
-            Obx(
-              () => fileNameWatcher.value.isNotEmpty
-                  ? Text(
-                      'Terpilih: ${fileNameWatcher.value}',
-                      style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13),
-                      textAlign: TextAlign.center,
-                    )
-                  : const SizedBox.shrink(),
-            ),
+            if (controller.fotoFile.value != null) ...[
+              // PREVIEW DARI IMAGE FILE LOKAL
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.file(
+                  controller.fotoFile.value!,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 18),
+                  SizedBox(width: 6),
+                  Text(
+                    'Foto Berhasil Dimuat (Ketuk untuk ganti)',
+                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ],
+              )
+            ] else ...[
+              // TAMPILAN DEFAULT JIKA BELUM ADA FILE YANG DIPILIH
+              Icon(icon, size: 40, color: const Color(0xFF7D562D)),
+              const SizedBox(height: 12),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF361F1A))),
+              Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF504442))),
+            ],
           ],
         ),
       ),
@@ -299,7 +315,6 @@ class FormPembinaView extends StatelessWidget {
   }
 }
 
-/// Widget Khusus untuk Animasi Staggered Slide & Fade in
 class _AnimatedFormItem extends StatelessWidget {
   final Widget child;
   final int delay;
@@ -310,14 +325,13 @@ class _AnimatedFormItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
-      // Durasi animasi + delay agar muncul berurutan (staggered)
-      duration: Duration(milliseconds: 600 + delay),
+      duration: Duration(milliseconds: 500 + delay),
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {
         return Opacity(
           opacity: value.clamp(0.0, 1.0),
           child: Transform.translate(
-            offset: Offset(0, 30 * (1 - value)), // Meluncur dari bawah ke atas
+            offset: Offset(0, 25 * (1 - value)),
             child: child,
           ),
         );

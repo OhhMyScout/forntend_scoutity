@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-// Sesuaikan path jika letak folder data kamu berbeda level
 import '../../../../modules/data/session_manager.dart';
 import '../../../../modules/data/api_endpoint.dart';
 import '../../../../modules/theme/theme.dart';
@@ -18,13 +17,15 @@ class DetailSkuUserController extends GetxController {
   var skuMasterList = [].obs;
   var userProgressList = [].obs;
 
+  // State untuk Fitur Search & Filter Tambahan
+  var searchQuery = "".obs;
+  var selectedFilter = "Semua".obs; // Pilihan: "Semua", "Lulus", "Menunggu Verifikasi", "Belum Uji"
+
   @override
   void onInit() {
     super.onInit();
-    // Mengambil argumen dari routing Get.toNamed()
     levelId.value = Get.arguments?['level_id'] ?? "";
     title.value = Get.arguments?['title'] ?? "Buku Saku SKU";
-    
     fetchData();
   }
 
@@ -32,14 +33,10 @@ class DetailSkuUserController extends GetxController {
     isLoading(true);
     try {
       String userId = SessionManager.userId;
-      // Catatan: Jika ada data Agama di profil user, bisa diambil dari SessionManager. 
-      // Untuk sementara kita gunakan default "Umum" atau "Islam" (API akan mengembalikan Umum + Agama Terkait)
-      String agamaUser = "Islam"; 
 
-      // 1. Ambil Master Data Soal dan Progress secara bersamaan (Concurrent)
       var results = await Future.wait([
         http.get(
-          Uri.parse('${ApiEndpoint.skuMaster}/${levelId.value}?agama=$agamaUser'), 
+          Uri.parse('${ApiEndpoint.skuMaster}/${levelId.value}'), 
           headers: SessionManager.apiHeader
         ),
         http.get(
@@ -48,23 +45,20 @@ class DetailSkuUserController extends GetxController {
         ),
       ]);
 
-      // 2. Mapping Data Soal
       if (results[0].statusCode == 200) {
         var dataMaster = json.decode(results[0].body);
         skuMasterList.value = dataMaster['data'] ?? [];
       }
 
-      // 3. Mapping Progress User
       if (results[1].statusCode == 200) {
         var dataProgress = json.decode(results[1].body);
         userProgressList.value = dataProgress['data'] ?? [];
       }
-
     } catch (e) {
       Get.snackbar(
         "Koneksi Terputus", 
         "Gagal memuat daftar tugas SKU.",
-        backgroundColor: AppTheme.errorColor.withValues(alpha: 0.9),
+        backgroundColor: AppTheme.errorColor.withOpacity(0.9),
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -73,7 +67,6 @@ class DetailSkuUserController extends GetxController {
     }
   }
 
-  // Fungsi untuk mendapatkan status suatu poin SKU
   String getStatusPoin(String skuId) {
     var progress = userProgressList.firstWhere(
       (p) => p['uji_sku_id'] == skuId, 
@@ -83,21 +76,54 @@ class DetailSkuUserController extends GetxController {
     return progress['status'] ?? "Belum Diuji";
   }
 
-  // Fungsi untuk mengirim Pengajuan Ujian ke API
+  // =========================================================
+  // LOGIKA FILTER & SEARCH REAKTIF (COMPUTED LIST)
+  // =========================================================
+  List<dynamic> get filteredSkuMasterList {
+    return skuMasterList.where((soal) {
+      // 1. Filter Berdasarkan Text Search (Mencari nomor poin atau isi deskripsi)
+      final String deskripsi = (soal['deskripsi'] ?? "").toString().toLowerCase();
+      final String nomorPoin = (soal['nomor_poin'] ?? "").toString();
+      final String query = searchQuery.value.toLowerCase();
+      
+      final bool matchesSearch = deskripsi.contains(query) || nomorPoin.contains(query);
+
+      if (!matchesSearch) return false;
+
+      // 2. Filter Berdasarkan Pilihan Tab Status
+      final String status = getStatusPoin(soal['id']);
+      
+      switch (selectedFilter.value) {
+        case "Lulus":
+          return status == "Selesai";
+        case "Menunggu Verifikasi":
+          return status == "Menunggu Validasi";
+        case "Belum Uji":
+          return status == "Belum Diuji" || status == "Revisi";
+        case "Semua":
+        default:
+          return true;
+      }
+    }).toList();
+  }
+
   Future<void> ajukanUjian(String skuId, String buktiUrl) async {
     isSubmitting(true);
-    Get.back(); // Tutup dialog input terlebih dahulu
+    Get.back(); // Tutup dialog input
 
-    // Munculkan indikator loading (non-dismissible)
     Get.dialog(
       const Center(child: CircularProgressIndicator(color: AppTheme.secondary)), 
       barrierDismissible: false
     );
 
     try {
+      // PERHATIKAN: Pastikan endpoint mengarah ke '/api/uji-sku/ajukan'
       final response = await http.post(
-        Uri.parse(ApiEndpoint.skuAjukan),
-        headers: SessionManager.apiHeader,
+        Uri.parse(ApiEndpoint.skuAjukan), 
+        headers: {
+          ...SessionManager.apiHeader,
+          'Content-Type': 'application/json', // Wajib sertakan content-type agar Pydantic lancar membaca
+        },
         body: json.encode({
           "user_id": SessionManager.userId,
           "uji_sku_id": skuId,
@@ -105,33 +131,40 @@ class DetailSkuUserController extends GetxController {
         }),
       );
 
-      Get.back(); // Tutup indikator loading
+      Get.back(); // Tutup loading
+
+      final resData = json.decode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.snackbar(
           "Berhasil!", 
-          "Laporanmu sudah diserahkan ke Kakak Pembina.",
-          backgroundColor: Colors.green.withValues(alpha: 0.9),
+          resData['message'] ?? "Laporanmu sudah diserahkan ke Kakak Pembina.",
+          backgroundColor: Colors.green.withOpacity(0.9),
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,
         );
-        // Refresh data agar statusnya berubah menjadi "Menunggu Validasi"
-        fetchData(); 
+        fetchData(); // Muat ulang data halaman agar status kartu berubah
       } else {
-        var error = json.decode(response.body);
+        // Mencegah crash jika error terlempar dari skema FastAPI
+        String pesanGagal = "Terjadi kesalahan sistem.";
+        if (resData['detail'] != null) {
+          pesanGagal = resData['detail']['message'] ?? resData['detail'].toString();
+        }
+        
         Get.snackbar(
           "Gagal Mengajukan", 
-          error['detail']['message'] ?? "Terjadi kesalahan sistem.",
-          backgroundColor: AppTheme.errorColor.withValues(alpha: 0.9),
+          pesanGagal,
+          backgroundColor: AppTheme.errorColor.withOpacity(0.9),
           colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.back(); // Tutup indikator loading
+      Get.back(); // Jaga-jaga tutup loading jika error client-side
+      print("Error saat kirim berkas: $e");
       Get.snackbar(
-        "Error", 
-        "Cek kembali koneksi internetmu.",
-        backgroundColor: AppTheme.errorColor.withValues(alpha: 0.9),
+        "Gangguan Sistem", 
+        "Terjadi kesalahan koneksi lokal aplikasi Anda.",
+        backgroundColor: AppTheme.errorColor.withOpacity(0.9),
         colorText: Colors.white,
       );
     } finally {
